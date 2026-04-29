@@ -1,0 +1,662 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  FileText,
+  Loader2,
+  Moon,
+  Search,
+  Sun,
+  TrendingUp,
+  Users,
+  XCircle,
+} from "lucide-react";
+import { useTheme } from "@/components/theme-provider";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  fetchApprovedMaterials,
+  fetchPendingMaterials,
+  updateMaterialStatus,
+  type StudyMaterial,
+} from "@/services/study-service";
+import { buildApiUrl, parseApiData } from "@/services/api";
+import { cn } from "@/lib/utils";
+
+interface AdminStats {
+  totalUsers: number;
+  newUsers: number;
+  totalResources: number;
+  newResources: number;
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [pendingMaterials, setPendingMaterials] = useState<StudyMaterial[]>([]);
+  const [approvedMaterials, setApprovedMaterials] = useState<StudyMaterial[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          return;
+        }
+
+        const statsRequest = fetch(buildApiUrl("/admin/stats"), {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(async (res) => {
+          const data = await res.json();
+          if (res.ok && data.success) {
+            setStats(parseApiData(data, null));
+          }
+        });
+
+        await Promise.all([statsRequest, loadMaterials()]);
+      } catch (error) {
+        console.error("Failed to load admin dashboard", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadDashboardData();
+  }, []);
+
+  const loadMaterials = async () => {
+    const pending = await fetchPendingMaterials();
+    const approved = await fetchApprovedMaterials();
+    setPendingMaterials(pending);
+    setApprovedMaterials(approved);
+  };
+
+  const handleStatusUpdate = async (
+    id: string,
+    status: "approved" | "rejected",
+  ) => {
+    const result = await updateMaterialStatus(id, status);
+    if (result) {
+      await loadMaterials();
+    }
+  };
+
+  const filterMaterials = (materials: StudyMaterial[]) => {
+    if (!searchQuery.trim()) {
+      return materials;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return materials.filter((material) => {
+      return (
+        material.title.toLowerCase().includes(query) ||
+        material.author.toLowerCase().includes(query) ||
+        material.subject.toLowerCase().includes(query)
+      );
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <div className="space-y-3 text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            Loading the admin workspace...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const pendingCount = pendingMaterials.length;
+  const approvedCount = approvedMaterials.length;
+  const totalReviewed = pendingCount + approvedCount;
+  const approvalRate = totalReviewed
+    ? Math.round((approvedCount / totalReviewed) * 100)
+    : 0;
+  const filteredPending = filterMaterials(pendingMaterials);
+  const filteredApproved = filterMaterials(approvedMaterials);
+
+  const statCards = [
+    {
+      title: "Total users",
+      value: formatValue(stats?.totalUsers ?? 0),
+      detail: `+${stats?.newUsers ?? 0} new this week`,
+      icon: Users,
+    },
+    {
+      title: "Published resources",
+      value: formatValue(stats?.totalResources ?? 0),
+      detail: `+${stats?.newResources ?? 0} recently added`,
+      icon: FileText,
+    },
+    {
+      title: "Approval rate",
+      value: `${approvalRate}%`,
+      detail: `${approvedCount} approved items`,
+      icon: CheckCircle2,
+    },
+    {
+      title: "Open queue",
+      value: formatValue(pendingCount),
+      detail: pendingCount === 0 ? "Nothing waiting right now" : "Needs review",
+      icon: Clock3,
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <Card className="overflow-hidden border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,var(--color-amber-50))_0%,var(--card)_55%,color-mix(in_srgb,var(--card)_90%,var(--color-stone-100))_100%)]">
+          <CardHeader className="space-y-4 pb-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="rounded-full px-2.5" variant="outline">
+                Admin dashboard
+              </Badge>
+              <Badge className="rounded-full px-2.5" variant="secondary">
+                Notion-inspired refresh
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              <CardTitle className="text-3xl leading-tight sm:text-4xl">
+                A calmer command center for approvals, students, and content.
+              </CardTitle>
+              <CardDescription className="max-w-2xl text-sm leading-6">
+                The admin workspace now uses the shared UI kit, softer spacing,
+                and clearer hierarchy so common tasks feel lighter and faster to
+                scan.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Button asChild>
+                <Link to="/admin/approvals">
+                  Review submissions
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/admin/students">Manage students</Link>
+              </Button>
+              <Button asChild variant="ghost">
+                <Link to="/admin/settings">Open settings</Link>
+              </Button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <QuickFact
+                label="Pending reviews"
+                value={String(pendingCount)}
+                tone="warning"
+              />
+              <QuickFact
+                label="Approved content"
+                value={String(approvedCount)}
+                tone="success"
+              />
+              <QuickFact
+                label="Workspace pulse"
+                value={pendingCount > 0 ? "Active" : "Quiet"}
+                tone="info"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <ThemeCard currentTheme={theme} onThemeChange={setTheme} />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {statCards.map((stat) => (
+          <Card key={stat.title} className="border-border/70">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardDescription>{stat.title}</CardDescription>
+                  <CardTitle className="mt-2 text-3xl">{stat.value}</CardTitle>
+                </div>
+                <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
+                  <stat.icon className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm text-muted-foreground">{stat.detail}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <Card className="border-border/70">
+          <CardHeader className="gap-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <CardTitle>Content approvals</CardTitle>
+                <CardDescription>
+                  Review uploads, search by title or author, and keep the queue
+                  moving.
+                </CardDescription>
+              </div>
+              <InputGroup className="w-full md:max-w-xs">
+                <InputGroupAddon>
+                  <Search aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  type="search"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search content..."
+                  value={searchQuery}
+                />
+              </InputGroup>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <Tabs className="space-y-4" defaultValue="pending">
+              <TabsList className="w-full justify-start rounded-xl bg-secondary/80 p-1 sm:w-auto">
+                <TabsTrigger className="rounded-lg" value="pending">
+                  Pending
+                  <Badge className="ml-2 rounded-full px-2" variant="warning">
+                    {pendingCount}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger className="rounded-lg" value="approved">
+                  Approved
+                  <Badge className="ml-2 rounded-full px-2" variant="success">
+                    {approvedCount}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pending">
+                <MaterialTable
+                  emptyIcon={Clock3}
+                  emptyMessage="No submissions are waiting right now."
+                  materials={filteredPending}
+                  onApprove={(id) => handleStatusUpdate(id, "approved")}
+                  onReject={(id) => handleStatusUpdate(id, "rejected")}
+                  showActions
+                />
+              </TabsContent>
+
+              <TabsContent value="approved">
+                <MaterialTable
+                  emptyIcon={CheckCircle2}
+                  emptyMessage="Approved content will appear here."
+                  materials={filteredApproved}
+                  showActions={false}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-4">
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle className="text-lg">Queue snapshot</CardTitle>
+              <CardDescription>
+                A quick read on what needs attention next.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <MetricRow
+                icon={TrendingUp}
+                label="Approval throughput"
+                tone="success"
+                value={`${approvalRate}%`}
+              />
+              <MetricRow
+                icon={BarChart3}
+                label="Resources added"
+                tone="info"
+                value={String(stats?.newResources ?? 0)}
+              />
+              <MetricRow
+                icon={Clock3}
+                label="Awaiting review"
+                tone="warning"
+                value={String(pendingCount)}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70">
+            <CardHeader>
+              <CardTitle className="text-lg">Quick actions</CardTitle>
+              <CardDescription>
+                Jump straight into the most common admin tasks.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <QuickLink
+                description="Review recent uploads and moderate submissions."
+                to="/admin/approvals"
+              >
+                Open approvals
+              </QuickLink>
+              <QuickLink
+                description="Audit student accounts and remove old records."
+                to="/admin/students"
+              >
+                Check students
+              </QuickLink>
+              <QuickLink
+                description="Update dashboard preferences and admin details."
+                to="/admin/settings"
+              >
+                Adjust settings
+              </QuickLink>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ThemeCard({
+  currentTheme,
+  onThemeChange,
+}: {
+  currentTheme: "dark" | "light" | "system";
+  onThemeChange: (theme: "dark" | "light" | "system") => void;
+}) {
+  return (
+    <Card className="border-border/70">
+      <CardHeader>
+        <CardTitle className="text-lg">Appearance</CardTitle>
+        <CardDescription>
+          Switch the admin dashboard between light and dark mode whenever you
+          need it.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <ThemeOption
+          active={currentTheme === "light"}
+          description="Bright, paper-like workspace"
+          icon={Sun}
+          label="Light mode"
+          onClick={() => onThemeChange("light")}
+        />
+        <ThemeOption
+          active={currentTheme === "dark"}
+          description="Low-glare focus for longer sessions"
+          icon={Moon}
+          label="Dark mode"
+          onClick={() => onThemeChange("dark")}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function ThemeOption({
+  active,
+  description,
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  description: string;
+  icon: typeof Sun;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={cn(
+        "flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors",
+        active
+          ? "border-border bg-secondary text-foreground"
+          : "border-border/70 bg-background hover:bg-secondary/60",
+      )}
+      onClick={onClick}
+      type="button"
+    >
+      <div className="rounded-xl border border-border/70 bg-background p-2">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      {active ? (
+        <Badge className="rounded-full px-2" variant="secondary">
+          Active
+        </Badge>
+      ) : null}
+    </button>
+  );
+}
+
+function QuickFact({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "info" | "success" | "warning";
+}) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
+      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </p>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="text-lg font-semibold">{value}</span>
+        <Badge className="rounded-full px-2" variant={tone}>
+          Live
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
+function MetricRow({
+  icon: Icon,
+  label,
+  tone,
+  value,
+}: {
+  icon: typeof TrendingUp;
+  label: string;
+  tone: "info" | "success" | "warning";
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl border border-border/70 bg-secondary p-2">
+          <Icon className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-medium">{label}</p>
+          <p className="text-xs text-muted-foreground">Updated from live data</p>
+        </div>
+      </div>
+      <Badge className="rounded-full px-2" variant={tone}>
+        {value}
+      </Badge>
+    </div>
+  );
+}
+
+function QuickLink({
+  children,
+  description,
+  to,
+}: {
+  children: string;
+  description: string;
+  to: string;
+}) {
+  return (
+    <Link
+      className="block rounded-2xl border border-border/70 bg-background/80 px-4 py-3 transition-colors hover:bg-secondary/70"
+      to={to}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium">{children}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            {description}
+          </p>
+        </div>
+        <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </div>
+    </Link>
+  );
+}
+
+function MaterialTable({
+  materials,
+  showActions,
+  onApprove,
+  onReject,
+  emptyMessage,
+  emptyIcon: EmptyIcon,
+}: {
+  materials: StudyMaterial[];
+  showActions: boolean;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+  emptyMessage: string;
+  emptyIcon: typeof Clock3;
+}) {
+  if (materials.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border/70 px-6 py-12 text-center">
+        <EmptyIcon className="mx-auto h-8 w-8 text-muted-foreground" />
+        <p className="mt-3 text-sm text-muted-foreground">{emptyMessage}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border/70">
+      <div className="overflow-x-auto">
+      <Table className="min-w-[840px]">
+        <TableHeader className="bg-secondary/60">
+          <TableRow>
+            <TableHead className="w-[320px]">Content</TableHead>
+            <TableHead>Author</TableHead>
+            <TableHead>Subject</TableHead>
+            <TableHead>Submitted</TableHead>
+            <TableHead>Status</TableHead>
+            {showActions ? <TableHead className="text-right">Actions</TableHead> : null}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {materials.map((material) => (
+            <TableRow key={material._id}>
+              <TableCell>
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{material.title}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {material.type}
+                    </p>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>{material.author}</TableCell>
+              <TableCell>{material.subject}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {new Date(material.createdAt).toLocaleDateString()}
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={material.status} />
+              </TableCell>
+              {showActions ? (
+                <TableCell className="text-right">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      className="rounded-xl"
+                      onClick={() => onReject?.(material._id)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Reject
+                    </Button>
+                    <Button
+                      className="rounded-xl"
+                      onClick={() => onApprove?.(material._id)}
+                      size="sm"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      Approve
+                    </Button>
+                  </div>
+                </TableCell>
+              ) : null}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: StudyMaterial["status"] }) {
+  if (status === "approved") {
+    return (
+      <Badge className="rounded-full px-2" variant="success">
+        Approved
+      </Badge>
+    );
+  }
+
+  if (status === "rejected") {
+    return (
+      <Badge className="rounded-full px-2" variant="error">
+        Rejected
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge className="rounded-full px-2" variant="warning">
+      Pending
+    </Badge>
+  );
+}
+
+function formatValue(value: number) {
+  return new Intl.NumberFormat("en-US").format(value);
+}

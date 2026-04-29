@@ -1,0 +1,23 @@
+DROP INDEX IF EXISTS idx_jobs_status_available_at;
+DROP INDEX IF EXISTS idx_email_otps_email_purpose;
+DROP INDEX IF EXISTS idx_refresh_tokens_family_id;
+DROP INDEX IF EXISTS idx_refresh_tokens_user_id;
+DROP INDEX IF EXISTS idx_study_materials_status_created_at;
+DROP INDEX IF EXISTS idx_resources_status_created_at;
+DROP INDEX IF EXISTS idx_resources_filters;
+DROP INDEX IF EXISTS idx_syllabi_branch_semester;
+DROP INDEX IF EXISTS idx_subjects_branch_semester;
+DROP INDEX IF EXISTS idx_faculty_subjects_faculty;
+DROP INDEX IF EXISTS idx_users_email_deleted_at;
+DROP INDEX IF EXISTS idx_users_role_deleted_at;
+
+DROP TABLE IF EXISTS jobs;
+DROP TABLE IF EXISTS email_otps;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS study_materials;
+DROP TABLE IF EXISTS resources;
+DROP TABLE IF EXISTS syllabi;
+DROP TABLE IF EXISTS subjects;
+DROP TABLE IF EXISTS faculty_subjects;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS schema_migrations;

@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+app/build-log.txt
+app/errors.txt
+app/tsc-errors*.txt
+
+# Local databases and runtime data
+backend/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Uploaded runtime files
+backend/uploads/
+
+# Editor and local tooling
+.DS_Store
+Thumbs.db
+**/.obsidian/
+.git-backups/
+
+# Temporary generated files
+*.timestamp-*.mjs
