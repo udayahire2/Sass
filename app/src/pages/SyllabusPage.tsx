@@ -78,7 +78,7 @@ export default function SyllabusPage() {
 
   const branchOptions = useMemo(
     () => ["All", ...Array.from(new Set(syllabus.map((item) => item.branch))).sort()],
-    [syllabus],
+    [syllabus], 
   );
 
   const semesterOptions = useMemo(
@@ -303,7 +303,11 @@ export default function SyllabusPage() {
                       This syllabus item is stored as a file.
                     </CardDescription>
                     <Button asChild>
-                      <a href={buildAssetUrl(viewItem.contentUrl)} target="_blank" rel="noreferrer">
+                      <a
+                        href={buildAssetUrl(viewItem.contentUrl, { syllabusId: viewItem.id || viewItem._id })}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Open file
                       </a>

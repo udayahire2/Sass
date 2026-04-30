@@ -4,6 +4,7 @@ const API_URL = buildApiUrl('/study-materials');
 
 export interface StudyMaterial {
     _id: string;
+    id?: string;
     title: string;
     subject: string;
     type: 'PDF' | 'PPT' | 'DOCX' | 'Markdown' | 'Video' | 'Notes';

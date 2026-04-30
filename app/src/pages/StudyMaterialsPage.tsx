@@ -8,8 +8,15 @@ import { SubjectGrid } from "@/components/study/SubjectGrid";
 import { TopicViewer } from "@/components/study/TopicViewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getSubject, getSubjects } from "@/data/study-data";
-import { buildAssetUrl } from "@/services/api";
+import {
+  buildAssetUrl,
+  fetchSubjectUnits,
+  fetchSubjectsByBranchSemester,
+  fetchTopicById,
+  type Subject,
+  type Topic,
+  type Unit,
+} from "@/services/api";
 import { fetchApprovedMaterials, type StudyMaterial } from "@/services/study-service";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
@@ -20,6 +27,12 @@ export default function StudyMaterialsPage() {
   const [tempBranch, setTempBranch] = useState<string | null>(null);
   const [approvedUploads, setApprovedUploads] = useState<StudyMaterial[]>([]);
   const [loadingUploads, setLoadingUploads] = useState(true);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
+  const [subjectUnits, setSubjectUnits] = useState<Unit[]>([]);
+  const [loadingUnits, setLoadingUnits] = useState(false);
+  const [topic, setTopic] = useState<Topic | null>(null);
+  const [loadingTopic, setLoadingTopic] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -41,6 +54,102 @@ export default function StudyMaterialsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!branch || !semester) {
+      setSubjects([]);
+      return;
+    }
+
+    let mounted = true;
+    setLoadingSubjects(true);
+
+    fetchSubjectsByBranchSemester(branch, semester)
+      .then((items) => {
+        if (mounted) {
+          setSubjects(items);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching subjects:", error);
+        if (mounted) {
+          setSubjects([]);
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoadingSubjects(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [branch, semester]);
+
+  useEffect(() => {
+    if (!subjectId) {
+      setSubjectUnits([]);
+      return;
+    }
+
+    let mounted = true;
+    setLoadingUnits(true);
+
+    fetchSubjectUnits(subjectId)
+      .then((units) => {
+        if (mounted) {
+          setSubjectUnits(units);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching subject units:", error);
+        if (mounted) {
+          setSubjectUnits([]);
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoadingUnits(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [subjectId]);
+
+  useEffect(() => {
+    if (!topicId) {
+      setTopic(null);
+      return;
+    }
+
+    let mounted = true;
+    setLoadingTopic(true);
+
+    fetchTopicById(topicId)
+      .then((item) => {
+        if (mounted) {
+          setTopic(item);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching topic:", error);
+        if (mounted) {
+          setTopic(null);
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoadingTopic(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [topicId]);
+
   const handleBranchSelect = (selectedBranch: string) => {
     setTempBranch(selectedBranch);
   };
@@ -56,12 +165,30 @@ export default function StudyMaterialsPage() {
   const isSubjectDashboard = subjectId && !topicId;
   const isTopicView = !!topicId;
 
-  const subjects = branch && semester ? getSubjects(branch, semester) : [];
-  const activeSubject = subjectId ? getSubject(subjectId) : undefined;
+  const activeSubject = useMemo(() => {
+    if (!subjectId) {
+      return undefined;
+    }
+
+    const subject = subjects.find((item) => item.id === subjectId);
+    if (!subject) {
+      return undefined;
+    }
+
+    return {
+      ...subject,
+      units: subjectUnits,
+    };
+  }, [subjectId, subjects, subjectUnits]);
   const activeTopic =
-    activeSubject && topicId
-      ? activeSubject.units.flatMap((unit) => unit.topics).find((topic) => topic.id === topicId)
-      : undefined;
+    topic ||
+    (activeSubject && topicId
+      ? activeSubject.units.flatMap((unit) => unit.topics).find((item) => item.id === topicId)
+      : undefined);
+  const loadingAcademicContent =
+    (Boolean(isSubjectList) && loadingSubjects) ||
+    (Boolean(isSubjectDashboard) && (loadingSubjects || loadingUnits)) ||
+    (isTopicView && (loadingTopic || loadingSubjects || loadingUnits));
 
   return (
     <div className={cn(
@@ -174,13 +301,23 @@ export default function StudyMaterialsPage() {
           </div>
         )}
 
-        {isSubjectList && <SubjectGrid subjects={subjects} branch={branch!} semester={semester!} />}
+        {loadingAcademicContent && <AcademicLoadingState />}
 
-        {isSubjectDashboard && activeSubject && <SubjectDashboard subject={activeSubject} />}
+        {!loadingAcademicContent && isSubjectList && <SubjectGrid subjects={subjects} branch={branch!} semester={semester!} />}
 
-        {isTopicView && activeTopic && <TopicViewer topic={activeTopic} />}
+        {!loadingAcademicContent && isSubjectDashboard && activeSubject && <SubjectDashboard subject={activeSubject} />}
+
+        {!loadingAcademicContent && isTopicView && activeTopic && <TopicViewer topic={activeTopic} subject={activeSubject} />}
       </div>
       
+    </div>
+  );
+}
+
+function AcademicLoadingState() {
+  return (
+    <div className="flex min-h-64 items-center justify-center rounded-xl border border-border/50">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
   );
 }
@@ -314,7 +451,11 @@ function ApprovedUploadsSection({
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {filtered.map((material) => {
-            const href = material.url || (material.filePath ? buildAssetUrl(material.filePath) : "");
+            const href =
+              material.url ||
+              (material.filePath
+                ? buildAssetUrl(material.filePath, { studyMaterialId: material.id || material._id })
+                : "");
 
             return (
               <article
