@@ -456,6 +456,20 @@ function getMe(req, res) {
     });
 }
 
+function getFacultyProfile(req, res, next) {
+    if (req.user.role !== 'faculty') {
+        return next(new AppError('Access denied. Faculty only.', 403));
+    }
+
+    return sendSuccess(res, {
+        message: 'Faculty profile fetched successfully',
+        data: req.user,
+        legacy: {
+            user: req.user,
+        },
+    });
+}
+
 function updateDetails(req, res, next) {
     try {
         const timestamps = createTimestamps();
@@ -579,6 +593,7 @@ function updateAvatar(req, res, next) {
 
 module.exports = {
     getMe,
+    getFacultyProfile,
     login,
     logout,
     refreshSession,

@@ -9,6 +9,7 @@
     "migrate:up": "node scripts/migrate.js up",
     "migrate:down": "node scripts/migrate.js down",
     "seed:admin": "node scripts/seedAdmin.js",
+    "seed:subjects": "node src/seeds/seedSubjects.js",
     "test": "node --test"
   },
   "keywords": [

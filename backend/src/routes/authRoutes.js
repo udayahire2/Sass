@@ -4,6 +4,7 @@ const {
     login,
     verifyOtp,
     getMe,
+    getFacultyProfile,
     logout,
     refreshSession,
     updateAvatar,
@@ -23,5 +24,6 @@ router.post('/logout', logout);
 router.get('/me', loadAuthenticatedUser, getMe);
 router.put('/updatedetails', loadAuthenticatedUser, validate(updateProfileSchema), updateDetails);
 router.put('/updateavatar', loadAuthenticatedUser, updateAvatar);
+router.get('/faculty/profile', loadAuthenticatedUser, getFacultyProfile);
 
 module.exports = router;

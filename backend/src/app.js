@@ -25,7 +25,7 @@ app.use(cors({
     credentials: true,
 }));
 app.use(helmet());
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
 
 if (env.nodeEnv === 'development') {
     app.use(morgan('dev'));
