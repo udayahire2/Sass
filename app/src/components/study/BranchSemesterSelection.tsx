@@ -11,7 +11,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { BRANCHES, SEMESTERS } from "@/data/study-data";
+import { BRANCHES, SEMESTERS } from "@/services/api";
 import { cn } from "@/lib/utils";
 
 interface BranchSemesterSelectionProps {
@@ -123,7 +123,7 @@ export function BranchSemesterSelection({
                                     )}
                                 >
                                     {isActive && (
-                                        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50" />
+                                        <div className="absolute inset-0  from-primary/10 via-transparent to-transparent opacity-50" />
                                     )}
                                     <div
                                         className={cn(
@@ -133,7 +133,7 @@ export function BranchSemesterSelection({
                                                 : "border-border/50 bg-background text-muted-foreground group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary"
                                         )}
                                     >
-                                        <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
+                                        <Icon className="h-5 w-5" strokeWidth={2} />
                                     </div>
 
                                     <div className="relative z-10 min-w-0 flex-1">
@@ -147,7 +147,7 @@ export function BranchSemesterSelection({
                                                     animate={{ scale: 1, opacity: 1 }}
                                                     className="shrink-0"
                                                 >
-                                                    <Check className="h-[18px] w-[18px] text-primary" />
+                                                    <Check className="h-5 w-5 text-primary" />
                                                 </motion.div>
                                             )}
                                         </div>
@@ -216,7 +216,7 @@ export function BranchSemesterSelection({
                                                 {isActive && (
                                                     <motion.div
                                                         layoutId="activeSem"
-                                                        className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80"
+                                                        className="absolute inset-0  from-primary to-primary/80"
                                                         initial={false}
                                                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                                     />

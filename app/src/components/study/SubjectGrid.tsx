@@ -5,7 +5,7 @@ import type { Variants } from "framer-motion";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Subject } from "@/data/study-data";
+import type { Subject } from "@/services/api";
 
 interface SubjectGridProps {
   subjects: Subject[];
@@ -67,7 +67,8 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
       >
         {subjects.map((subject) => {
-          const topicCount = subject.units.reduce((count, unit) => count + unit.topics.length, 0);
+          const unitCount = subject.unitCount ?? subject.units.length;
+          const topicCount = subject.topicCount ?? subject.units.reduce((count, unit) => count + unit.topics.length, 0);
 
           return (
             <motion.div key={subject.id} variants={cardVariants}>
@@ -100,7 +101,7 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
                 <div className="relative z-10 mt-auto flex items-center gap-4 border-t border-border/40 pt-4">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Layers className="h-3.5 w-3.5" />
-                    <span>{subject.units.length} Units</span>
+                    <span>{unitCount} Units</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <BookOpen className="h-3.5 w-3.5" />

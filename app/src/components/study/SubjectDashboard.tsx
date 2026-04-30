@@ -6,7 +6,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Subject } from "@/data/study-data";
+import type { Subject } from "@/services/api";
 import { cn } from "@/lib/utils";
 
 interface SubjectDashboardProps {

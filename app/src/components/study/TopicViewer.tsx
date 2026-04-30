@@ -18,22 +18,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import MarkdownPreview from "@/components/ui/markdown-preview";
-
-import { getSubject } from "@/data/study-data";
-
-// Types
-interface Topic {
-  id: string;
-  title: string;
-  description: string;
-  youtubeVideoId?: string;
-  markdownContent?: string;
-  summaryPoints?: string[];
-  estimatedTime?: string;
-}
+import type { Subject, Topic } from "@/services/api";
 
 interface TopicViewerProps {
   topic: Topic;
+  subject?: Subject;
   onComplete?: () => void;
 }
 
@@ -57,7 +46,7 @@ const useTopicCompletion = (topicId: string) => {
   return { isCompleted, markComplete, resetCompletion };
 };
 
-export const TopicViewer = ({ topic, onComplete }: TopicViewerProps) => {
+export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) => {
   const { branch, semester, subjectId } = useParams<{
     branch: string;
     semester: string;
@@ -99,7 +88,6 @@ export const TopicViewer = ({ topic, onComplete }: TopicViewerProps) => {
 
   // Compute next / previous topics and progress
   const { prevTopic, nextTopic, currentIndex, totalTopics } = useMemo(() => {
-    const subject = subjectId ? getSubject(subjectId) : undefined;
     if (!subject) {
       return { prevTopic: null, nextTopic: null, currentIndex: 0, totalTopics: 0 };
     }
@@ -113,9 +101,9 @@ export const TopicViewer = ({ topic, onComplete }: TopicViewerProps) => {
       currentIndex: idx + 1,
       totalTopics: allTopics.length,
     };
-  }, [subjectId, topic.id]);
+  }, [subject, topic.id]);
 
-  const subjectData = useMemo(() => (subjectId ? getSubject(subjectId) : undefined), [subjectId]);
+  const subjectData = subject;
 
   const getTopicUrl = useCallback(
     (topicId: string) =>

@@ -52,7 +52,7 @@ import {
     updateMaterialStatus,
     type StudyMaterial,
 } from "@/services/study-service";
-import { buildAssetUrl } from "@/services/api";
+import { buildAssetUrl, fetchAssetBlobUrl } from "@/services/api";
 
 export default function ContentApprovalPage() {
     const [pendingRequests, setPendingRequests] = useState<StudyMaterial[]>([]);
@@ -60,6 +60,8 @@ export default function ContentApprovalPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [viewingRequest, setViewingRequest] = useState<StudyMaterial | null>(null);
+    const [viewingFileUrl, setViewingFileUrl] = useState("");
+    const [loadingViewingFile, setLoadingViewingFile] = useState(false);
 
     const loadData = async () => {
         setLoading(true);
@@ -81,6 +83,51 @@ export default function ContentApprovalPage() {
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        let objectUrl = "";
+
+        setViewingFileUrl("");
+        setLoadingViewingFile(false);
+
+        if (!viewingRequest?.filePath || viewingRequest.url) {
+            return () => undefined;
+        }
+
+        setLoadingViewingFile(true);
+        const fileUrl = buildAssetUrl(viewingRequest.filePath, {
+            studyMaterialId: viewingRequest.id || viewingRequest._id,
+        });
+
+        fetchAssetBlobUrl(fileUrl)
+            .then((blobUrl) => {
+                if (cancelled) {
+                    URL.revokeObjectURL(blobUrl);
+                    return;
+                }
+
+                objectUrl = blobUrl;
+                setViewingFileUrl(blobUrl);
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    toast.error("Failed to load file preview");
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoadingViewingFile(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [viewingRequest]);
 
     const handleAction = async (id: string, action: "approve" | "reject") => {
         const status = action === "approve" ? "approved" : "rejected";
@@ -152,7 +199,7 @@ export default function ContentApprovalPage() {
     const filteredPending = pendingRequests.filter(matchesSearch);
     const filteredHistory = historyRequests.filter(matchesSearch);
     const viewingType = viewingRequest?.type.toLowerCase() || "";
-    const viewingUrl = viewingRequest?.url || (viewingRequest?.filePath ? buildAssetUrl(viewingRequest.filePath) : "");
+    const viewingUrl = viewingRequest?.url || viewingFileUrl;
 
     return (
         <div className="space-y-8">
@@ -376,7 +423,12 @@ export default function ContentApprovalPage() {
                         </div>
                     </DialogHeader>
                     <div className="flex-1 min-h-[60vh] bg-muted/20 flex items-center justify-center">
-                        {viewingType === "video" ? (
+                        {loadingViewingFile ? (
+                            <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+                                <Loader2 className="h-6 w-6 animate-spin" />
+                                Loading file...
+                            </div>
+                        ) : viewingType === "video" ? (
                             <iframe
                                 src={viewingUrl}
                                 className="w-full h-[60vh]"
