@@ -63,18 +63,18 @@ This means the core product workflow is functional, but some subject/topic acade
 
 ## Technology Summary
 
-| Area | Technology |
-| --- | --- |
-| Frontend | React 19, TypeScript, Vite |
-| Routing | React Router |
-| Styling | Tailwind CSS 4, Radix/shadcn-style UI components |
-| Backend | Node.js, Express 5 |
-| Database | SQLite using Node's built-in `node:sqlite` `DatabaseSync` |
+| Area           | Technology                                                       |
+| -------------- | ---------------------------------------------------------------- |
+| Frontend       | React 19, TypeScript, Vite                                       |
+| Routing        | React Router                                                     |
+| Styling        | Tailwind CSS 4, Radix/shadcn-style UI components                 |
+| Backend        | Node.js, Express 5                                               |
+| Database       | SQLite using Node's built-in `node:sqlite` `DatabaseSync`        |
 | Authentication | JWT access tokens, refresh-token cookie, bcrypt password hashing |
-| Validation | Zod |
-| File Uploads | Multer local filesystem storage |
-| Caching | Redis if configured, otherwise in-memory cache |
-| Email/Jobs | Nodemailer through a small database-backed job queue |
+| Validation     | Zod                                                              |
+| File Uploads   | Multer local filesystem storage                                  |
+| Caching        | Redis if configured, otherwise in-memory cache                   |
+| Email/Jobs     | Nodemailer through a small database-backed job queue             |
 
 ## High-Level User Journey
 

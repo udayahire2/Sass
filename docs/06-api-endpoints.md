@@ -38,6 +38,7 @@ Some endpoints also include legacy fields for compatibility with existing fronte
 | `POST` | `/auth/refresh` | Refresh cookie | Rotate refresh token and create new access token. |
 | `POST` | `/auth/logout` | Optional refresh cookie | Revoke refresh-token family and clear cookie. |
 | `GET` | `/auth/me` | User | Return current authenticated user. |
+| `GET` | `/auth/faculty/profile` | User (Faculty) | Return current authenticated faculty profile. |
 | `PUT` | `/auth/updatedetails` | User | Update name, branch, or year. |
 | `PUT` | `/auth/updateavatar` | User | Upload avatar image. |
 
@@ -225,6 +226,7 @@ Allowed status values:
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/syllabus` | Public | List all non-deleted syllabus records. |
+| `GET` | `/syllabus/:id/file` | Public | Stream the uploaded syllabus file. |
 | `POST` | `/syllabus` | Admin | Create syllabus record, optionally with uploaded file. |
 | `DELETE` | `/syllabus/:id` | Admin | Soft-delete syllabus record. |
 
@@ -273,6 +275,24 @@ Maximum file size:
 ```text
 20 MB
 ```
+
+## Academic Content: `/subjects` and `/topics`
+
+These endpoints serve the curriculum data (Subjects, Units, Topics).
+
+| Method | Endpoint | Auth | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/subjects` | Public | Fetch subjects filtered by `branch` and `semester`. |
+| `GET` | `/subjects/:id/units` | Public | Get all units (and nested topics) for a given subject. |
+| `GET` | `/topics/:id` | Public | Fetch a specific topic's details and markdown content. |
+
+## File Proxy: `/files`
+
+Provides secure streaming of protected or local uploads to the frontend.
+
+| Method | Endpoint | Auth | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/files/:studyMaterialId` | Optional | Stream local file for a study material. Restricts non-approved access to admins. |
 
 ## Validation Enums
 

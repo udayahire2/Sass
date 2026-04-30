@@ -223,6 +223,32 @@ Stores background jobs.
 | `error_message` | Last failure message. |
 | `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
 
+### 10. `units`
+
+Stores syllabus units linked to a subject.
+
+| Column | Meaning |
+| --- | --- |
+| `id` | UUID primary key. |
+| `subject_id` | References `subjects.id`. |
+| `unit_number` | Order or unit index. |
+| `title` | Unit title. |
+| `description` | Optional description of the unit. |
+| `created_at`, `deleted_at` | Lifecycle timestamps. |
+
+### 11. `topics`
+
+Stores individual topics linked to a unit.
+
+| Column | Meaning |
+| --- | --- |
+| `id` | UUID primary key. |
+| `unit_id` | References `units.id`. |
+| `title` | Topic title. |
+| `content_markdown` | Markdown content for the topic. |
+| `video_url` | Optional YouTube video URL. |
+| `created_at`, `deleted_at` | Lifecycle timestamps. |
+
 ## Indexes
 
 The schema includes indexes for common lookups:
@@ -244,6 +270,8 @@ The schema includes indexes for common lookups:
 | --- | --- |
 | User to faculty subjects | One-to-many |
 | Subject to syllabus | One-to-many |
+| Subject to units | One-to-many |
+| Unit to topics | One-to-many |
 | Subject to resources | One-to-many, optional |
 | Subject to study materials | One-to-many, optional |
 | User to uploaded study materials | One-to-many |

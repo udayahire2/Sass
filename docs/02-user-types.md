@@ -4,11 +4,11 @@ The application supports three user roles: **student**, **faculty**, and **admin
 
 ## Role Overview
 
-| Role | Main Purpose | Created Through | Approval Required |
-| --- | --- | --- | --- |
-| Student | Consume syllabus and study materials, submit useful content. | Public signup | Email OTP only |
-| Faculty | Academic contributor with faculty profile details. | Public signup | Email OTP and admin approval |
-| Admin | Manage users, content, faculty approvals, syllabus, and resources. | Seed/admin setup | Not through public signup |
+| Role    | Main Purpose                                                       | Created Through  | Approval Required            |
+| ------- | ------------------------------------------------------------------ | ---------------- | ---------------------------- |
+| Student | Consume syllabus and study materials, submit useful content.       | Public signup    | Email OTP only               |
+| Faculty | Academic contributor with faculty profile details.                 | Public signup    | Email OTP and admin approval |
+| Admin   | Manage users, content, faculty approvals, syllabus, and resources. | Seed/admin setup | Not through public signup    |
 
 ## Student
 
