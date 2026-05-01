@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
@@ -455,7 +455,7 @@ export default function ProfilePage() {
   /*  RENDER                                                          */
   /* ================================================================ */
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen from-background via-background to-muted/20">
       {/* ── Crop Modal ───────────────────────────────────────────── */}
       {cropModalOpen && imageSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
@@ -471,12 +471,11 @@ export default function ProfilePage() {
                   <p className="text-xs text-muted-foreground">Drag to reposition</p>
                 </div>
               </div>
-              <button
+              <Button
                 onClick={() => setCropModalOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
 
             {/* Crop Area */}
@@ -498,16 +497,14 @@ export default function ProfilePage() {
             <div className="border-t border-border/40 px-5 py-4 space-y-4">
               <div className="flex items-center gap-3">
                 <ZoomIn className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <input
+                <Input
                   type="range"
                   min={1}
                   max={3}
                   step={0.05}
                   value={zoom}
                   onChange={(e) => setZoom(Number(e.target.value))}
-                  className="flex-1 h-1.5 appearance-none  bg-muted accent-primary cursor-pointer
-                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-110
-                    [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-md"
+                 
                 />
                 <span className="text-xs tabular-nums text-muted-foreground w-9 text-right">{zoom.toFixed(1)}×</span>
               </div>
@@ -516,7 +513,6 @@ export default function ProfilePage() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="flex-1 "
                   onClick={() => setCropModalOpen(false)}
                 >
                   Cancel
@@ -548,7 +544,7 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-8">
 
         {/* ── Hero / Avatar Section ─────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card via-card to-muted/30 p-6 sm:p-8">
+        <div className="relative overflow-hidden rounded-2xl border border-border/50 from-card via-card to-muted/30 p-6 sm:p-8">
           {/* Decorative dots */}
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/5 blur-2xl" />
           <div className="pointer-events-none absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-primary/3 blur-xl" />
@@ -556,7 +552,7 @@ export default function ProfilePage() {
           <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-6">
             {/* Avatar with gradient ring */}
             <div className="group relative shrink-0">
-              <div className="relative h-28 w-28 rounded-full p-[3px] bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg shadow-fuchsia-500/10 transition-shadow duration-300 hover:shadow-xl hover:shadow-fuchsia-500/20 sm:h-[120px] sm:w-[120px]">
+              <div className="relative h-28 w-28 rounded-full p-0.75  from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg shadow-fuchsia-500/10 transition-shadow duration-300 hover:shadow-xl hover:shadow-fuchsia-500/20 sm:h-30 sm:w-30">
                 <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-background">
                   {avatarPreview || user.avatar ? (
                     <Avatar className="h-full w-full">
@@ -589,13 +585,12 @@ export default function ProfilePage() {
               </div>
 
               {/* Camera overlay */}
-              <button
+              <Button
                 onClick={() => avatarInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-lg transition-all duration-200 hover:scale-110 hover:shadow-xl active:scale-95 sm:h-10 sm:w-10"
                 aria-label="Change avatar"
               >
                 <Camera className="h-4 w-4" />
-              </button>
+              </Button>
               <input
                 ref={avatarInputRef}
                 type="file"
@@ -615,7 +610,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <Badge variant="secondary" className="gap-1 px-2.5 py-1 text-xs font-medium">
+                <Badge variant="secondary" className="gap-1 px-1.5 py-1 text-xs font-medium">
                   <Sparkles className="h-3 w-3" />
                   {user.role === "admin"
                     ? "Administrator"
@@ -624,19 +619,19 @@ export default function ProfilePage() {
                       : "Student"}
                 </Badge>
                 {user.isVerified && (
-                  <Badge variant="outline" className="gap-1 px-2.5 py-1 text-xs font-medium border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
+                  <Badge variant="outline" className="gap-1 px-1.5 py-1 text-xs font-medium border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
                     <ShieldCheck className="h-3 w-3" />
                     Verified
                   </Badge>
                 )}
               </div>
 
-              {/* Edit Profile button — below the name block */}
+              {/* Edit Profile Button — below the name block */}
               {!isEditing && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="mt-4 rounded-xl gap-1.5"
+                  className="mt-4 gap-2"
                   onClick={() => setIsEditing(true)}
                 >
                   <Edit2 className="h-3.5 w-3.5" />
@@ -834,7 +829,7 @@ export default function ProfilePage() {
 
                 <div className="space-y-3">
                   <Label htmlFor="study-file">Study file</Label>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className="flex min-h-32 w-full flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-border/60 bg-muted/10 px-5 py-6 text-center transition-all duration-200 hover:bg-muted/25 hover:border-primary/30"
@@ -851,7 +846,7 @@ export default function ProfilePage() {
                         ? `${detectedType} — ${formatBytes(file.size)}`
                         : "Maximum file size: 50 MB"}
                     </span>
-                  </button>
+                  </Button>
                   <input
                     ref={fileInputRef}
                     id="study-file"
