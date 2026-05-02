@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { buildApiUrl, getErrorMessage, parseApiData } from "@/services/api";
+import { buildApiUrl, getErrorMessage, parseApiData, buildAssetUrl } from "@/services/api";
 
 export default function VerifyOtpPage() {
     const [searchParams] = useSearchParams();
@@ -46,6 +46,15 @@ export default function VerifyOtpPage() {
 
             const data = await res.json();
             const currentUser = parseApiData<Record<string, unknown> | null>(data, null) ?? data.user;
+            
+            if (currentUser) {
+                if (typeof currentUser.avatar === 'string' && currentUser.avatar.startsWith('/')) {
+                    currentUser.avatar = buildAssetUrl(currentUser.avatar);
+                } else if (typeof currentUser.avatarUrl === 'string' && currentUser.avatarUrl.startsWith('/')) {
+                    currentUser.avatar = buildAssetUrl(currentUser.avatarUrl);
+                }
+            }
+
             const token = typeof data.token === 'string' ? data.token : data.data?.token;
 
             if (res.ok && data.success && token && currentUser) {

@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { buildApiUrl, getErrorMessage, parseApiData } from "@/services/api";
+import { buildApiUrl, getErrorMessage, parseApiData, buildAssetUrl } from "@/services/api";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -63,6 +63,15 @@ const Login = () => {
 
       const data = await res.json();
       const currentUser = parseApiData<Record<string, unknown> | null>(data, null) ?? data.user;
+      
+      if (currentUser) {
+        if (typeof currentUser.avatar === 'string' && currentUser.avatar.startsWith('/')) {
+          currentUser.avatar = buildAssetUrl(currentUser.avatar);
+        } else if (typeof currentUser.avatarUrl === 'string' && currentUser.avatarUrl.startsWith('/')) {
+          currentUser.avatar = buildAssetUrl(currentUser.avatarUrl);
+        }
+      }
+
       const token = typeof data.token === "string" ? data.token : data.data?.token;
 
       if (res.ok && data.success && token && currentUser) {

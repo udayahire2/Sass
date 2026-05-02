@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { Button } from "@/components/ui/Button";
+import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
@@ -264,6 +264,7 @@ export default function ProfilePage() {
         const updatedUser = { ...user, ...updatedPayload };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUser(updatedUser);
+        window.dispatchEvent(new CustomEvent("auth-change"));
         setIsEditing(false);
         toast.success("Profile updated successfully");
       } else {
@@ -334,6 +335,7 @@ export default function ProfilePage() {
             localStorage.setItem("user", JSON.stringify(updatedUser));
             setUser(updatedUser);
             setAvatarPreview(resolvedUrl);
+            window.dispatchEvent(new CustomEvent("auth-change"));
             toast.success("Avatar updated!");
           } else {
             // Backend doesn't support avatar upload — store as base64 locally
@@ -344,6 +346,7 @@ export default function ProfilePage() {
               localStorage.setItem("user", JSON.stringify(updatedUser));
               setUser(updatedUser);
               setAvatarPreview(base64);
+              window.dispatchEvent(new CustomEvent("auth-change"));
             };
             reader.readAsDataURL(croppedBlob);
             toast.success("Avatar saved locally");
@@ -357,6 +360,7 @@ export default function ProfilePage() {
             localStorage.setItem("user", JSON.stringify(updatedUser));
             setUser(updatedUser);
             setAvatarPreview(base64);
+            window.dispatchEvent(new CustomEvent("auth-change"));
           };
           reader.readAsDataURL(croppedBlob);
           toast.success("Avatar saved locally");
@@ -504,7 +508,7 @@ export default function ProfilePage() {
                   step={0.05}
                   value={zoom}
                   onChange={(e) => setZoom(Number(e.target.value))}
-                 
+
                 />
                 <span className="text-xs tabular-nums text-muted-foreground w-9 text-right">{zoom.toFixed(1)}×</span>
               </div>

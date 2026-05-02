@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { buildApiUrl, parseApiData } from "@/services/api"
+import { buildApiUrl, parseApiData, buildAssetUrl } from "@/services/api"
 
 export interface User {
     name: string
@@ -40,6 +40,11 @@ export function useLocalAuth() {
                     const data = await res.json();
                     const currentUser = parseApiData<User | null>(data, null) ?? (data.user as User | null);
                     if (data.success && currentUser) {
+                        if (currentUser.avatar && currentUser.avatar.startsWith('/')) {
+                            currentUser.avatar = buildAssetUrl(currentUser.avatar);
+                        } else if ((currentUser as any).avatarUrl && (currentUser as any).avatarUrl.startsWith('/')) {
+                            currentUser.avatar = buildAssetUrl((currentUser as any).avatarUrl);
+                        }
                         setUser(currentUser);
                         localStorage.setItem('user', JSON.stringify(currentUser));
                     }
@@ -55,6 +60,22 @@ export function useLocalAuth() {
         };
 
         verifySession();
+
+        const handleAuthChange = () => {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                try {
+                    setUser(JSON.parse(storedUser));
+                } catch (e) {
+                    console.error("Failed to parse user on auth change", e);
+                }
+            } else {
+                setUser(null);
+            }
+        };
+
+        window.addEventListener('auth-change', handleAuthChange);
+        return () => window.removeEventListener('auth-change', handleAuthChange);
     }, []);
 
     const logout = () => {
