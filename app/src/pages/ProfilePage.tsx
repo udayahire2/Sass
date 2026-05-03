@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import {
@@ -329,7 +330,7 @@ export default function ProfilePage() {
           if (res.ok) {
             const data = await res.json();
             const userData = data?.data;
-            const avatarUrl = userData?.avatar || userData?.avatarUrl || data?.avatar || previewUrl;
+            const avatarUrl = data?.avatar_url || userData?.avatar || userData?.avatarUrl || data?.avatar || previewUrl;
             const resolvedUrl = avatarUrl.startsWith("/") ? buildAssetUrl(avatarUrl) : avatarUrl;
             const updatedUser = { ...user, avatar: resolvedUrl };
             localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -570,20 +571,7 @@ export default function ProfilePage() {
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    /* Default silhouette */
-                    <div className="flex h-full w-full items-center justify-center bg-muted/60">
-                      <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        className="h-16 w-16 text-muted-foreground/40 sm:h-20 sm:w-20"
-                      >
-                        <circle cx="12" cy="8" r="4" fill="currentColor" />
-                        <path
-                          d="M4 21c0-3.866 3.582-7 8-7s8 3.134 8 7"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </div>
+                    <DefaultAvatar name={user.name} size={120} className="h-full w-full" />
                   )}
                 </div>
               </div>
