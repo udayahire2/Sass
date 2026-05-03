@@ -540,10 +540,11 @@ const avatarUpload = multer({
     storage: avatarStorage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
     fileFilter(_req, file, cb) {
-        if (file.mimetype.startsWith('image/')) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error('Only image files are allowed'));
+            cb(new Error('Only JPEG, PNG, WEBP, and GIF images are allowed'));
         }
     },
 });
@@ -583,7 +584,8 @@ function updateAvatar(req, res, next) {
             return sendSuccess(res, {
                 message: 'Avatar updated successfully',
                 data: user,
-                legacy: { user, avatar: avatarUrl },
+                avatar_url: avatarUrl,
+                legacy: { user, avatar: avatarUrl, avatar_url: avatarUrl },
             });
         } catch (error) {
             return next(error);
