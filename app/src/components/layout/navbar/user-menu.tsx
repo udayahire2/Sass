@@ -4,6 +4,7 @@ import { BookOpen, LogOut, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -42,10 +43,14 @@ export function UserMenu() {
           variant="ghost"
           className="h-10 w-10 rounded-xl border border-border/70 bg-card/80 p-0 shadow-none"
         >
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
-          </Avatar>
+          {user.avatar ? (
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+            </Avatar>
+          ) : (
+            <DefaultAvatar name={user.name} size={32} />
+          )}
         </Button>
       </DropdownMenuTrigger>
 

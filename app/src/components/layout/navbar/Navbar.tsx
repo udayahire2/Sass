@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { NAV_LINKS } from "@/config/nav-config";
 import { useTheme } from "@/components/theme-provider";
 import { useLocalAuth } from "@/hooks/use-local-auth";
@@ -179,9 +180,7 @@ function UserMenuDesktop() {
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <span className="text-[11px] font-semibold leading-none">
-                {getInitials(user.name)}
-              </span>
+              <DefaultAvatar name={user.name} size={32} />
             )}
           </button>
         </DropdownMenuTrigger>
@@ -203,9 +202,7 @@ function UserMenuDesktop() {
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <span className="text-xs font-semibold">
-                    {getInitials(user.name)}
-                  </span>
+                  <DefaultAvatar name={user.name} size={36} />
                 )}
               </div>
               <div className="min-w-0 flex-1">
@@ -328,12 +325,16 @@ function PopoverMobileMenu() {
           <>
             <div className="px-3 py-2">
               <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="text-xs">
-                    {getInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
+                {user.avatar ? (
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="text-xs">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <DefaultAvatar name={user.name} size={24} />
+                )}
                 <div className="min-w-0">
                   <p className="truncate text-xs font-medium">{user.name}</p>
                   <p className="truncate text-xs text-muted-foreground">
