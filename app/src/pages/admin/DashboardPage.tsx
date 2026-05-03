@@ -187,9 +187,6 @@
     <Button asChild variant="outline">
       <Link to="/admin/students">Manage students</Link>
     </Button>
-    <Button asChild variant="ghost">
-      <Link to="/admin/settings">Open settings</Link>
-    </Button>
   </div>
 
   <div className="grid gap-3 sm:grid-cols-3">
@@ -348,12 +345,6 @@
                   to="/admin/students"
                 >
                   Manage Students
-                </QuickLink>
-                <QuickLink
-                  description="Configure platform preferences."
-                  to="/admin/settings"
-                >
-                  System Settings
                 </QuickLink>
               </CardContent>
             </Card>

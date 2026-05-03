@@ -154,7 +154,9 @@ export default function SyllabusManagerPage() {
                                     <TableCell>
                                         <div className="flex flex-col gap-0.5">
                                             <span>{item.branch}</span>
-                                            <span className="text-xs text-muted-foreground">Semester {item.semester}</span>
+                                            <span className="text-xs text-muted-foreground">
+                                            {item.semester === 'all' ? 'All Semesters' : `Semester ${item.semester}`}
+                                        </span>
                                         </div>
                                     </TableCell>
                                     <TableCell>

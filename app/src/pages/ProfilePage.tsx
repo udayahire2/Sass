@@ -556,7 +556,7 @@ export default function ProfilePage() {
           <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-6">
             {/* Avatar with gradient ring */}
             <div className="group relative shrink-0">
-              <div className="relative h-28 w-28 rounded-full p-0.75  from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg shadow-fuchsia-500/10 transition-shadow duration-300 hover:shadow-xl hover:shadow-fuchsia-500/20 sm:h-30 sm:w-30">
+              <div className="relative h-28 w-28 rounded-full p-0.75   shadow-lg transition-shadow duration-300 hover:shadow-xl  sm:h-30 sm:w-30">
                 <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-background">
                   {avatarPreview || user.avatar ? (
                     <Avatar className="h-full w-full">
@@ -595,7 +595,7 @@ export default function ProfilePage() {
               >
                 <Camera className="h-4 w-4" />
               </Button>
-              <input
+              <Input
                 ref={avatarInputRef}
                 type="file"
                 accept="image/*"
@@ -851,7 +851,7 @@ export default function ProfilePage() {
                         : "Maximum file size: 50 MB"}
                     </span>
                   </Button>
-                  <input
+                  <Input
                     ref={fileInputRef}
                     id="study-file"
                     type="file"

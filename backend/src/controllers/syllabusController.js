@@ -41,8 +41,8 @@ exports.createSyllabus = async (req, res, next) => {
         const subjectId = ensureSubject({
             branch: req.body.branch,
             code: req.body.code,
-            credits: req.body.credits,
-            semester: req.body.semester,
+            credits: 0,
+            semester: req.body.semester === 'all' ? '1' : req.body.semester,
             title: req.body.title,
         });
 
@@ -58,7 +58,7 @@ exports.createSyllabus = async (req, res, next) => {
                 req.body.branch,
                 req.body.semester,
                 req.body.type,
-                req.body.credits,
+                0,
                 req.body.contentUrl,
                 timestamps.createdAt,
                 timestamps.updatedAt,

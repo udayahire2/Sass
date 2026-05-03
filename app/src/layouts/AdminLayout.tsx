@@ -9,7 +9,6 @@ import {
   LogOut,
   Menu,
   Search,
-  Settings,
   Users,
 } from "lucide-react";
 import { useLocalAuth } from "@/hooks/use-local-auth";
@@ -56,7 +55,6 @@ const navSections = [
       { icon: BookOpen, label: "Syllabus", path: "/admin/syllabus" },
       { icon: BookOpen, label: "Resources", path: "/admin/resources" },
       { icon: Users, label: "Faculty", path: "/admin/faculty" },
-      { icon: Settings, label: "Settings", path: "/admin/settings" },
     ],
   },
 ];

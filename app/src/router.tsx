@@ -2,6 +2,7 @@ import { createBrowserRouter, Outlet } from "react-router-dom";
 
 import Layout from "./components/layout/Layout";
 import HomePage from "./pages/HomePage";
+import { RoleGuard } from "./components/auth/RoleGuard";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import VerifyOtpPage from "./pages/VerifyOtpPage";
@@ -16,9 +17,10 @@ import ResourceManagerPage from "./pages/admin/ResourceManagerPage";
 import SyllabusManagerPage from "./pages/admin/SyllabusManagerPage";
 import FacultyManager from "./pages/admin/FacultyManager";
 import ContentApprovalPage from "./pages/admin/ContentApprovalPage";
-import SettingsPage from "./pages/admin/SettingsPage";
 import FacultyDashboard from "./pages/dashboard/FacultyDashboard";
 
+
+import SearchPage from "./pages/SearchPage";
 
 import ErrorPage from "./pages/ErrorPage";
 
@@ -41,7 +43,7 @@ export const router = createBrowserRouter([
                 children: [
                     {
                         path: "/",
-                        element: <HomePage />,
+                        element: <RoleGuard><HomePage /></RoleGuard>,
                     },
                     {
                         path: "/resources",
@@ -75,6 +77,10 @@ export const router = createBrowserRouter([
                     {
                         path: "/profile",
                         element: <ProfilePage />,
+                    },
+                    {
+                        path: "/search",
+                        element: <SearchPage />,
                     },
                 ],
             },
@@ -122,10 +128,6 @@ export const router = createBrowserRouter([
                     {
                         path: "faculty",
                         element: <FacultyManager />,
-                    },
-                    {
-                        path: "settings",
-                        element: <SettingsPage />,
                     },
                     {
                         path: "",

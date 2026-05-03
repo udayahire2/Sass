@@ -3,6 +3,7 @@ import {
   AlertCircle,
   ExternalLink,
   FileText,
+  Ghost,
   Loader2,
   RefreshCw,
   Search,
@@ -251,7 +252,7 @@ export default function SyllabusPage() {
                     </div>
                   </div>
 
-                  <Button className="w-full sm:w-auto" onClick={() => setViewItem(item)}>
+                  <Button variant="outline" onClick={() => setViewItem(item)}>
                     {item.type === "markdown" ? "Open content" : "Open file"}
                   </Button>
                 </div>
@@ -273,7 +274,7 @@ export default function SyllabusPage() {
 
       {/* Details Dialog */}
       <Dialog open={!!viewItem} onOpenChange={(open) => !open && setViewItem(null)}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto p-4">
           <DialogHeader>
             <DialogTitle>{viewItem?.title}</DialogTitle>
           </DialogHeader>
@@ -308,8 +309,7 @@ export default function SyllabusPage() {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Open file
+                        <Button variant="outline">Open Syllabus</Button>
                       </a>
                     </Button>
                   </CardContent>

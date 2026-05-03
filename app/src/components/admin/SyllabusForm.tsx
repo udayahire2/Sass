@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FileUp, FileText, FileCode, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Form,
     FormControl,
@@ -22,15 +23,14 @@ import {
 } from '@/components/ui/select';
 import { createSyllabus } from '@/services/syllabus-service';
 
-const branchOptions = ['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC'];
+const branchOptions = ['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC', 'Both'];
 const semesterOptions = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
 const formSchema = z.object({
     title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
     code: z.string().min(2, { message: 'Course code is required.' }),
-    semester: z.string().min(1, { message: 'Semester is required.' }),
+    semester: z.string().optional(),
     branch: z.string().min(1, { message: 'Branch is required.' }),
-    credits: z.number().min(1, { message: 'Credits must be at least 1.' }),
     type: z.enum(['pdf', 'markdown']),
     contentUrl: z.string().optional(),
 });
@@ -38,6 +38,7 @@ const formSchema = z.object({
 export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [allSemesters, setAllSemesters] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -47,7 +48,6 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
             code: '',
             semester: '',
             branch: '',
-            credits: 3,
             type: 'pdf',
             contentUrl: '',
         },
@@ -105,8 +105,15 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
             return;
         }
 
+        if (!allSemesters && !values.semester) {
+            form.setError('semester', { type: 'manual', message: 'Please select a semester or check "All Semesters".' });
+            return;
+        }
+
         const formData = new FormData();
-        Object.entries(values).forEach(([k, v]) => {
+        const semester = allSemesters ? 'all' : (values.semester ?? '');
+        const submitValues = { ...values, semester };
+        Object.entries(submitValues).forEach(([k, v]) => {
             if (v !== undefined) formData.append(k, String(v));
         });
         formData.append('file', uploadedFile);
@@ -116,6 +123,7 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
         if (created) {
             form.reset();
             setUploadedFile(null);
+            setAllSemesters(false);
             onSuccess();
             return;
         }
@@ -159,8 +167,8 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                     />
                 </div>
 
-                {/* Branch, Semester, Credits - 1 col on mobile, 2 on sm, 3 on md+ */}
-                <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3">
+                {/* Branch & Semester */}
+                <div className="grid gap-5 sm:grid-cols-2">
                     <FormField
                         control={form.control}
                         name="branch"
@@ -176,7 +184,7 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                                     <SelectContent>
                                         {branchOptions.map((branch) => (
                                             <SelectItem key={branch} value={branch}>
-                                                {branch}
+                                                {branch === 'Both' ? '✦ Both (All Branches)' : branch}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -190,11 +198,15 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                         name="semester"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Semester</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormLabel>Semester / Year</FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={allSemesters ? '' : field.value}
+                                    disabled={allSemesters}
+                                >
                                     <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select semester" />
+                                        <SelectTrigger className={allSemesters ? 'opacity-50 cursor-not-allowed' : ''}>
+                                            <SelectValue placeholder={allSemesters ? 'All semesters' : 'Select semester'} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -205,25 +217,25 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="credits"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Credits</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        min="1"
-                                        max="10"
-                                        {...field}
-                                        onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                                <div className="flex items-center gap-2 mt-2">
+                                    <Checkbox
+                                        id="all-semesters"
+                                        checked={allSemesters}
+                                        onCheckedChange={(checked) => {
+                                            setAllSemesters(Boolean(checked));
+                                            if (checked) {
+                                                form.setValue('semester', '');
+                                                form.clearErrors('semester');
+                                            }
+                                        }}
                                     />
-                                </FormControl>
+                                    <label
+                                        htmlFor="all-semesters"
+                                        className="text-xs text-muted-foreground cursor-pointer select-none"
+                                    >
+                                        Applies to all semesters
+                                    </label>
+                                </div>
                                 <FormMessage />
                             </FormItem>
                         )}

@@ -15,7 +15,7 @@ const syllabusSchema = new mongoose.Schema({
     branch: {
         type: String,
         required: [true, 'Please add a branch'],
-        enum: ['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC']
+        enum: ['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC', 'Both']
     },
     semester: {
         type: String,
