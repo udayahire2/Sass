@@ -17,9 +17,13 @@ The following major improvements have been integrated into the system:
 ### 3. Faculty Dashboard Improvements
 - **Profile Endpoint**: Added `/auth/faculty/profile` specifically to fetch faculty details securely.
 - **Dynamic Stats**: The Faculty Dashboard now directly loads study material submission statistics via `fetchUserMaterials` and computes approved, pending, and rejected statuses.
+- **Peer Review & Feedback System**: Implemented a comprehensive rating and review mechanism allowing faculty to leave structured 5-star feedback and comments on uploaded materials.
+
+### 4. Advanced Avatar System & UI Enhancements
+- **Universal SVG Avatars**: Added a highly customizable, SVG-based `DefaultAvatar` component using deterministic character-hashing to generate consistent background colors and initials for users without custom profile pictures.
+- **Improved Avatar Uploads**: Optimized `/auth/updateavatar` endpoint to robustly handle `.webp` and `.gif` formats and immediately sync updates to the frontend state and `localStorage` without page reloads.
+- **Role-Based Routing Guards**: Introduced robust route wrappers to strictly redirect authenticated users (`Admin`, `Faculty`, `Student`) to their designated landing pages, preventing unauthorized or accidental route access.
 
 ## Future Improvement Plan
 
-1. **Caching Layer**: Implement Redis caching for academic content (`/subjects`, `/units`) to reduce SQLite reads for heavily accessed public pages.
-2. **Advanced Search**: Introduce an advanced search mechanism across all topics and study materials using full-text search.
-3. **Analytics**: Build a deeper analytics dashboard for admins to track content engagement, top contributors, and download metrics.
+All future plans regarding scalability, cloud storage integration, AI capabilities, and system optimizations have been migrated to the dedicated [ROADMAP.md](../ROADMAP.md) file at the root of the project. Please refer to it for the comprehensive long-term vision.
