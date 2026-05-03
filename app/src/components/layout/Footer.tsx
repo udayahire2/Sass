@@ -63,7 +63,7 @@ export function Footer() {
 
         <div className="mt-8 flex flex-col gap-2 border-t border-border/40 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 NMU Study Hub</p>
-          <p>Simple, calm, student-first learning UI</p>
+          <p>Build By Student For Students</p>
         </div>
       </div>
     </footer>
