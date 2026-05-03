@@ -4,6 +4,7 @@ export interface StudyMaterial {
     title: string;
     subject: string;
     author: string;
+    authorAvatar?: string;
     branch: string;
     semester: string;
     rating?: number;

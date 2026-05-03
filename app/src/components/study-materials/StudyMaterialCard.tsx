@@ -2,6 +2,8 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Clock, ExternalLink, Download } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { getIcon, getResourceColor } from "./utils";
 import type { StudyMaterial } from "./types";
 
@@ -42,7 +44,17 @@ export function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) 
           <CardTitle className="text-base font-medium leading-snug">
             {resource.title}
           </CardTitle>
-          <p className="text-xs text-muted-foreground">By {resource.author}</p>
+          <div className="flex items-center gap-2">
+            {resource.authorAvatar ? (
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={resource.authorAvatar} />
+                <AvatarFallback>{resource.author.charAt(0)}</AvatarFallback>
+              </Avatar>
+            ) : (
+              <DefaultAvatar name={resource.author} size={20} />
+            )}
+            <p className="text-xs text-muted-foreground">By {resource.author}</p>
+          </div>
         </div>
       </CardHeader>
 
