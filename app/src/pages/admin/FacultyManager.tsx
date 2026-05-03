@@ -3,6 +3,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { Check, X, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { buildApiUrl, getErrorMessage } from "@/services/api";
@@ -16,6 +18,7 @@ interface Faculty {
     collegeName: string;
     subjects: string[];
     isApproved: boolean;
+    avatar?: string;
 }
 
 export default function FacultyManager() {
@@ -180,12 +183,22 @@ function FacultyCard({
         <Card className="overflow-hidden">
             <CardContent className="p-6 space-y-4">
                 {/* Header: name + status */}
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h3 className="font-semibold text-lg">{faculty.name}</h3>
-                        <p className="text-sm text-muted-foreground">{faculty.email}</p>
+                <div className="flex justify-between items-start gap-3">
+                    <div className="flex items-center gap-3">
+                        {faculty.avatar ? (
+                            <Avatar className="h-10 w-10 shrink-0">
+                                <AvatarImage src={faculty.avatar} />
+                                <AvatarFallback>{faculty.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                        ) : (
+                            <DefaultAvatar name={faculty.name} size={40} className="shrink-0" />
+                        )}
+                        <div className="min-w-0">
+                            <h3 className="font-semibold text-lg truncate">{faculty.name}</h3>
+                            <p className="text-sm text-muted-foreground truncate">{faculty.email}</p>
+                        </div>
                     </div>
-                    <Badge variant={faculty.isApproved ? "default" : "secondary"}>
+                    <Badge variant={faculty.isApproved ? "default" : "secondary"} className="shrink-0">
                         {faculty.isApproved ? "Approved" : "Pending"}
                     </Badge>
                 </div>

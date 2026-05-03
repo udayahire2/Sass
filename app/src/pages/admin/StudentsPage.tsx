@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/input-group";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { Search, Trash2, Mail, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { buildApiUrl, getErrorMessage, parseApiData } from "@/services/api";
@@ -159,10 +160,14 @@ export default function StudentsPage() {
                                 <TableRow key={user._id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <Avatar className="h-9 w-9">
-                                                <AvatarImage src={user.avatar} />
-                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
+                                            {user.avatar ? (
+                                                <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={user.avatar} />
+                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                            ) : (
+                                                <DefaultAvatar name={user.name} size={36} />
+                                            )}
                                             <div className="flex flex-col">
                                                 <span className="font-medium">{user.name}</span>
                                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
