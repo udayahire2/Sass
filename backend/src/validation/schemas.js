@@ -1,6 +1,6 @@
 const { z } = require('zod');
 
-const branchEnum = z.enum(['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC']);
+const branchEnum = z.enum(['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC', 'Both']);
 const yearEnum = z.enum(['FE', 'SE', 'TE', 'BE']);
 const syllabusTypeEnum = z.enum(['pdf', 'markdown']);
 const resourceTypeEnum = z.enum(['pdf', 'video', 'doc', 'markdown']);
@@ -62,9 +62,8 @@ const createSyllabusSchema = z.object({
     title: trimmedString(2, 'Title'),
     code: trimmedString(2, 'Code'),
     branch: branchEnum,
-    semester: z.string().trim().regex(/^[1-8]$/, 'Semester must be between 1 and 8'),
+    semester: z.string().trim().regex(/^([1-8]|all)$/, 'Semester must be between 1 and 8, or "all"'),
     type: syllabusTypeEnum,
-    credits: z.coerce.number().int().min(1).max(10),
     contentUrl: trimmedString(2, 'Content'),
 });
 
@@ -111,11 +110,17 @@ const materialUploadBodySchema = z.object({
     url: z.string().trim().url().optional(),
 });
 
+const materialFeedbackSchema = z.object({
+    feedback_text: trimmedString(5, 'Feedback'),
+    rating: z.coerce.number().int().min(1).max(5),
+});
+
 module.exports = {
     adminProfileSchema,
     createResourceSchema,
     createSyllabusSchema,
     loginSchema,
+    materialFeedbackSchema,
     materialUploadBodySchema,
     paginationQuerySchema,
     registerSchema,

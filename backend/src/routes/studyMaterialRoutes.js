@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const multer = require('multer');
 const path = require('node:path');
 const fs = require('node:fs');
-const { materialUploadBodySchema, updateMaterialStatusSchema } = require('../validation/schemas');
+const { materialUploadBodySchema, updateMaterialStatusSchema, materialFeedbackSchema } = require('../validation/schemas');
 const { protect, authorize, requireApprovedFaculty } = require('../middlewares/authMiddleware');
 const { cache } = require('../config/cache');
 const { createTimestamps, formatStudyMaterial, get, run, all } = require('../services/dbService');
@@ -302,5 +302,163 @@ router.patch('/:id/status', protect, authorize('admin'), async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 });
+
+// @desc    Get faculty contribution stats
+// @route   GET /api/v1/study-materials/faculty/stats
+// @access  Private (faculty or admin)
+router.get('/faculty/stats', protect, async (req, res) => {
+    try {
+        if (req.user.role !== 'faculty' && req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+
+        const userId = req.user.id;
+
+        const countRow = (status) => {
+            const row = get(
+                `SELECT COUNT(*) as count FROM study_materials
+                 WHERE uploader_user_id = ? AND status = ? AND deleted_at IS NULL`,
+                [userId, status]
+            );
+            return row ? row.count : 0;
+        };
+
+        const totalRow = get(
+            `SELECT COUNT(*) as count FROM study_materials
+             WHERE uploader_user_id = ? AND deleted_at IS NULL`,
+            [userId]
+        );
+
+        const feedbackRow = get(
+            `SELECT COUNT(*) as count FROM material_feedback
+             WHERE reviewer_user_id = ? AND deleted_at IS NULL`,
+            [userId]
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Faculty stats fetched',
+            data: {
+                total_uploaded: totalRow ? totalRow.count : 0,
+                approved_count: countRow('approved'),
+                pending_count: countRow('pending'),
+                rejected_count: countRow('rejected'),
+                feedback_given_count: feedbackRow ? feedbackRow.count : 0,
+            },
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// @desc    Submit (or update) feedback on a study material
+// @route   POST /api/v1/study-materials/:id/feedback
+// @access  Private (approved faculty)
+router.post('/:id/feedback', protect, requireApprovedFaculty, async (req, res) => {
+    try {
+        const parsed = materialFeedbackSchema.safeParse(req.body);
+        if (!parsed.success) {
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                error: parsed.error.flatten(),
+            });
+        }
+
+        if (req.user.role !== 'faculty' && req.user.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Only faculty can give feedback' });
+        }
+
+        const material = get(
+            `SELECT * FROM study_materials WHERE id = ? AND status = 'approved' AND deleted_at IS NULL`,
+            [req.params.id]
+        );
+        if (!material) {
+            return res.status(404).json({ success: false, message: 'Approved study material not found' });
+        }
+
+        const { feedback_text, rating } = parsed.data;
+        const timestamps = createTimestamps();
+
+        // Upsert: one feedback per faculty per material
+        const existing = get(
+            `SELECT id FROM material_feedback WHERE study_material_id = ? AND reviewer_user_id = ? AND deleted_at IS NULL`,
+            [material.id, req.user.id]
+        );
+
+        if (existing) {
+            run(
+                `UPDATE material_feedback
+                 SET feedback_text = ?, rating = ?, updated_at = ?
+                 WHERE id = ?`,
+                [feedback_text, rating, timestamps.updatedAt, existing.id]
+            );
+        } else {
+            const feedbackId = crypto.randomUUID();
+            run(
+                `INSERT INTO material_feedback (id, study_material_id, reviewer_user_id, feedback_text, rating, created_at, updated_at, deleted_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
+                [feedbackId, material.id, req.user.id, feedback_text, rating, timestamps.createdAt, timestamps.updatedAt]
+            );
+        }
+
+        const saved = get(
+            `SELECT mf.*, u.first_name, u.last_name
+             FROM material_feedback mf
+             JOIN users u ON u.id = mf.reviewer_user_id
+             WHERE mf.study_material_id = ? AND mf.reviewer_user_id = ? AND mf.deleted_at IS NULL`,
+            [material.id, req.user.id]
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: existing ? 'Feedback updated' : 'Feedback submitted',
+            data: formatFeedbackRow(saved),
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// @desc    Get all feedback for a study material
+// @route   GET /api/v1/study-materials/:id/feedback
+// @access  Private
+router.get('/:id/feedback', protect, async (req, res) => {
+    try {
+        const rows = all(
+            `SELECT mf.*, u.first_name, u.last_name
+             FROM material_feedback mf
+             JOIN users u ON u.id = mf.reviewer_user_id
+             WHERE mf.study_material_id = ? AND mf.deleted_at IS NULL
+             ORDER BY mf.created_at DESC`,
+            [req.params.id]
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Feedback fetched',
+            data: rows.map(formatFeedbackRow),
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatFeedbackRow(row) {
+    if (!row) return null;
+    return {
+        id: row.id,
+        studyMaterialId: row.study_material_id,
+        reviewerUserId: row.reviewer_user_id,
+        reviewerName: [row.first_name, row.last_name].filter(Boolean).join(' ').trim(),
+        feedbackText: row.feedback_text,
+        rating: row.rating,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+    };
+}
 
 module.exports = router;
