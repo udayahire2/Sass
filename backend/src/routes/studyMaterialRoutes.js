@@ -83,6 +83,67 @@ router.get('/my', protect, async (req, res) => {
     }
 });
 
+// @desc    Get bookmarked materials
+// @route   GET /api/v1/study-materials/bookmarks
+// @access  Private
+router.get('/bookmarks', protect, async (req, res) => {
+    try {
+        const materials = all(
+            `SELECT sm.*
+             FROM study_materials sm
+             JOIN bookmarks b ON sm.id = b.study_material_id
+             WHERE b.user_id = ? AND sm.deleted_at IS NULL
+             ORDER BY b.created_at DESC`,
+            [req.user.id]
+        ).map((row) => formatStudyMaterial(row));
+
+        res.status(200).json({
+            success: true,
+            data: materials,
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// @desc    Toggle bookmark for a study material
+// @route   POST /api/v1/study-materials/:id/bookmark
+// @access  Private
+router.post('/:id/bookmark', protect, async (req, res) => {
+    try {
+        const materialId = req.params.id;
+        const userId = req.user.id;
+
+        const material = get(
+            `SELECT id FROM study_materials WHERE id = ? AND deleted_at IS NULL`,
+            [materialId]
+        );
+
+        if (!material) {
+            return res.status(404).json({ success: false, message: 'Material not found' });
+        }
+
+        const existing = get(
+            `SELECT id FROM bookmarks WHERE user_id = ? AND study_material_id = ?`,
+            [userId, materialId]
+        );
+
+        if (existing) {
+            run(`DELETE FROM bookmarks WHERE id = ?`, [existing.id]);
+            return res.status(200).json({ success: true, message: 'Bookmark removed', bookmarked: false });
+        } else {
+            const bookmarkId = crypto.randomUUID();
+            run(
+                `INSERT INTO bookmarks (id, user_id, study_material_id) VALUES (?, ?, ?)`,
+                [bookmarkId, userId, materialId]
+            );
+            return res.status(200).json({ success: true, message: 'Bookmark added', bookmarked: true });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // @desc    Get all approved materials (Student View)
 // @route   GET /api/v1/study-materials/approved
 // @access  Public

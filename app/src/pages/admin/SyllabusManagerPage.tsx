@@ -19,6 +19,8 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { Download, FileCode, FileText, Loader2, Plus, Search } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -31,6 +33,8 @@ export default function SyllabusManagerPage() {
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [selectedForDelete, setSelectedForDelete] = useState<string | null>(null);
 
     const loadSyllabus = async () => {
         setLoading(true);
@@ -43,15 +47,24 @@ export default function SyllabusManagerPage() {
         loadSyllabus();
     }, []);
 
-    const deleteItem = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this syllabus item?")) return;
-        const success = await deleteSyllabus(id);
+    const handleDeleteConfirm = async () => {
+        if (!selectedForDelete) return;
+        const success = await deleteSyllabus(selectedForDelete);
         if (success) {
-            setSyllabusList((prev) => prev.filter((item) => item.id !== id && item._id !== id));
+            setSyllabusList((prev) =>
+                prev.filter((item) => item.id !== selectedForDelete && item._id !== selectedForDelete)
+            );
             toast.success("Syllabus deleted successfully");
         } else {
             toast.error("Failed to delete syllabus item");
         }
+        setDeleteConfirmOpen(false);
+        setSelectedForDelete(null);
+    };
+
+    const openDeleteDialog = (id: string) => {
+        setSelectedForDelete(id);
+        setDeleteConfirmOpen(true);
     };
 
     const filtered = syllabusList.filter(
@@ -104,7 +117,9 @@ export default function SyllabusManagerPage() {
                     <DialogContent className="sm:max-w-[650px] p-0 flex flex-col overflow-hidden max-h-[90vh]">
                         <ScrollArea className="max-h-[90vh] w-full p-6 sm:p-8">
                             <DialogHeader className="pb-2">
-                                <DialogTitle className="text-2xl font-bold tracking-tight">Add New Syllabus</DialogTitle>
+                                <DialogTitle className="text-2xl font-bold tracking-tight">
+                                    Add New Syllabus
+                                </DialogTitle>
                             </DialogHeader>
                             <SyllabusForm
                                 onSuccess={() => {
@@ -120,68 +135,99 @@ export default function SyllabusManagerPage() {
             {/* Table */}
             <div className="overflow-hidden rounded-lg border">
                 <div className="overflow-x-auto">
-                <Table className="min-w-[760px]">
-                    <TableHeader className="bg-muted/30">
-                        <TableRow>
-                            <TableHead className="w-[120px]">Code</TableHead>
-                            <TableHead>Course Title</TableHead>
-                            <TableHead>Branch / Semester</TableHead>
-                            <TableHead>Type</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading ? (
+                    <Table className="min-w-[760px]">
+                        <TableHeader className="bg-muted/30">
                             <TableRow>
-                                <TableCell colSpan={5} className="h-48 text-center">
-                                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-                                </TableCell>
+                                <TableHead className="w-[120px]">Code</TableHead>
+                                <TableHead>Course Title</TableHead>
+                                <TableHead>Branch / Semester</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        ) : filtered.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="h-64 text-center text-muted-foreground">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Search className="h-8 w-8 opacity-50" />
-                                        <p>No syllabus found matching your search.</p>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filtered.map((item) => (
-                                <TableRow key={item.id || item._id}>
-                                    <TableCell className="font-mono text-sm">{item.code}</TableCell>
-                                    <TableCell className="font-medium">{item.title}</TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-0.5">
-                                            <span>{item.branch}</span>
-                                            <span className="text-xs text-muted-foreground">
-                                            {item.semester === 'all' ? 'All Semesters' : `Semester ${item.semester}`}
-                                        </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            {getTypeIcon(item.type)}
-                                            <span className="text-xs uppercase">{item.type}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => deleteItem(item.id || item._id || "")}
-                                            className="text-destructive hover:text-destructive"
-                                        >
-                                            Delete
-                                        </Button>
+                        </TableHeader>
+                        <TableBody>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-48 text-center">
+                                        <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+                            ) : filtered.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="h-64 text-center text-muted-foreground">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <Search className="h-8 w-8 opacity-50" />
+                                            <p>No syllabus found matching your search.</p>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                filtered.map((item) => (
+                                    <TableRow key={item.id || item._id}>
+                                        <TableCell className="font-mono text-sm">{item.code}</TableCell>
+                                        <TableCell className="font-medium">{item.title}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col gap-0.5">
+                                                <span>{item.branch}</span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {item.semester === 'all'
+                                                        ? 'All Semesters'
+                                                        : `Semester ${item.semester}`}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {getTypeIcon(item.type)}
+                                                <span className="text-xs uppercase">{item.type}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    openDeleteDialog(item.id || item._id || "")
+                                                }
+                                                className="text-destructive hover:text-destructive"
+                                            >
+                                                Delete
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Delete Syllabus Item</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to delete this syllabus item? This action
+                            cannot be undone.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2 sm:gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteConfirmOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteConfirm}
+                        >
+                            Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

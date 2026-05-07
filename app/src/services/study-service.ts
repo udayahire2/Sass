@@ -150,3 +150,38 @@ export const updateMaterialStatus = async (
         return null;
     }
 };
+
+export const fetchBookmarkedMaterials = async (): Promise<StudyMaterial[]> => {
+    try {
+        const response = await fetch(`${API_URL}/bookmarks`, {
+            headers: getAuthHeaders(),
+        });
+        const payload = await response.json();
+        if (!response.ok || payload.success === false) {
+            throw new Error(getErrorMessage(payload, 'Failed to fetch bookmarked materials'));
+        }
+
+        return parseApiData<StudyMaterial[]>(payload, []);
+    } catch (error) {
+        console.error('Error fetching bookmarked materials:', error);
+        return [];
+    }
+};
+
+export const toggleBookmark = async (id: string): Promise<{ success: boolean; bookmarked?: boolean }> => {
+    try {
+        const response = await fetch(`${API_URL}/${id}/bookmark`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+        });
+        const payload = await response.json();
+        if (!response.ok || payload.success === false) {
+            throw new Error(getErrorMessage(payload, 'Failed to toggle bookmark'));
+        }
+
+        return { success: true, bookmarked: payload.bookmarked };
+    } catch (error) {
+        console.error('Error toggling bookmark:', error);
+        return { success: false };
+    }
+};
