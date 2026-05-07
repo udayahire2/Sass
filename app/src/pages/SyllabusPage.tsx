@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
-  ExternalLink,
   FileText,
-  Ghost,
   Loader2,
   RefreshCw,
   Search,
@@ -79,7 +77,7 @@ export default function SyllabusPage() {
 
   const branchOptions = useMemo(
     () => ["All", ...Array.from(new Set(syllabus.map((item) => item.branch))).sort()],
-    [syllabus], 
+    [syllabus],
   );
 
   const semesterOptions = useMemo(

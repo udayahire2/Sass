@@ -2,7 +2,7 @@
 
 import { useState, useEffect, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut, User, BookOpen } from "lucide-react";
+import { Sun, Moon, LogOut, User } from "lucide-react";
 import Menu from "@/svgs/menu";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
@@ -149,21 +149,6 @@ function ThemeToggle() {
 function UserMenuDesktop() {
   const { user, logout, getInitials } = useLocalAuth();
 
-  if (!user) {
-    return (
-      <div className="hidden items-center gap-2 md:flex">
-        <Link to="/login">
-          <Button variant="ghost" size="sm">
-            Sign in
-          </Button>
-        </Link>
-        <Link to="/signup">
-          <Button size="sm">Get started</Button>
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <div className="hidden items-center md:flex">
       <DropdownMenu>
@@ -172,15 +157,21 @@ function UserMenuDesktop() {
             className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground/90 to-foreground/70 text-background ring-1 ring-border/50 transition-all duration-200 hover:ring-2 hover:ring-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
             aria-label="User menu"
           >
-            {user.avatar ? (
+            {user?.avatar ? (
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="bg-transparent text-[11px] font-semibold text-background">
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
-            ) : (
+            ) : user ? (
               <DefaultAvatar name={user.name} size={32} />
+            ) : (
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-transparent text-background">
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
             )}
           </button>
         </DropdownMenuTrigger>
@@ -190,61 +181,67 @@ function UserMenuDesktop() {
           sideOffset={8}
           className="w-64 rounded-xl border-border/50 bg-popover/95 p-0 shadow-xl shadow-black/10 backdrop-blur-xl"
         >
-          {/* User Info Header */}
-          <div className="border-b border-border/40 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground/90 to-foreground/70 text-background">
-                {user.avatar ? (
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="bg-transparent text-xs font-semibold text-background">
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <DefaultAvatar name={user.name} size={36} />
-                )}
+          {user ? (
+            <>
+              {/* User Info Header */}
+              <div className="border-b border-border/40 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground/90 to-foreground/70 text-background">
+                    {user.avatar ? (
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="bg-transparent text-xs font-semibold text-background">
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <DefaultAvatar name={user.name} size={36} />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium leading-tight">
+                      {user.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium leading-tight">
-                  {user.name}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {user.email}
-                </p>
+
+              {/* Menu Items */}
+              <div className="p-1.5">
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm">
+                  <Link to="/profile" className="flex items-center gap-2.5">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span>View Profile</span>
+                  </Link>
+                </DropdownMenuItem>
               </div>
+
+              <DropdownMenuSeparator className="mx-2 bg-border/40" />
+
+              {/* Logout */}
+              <div className="p-1.5">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="cursor-pointer rounded-lg px-3 py-2 text-sm text-destructive focus:bg-destructive/10 focus:text-destructive"
+                >
+                  <LogOut className="mr-2.5 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </div>
+            </>
+          ) : (
+            <div className="p-1.5">
+              <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm">
+                <Link to="/login" className="flex items-center gap-2.5">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span>Log in</span>
+                </Link>
+              </DropdownMenuItem>
             </div>
-          </div>
-
-          {/* Menu Items */}
-          <div className="p-1.5">
-            <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm">
-              <Link to="/profile" className="flex items-center gap-2.5">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span>View Profile</span>
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm">
-              <Link to="/resources" className="flex items-center gap-2.5">
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
-                <span>Study Materials</span>
-              </Link>
-            </DropdownMenuItem>
-          </div>
-
-          <DropdownMenuSeparator className="mx-2 bg-border/40" />
-
-          {/* Logout */}
-          <div className="p-1.5">
-            <DropdownMenuItem
-              onClick={logout}
-              className="cursor-pointer rounded-lg px-3 py-2 text-sm text-destructive focus:bg-destructive/10 focus:text-destructive"
-            >
-              <LogOut className="mr-2.5 h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
-          </div>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -356,21 +353,7 @@ function PopoverMobileMenu() {
                 className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground"
               >
                 <User className="mr-2 h-4 w-4" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              asChild
-              className="rounded-md cursor-pointer"
-              onClick={() => navigate("/resources")}
-            >
-              <Link
-                to="/resources"
-                className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground"
-              >
-                <BookOpen className="mr-2 h-4 w-4" />
-                Study Materials
+                View Profile
               </Link>
             </DropdownMenuItem>
 

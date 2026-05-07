@@ -6,6 +6,7 @@ import { Navbar } from "./Navbar";
 export default function Layout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
   const isResourcesPage = location.pathname.startsWith("/resources");
+  const isProfilePage = location.pathname.startsWith("/profile");
 
   return (
     <div className="relative flex min-h-screen flex-col bg-transparent">
@@ -24,7 +25,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         </main>
       </div>
 
-      {!isResourcesPage && <Footer />}
+      {!(isResourcesPage || isProfilePage) && <Footer />}
     </div>
   );
 }

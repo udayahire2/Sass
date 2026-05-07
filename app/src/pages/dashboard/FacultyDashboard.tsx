@@ -217,7 +217,6 @@ function FeedbackPanel({
     userId: string;
 }) {
     const [open, setOpen] = useState(false);
-    const [feedbackList, setFeedbackList] = useState<MaterialFeedback[]>([]);
     const [loading, setLoading] = useState(false);
     const [myFeedback, setMyFeedback] = useState<MaterialFeedback | null>(null);
     const didLoad = useRef(false);
@@ -225,7 +224,6 @@ function FeedbackPanel({
     const loadFeedback = async () => {
         setLoading(true);
         const list = await fetchMaterialFeedback(material._id);
-        setFeedbackList(list);
         const mine = list.find((f) => f.reviewerUserId === userId) ?? null;
         setMyFeedback(mine);
         setLoading(false);
@@ -241,10 +239,6 @@ function FeedbackPanel({
 
     const handleSuccess = (saved: MaterialFeedback) => {
         setMyFeedback(saved);
-        setFeedbackList((prev) => {
-            const filtered = prev.filter((f) => f.id !== saved.id);
-            return [saved, ...filtered];
-        });
     };
 
     return (
@@ -448,10 +442,10 @@ export default function FacultyDashboard() {
                     Your Contributions
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                    <StatCard icon={FileText}     label="Total Uploads"   value={stats.total_uploaded}       tone="default" />
-                    <StatCard icon={CheckCircle2} label="Approved"        value={stats.approved_count}       tone="success" />
-                    <StatCard icon={Clock3}       label="Pending"         value={stats.pending_count}        tone="warning" />
-                    <StatCard icon={XCircle}      label="Rejected"        value={stats.rejected_count}       tone="error"   />
+                    <StatCard icon={FileText} label="Total Uploads" value={stats.total_uploaded} tone="default" />
+                    <StatCard icon={CheckCircle2} label="Approved" value={stats.approved_count} tone="success" />
+                    <StatCard icon={Clock3} label="Pending" value={stats.pending_count} tone="warning" />
+                    <StatCard icon={XCircle} label="Rejected" value={stats.rejected_count} tone="error" />
                     <StatCard icon={MessageSquarePlus} label="Feedback Given" value={stats.feedback_given_count} tone="info" />
                 </div>
             </section>

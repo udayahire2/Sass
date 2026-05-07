@@ -3,13 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { Button } from "../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -41,11 +34,28 @@ import {
   Clock,
   XCircle,
   ImagePlus,
-  Sparkles,
+  Bookmark,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { buildApiUrl, buildAssetUrl, getErrorMessage, parseApiData } from "@/services/api";
-import { uploadMaterial, fetchUserMaterials, type StudyMaterial } from "@/services/study-service";
+import { uploadMaterial, fetchUserMaterials, fetchBookmarkedMaterials, toggleBookmark, type StudyMaterial } from "@/services/study-service";
+import {
+  NotionPage,
+  NotionCover,
+  NotionContent,
+  NotionHeaderArea,
+  NotionAvatarWrapper,
+  NotionTitle,
+  NotionTitleBadge,
+  NotionProperties,
+  NotionPropertyRow,
+  NotionSection,
+  NotionGallery,
+  NotionGalleryCard,
+  NotionFormContainer,
+  NotionEmptyState,
+} from "@/components/profile/NotionLayout";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                           */
@@ -127,15 +137,6 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const getInitials = (name: string) => {
-  if (!name) return "U";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2);
-};
 
 const statusConfig = {
   pending: {
@@ -201,6 +202,10 @@ export default function ProfilePage() {
   const [userMaterials, setUserMaterials] = useState<StudyMaterial[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(false);
 
+  // ── bookmarked content state ────────────────────────────────────
+  const [bookmarkedMaterials, setBookmarkedMaterials] = useState<StudyMaterial[]>([]);
+  const [bookmarksLoading, setBookmarksLoading] = useState(false);
+
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const effectiveCreditName = creditName.trim() || user?.name || "";
   const detectedType = useMemo(() => getFileType(file), [file]);
@@ -234,7 +239,21 @@ export default function ProfilePage() {
     fetchUserMaterials()
       .then((materials) => setUserMaterials(materials))
       .finally(() => setMaterialsLoading(false));
+
+    setBookmarksLoading(true);
+    fetchBookmarkedMaterials()
+      .then((materials) => setBookmarkedMaterials(materials))
+      .finally(() => setBookmarksLoading(false));
   }, [token]);
+
+  const handleRemoveBookmark = async (materialId: string) => {
+    if (!token) return;
+    const result = await toggleBookmark(materialId);
+    if (result.success && !result.bookmarked) {
+      setBookmarkedMaterials(prev => prev.filter(m => String(m.id || m._id) !== materialId));
+      toast.success("Bookmark removed");
+    }
+  };
 
   /* ── profile update ─────────────────────────────────────────────── */
   const handleUpdate = async (e: FormEvent) => {
@@ -460,7 +479,7 @@ export default function ProfilePage() {
   /*  RENDER                                                          */
   /* ================================================================ */
   return (
-    <div className="min-h-screen from-background via-background to-muted/20">
+    <NotionPage>
       {/* ── Crop Modal ───────────────────────────────────────────── */}
       {cropModalOpen && imageSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
@@ -476,9 +495,7 @@ export default function ProfilePage() {
                   <p className="text-xs text-muted-foreground">Drag to reposition</p>
                 </div>
               </div>
-              <Button
-                onClick={() => setCropModalOpen(false)}
-              >
+              <Button onClick={() => setCropModalOpen(false)} variant="ghost" size="icon" className="h-8 w-8 rounded-full">
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -499,7 +516,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Zoom Control */}
-            <div className="border-t border-border/40 px-5 py-4 space-y-4">
+            <div className="space-y-4 border-t border-border/40 px-5 py-4">
               <div className="flex items-center gap-3">
                 <ZoomIn className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <Input
@@ -509,32 +526,26 @@ export default function ProfilePage() {
                   step={0.05}
                   value={zoom}
                   onChange={(e) => setZoom(Number(e.target.value))}
-
                 />
-                <span className="text-xs tabular-nums text-muted-foreground w-9 text-right">{zoom.toFixed(1)}×</span>
+                <span className="w-9 text-right text-xs tabular-nums text-muted-foreground">
+                  {zoom.toFixed(1)}×
+                </span>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setCropModalOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setCropModalOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  className="flex-1 "
-                  onClick={handleApplyCrop}
-                  disabled={avatarUploading}
-                >
+                <Button className="flex-1" onClick={handleApplyCrop} disabled={avatarUploading}>
                   {avatarUploading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Saving…
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="h-4 w-4" />
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
                       Apply
                     </>
                   )}
@@ -545,39 +556,30 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Main Content ─────────────────────────────────────────── */}
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-8">
+      <NotionCover />
 
-        {/* ── Hero / Avatar Section ─────────────────────────────── */}
-        <div className="relative overflow-hidden rounded-2xl border border-border/50 from-card via-card to-muted/30 p-6 sm:p-8">
-          {/* Decorative dots */}
-          <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/5 blur-2xl" />
-          <div className="pointer-events-none absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-primary/3 blur-xl" />
-
-          <div className="relative flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:gap-6">
-            {/* Avatar with gradient ring */}
-            <div className="group relative shrink-0">
-              <div className="relative h-28 w-28 rounded-full p-0.75   shadow-lg transition-shadow duration-300 hover:shadow-xl  sm:h-30 sm:w-30">
-                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-background">
+      <NotionContent>
+        {/* ── Header & Profile Info ──────────────────────────────── */}
+        <NotionHeaderArea>
+          <NotionAvatarWrapper>
+            <div className="group relative">
+              <div className="relative h-28 w-28 rounded-xl bg-background p-1 shadow-sm transition-shadow hover:shadow-md sm:h-32 sm:w-32">
+                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
                   {avatarPreview || user.avatar ? (
-                    <Avatar className="h-full w-full">
-                      <AvatarImage
-                        src={avatarPreview || user.avatar}
-                        alt={user.name}
-                        className="object-cover"
-                      />
-                      <AvatarFallback className="text-2xl font-semibold bg-muted">
-                        {getInitials(user.name)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <img
+                      src={avatarPreview || user.avatar}
+                      alt={user.name}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <DefaultAvatar name={user.name} size={120} className="h-full w-full" />
+                    <DefaultAvatar name={user.name} size={128} className="h-full w-full rounded-lg" />
                   )}
                 </div>
               </div>
-
-              {/* Camera overlay */}
               <Button
+                variant="secondary"
+                size="icon"
+                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full shadow-md"
                 onClick={() => avatarInputRef.current?.click()}
                 aria-label="Change avatar"
               >
@@ -591,189 +593,135 @@ export default function ProfilePage() {
                 className="sr-only"
               />
             </div>
+          </NotionAvatarWrapper>
 
-            {/* User info */}
-            <div className="flex-1 text-center sm:text-left sm:pt-2">
-              <h1 className="text-2xl font-bold sm:text-3xl">{user.name}</h1>
-              <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 sm:justify-start">
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Mail className="h-3.5 w-3.5" />
-                  <span>{user.email}</span>
-                </div>
-              </div>
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <Badge variant="secondary" className="gap-1 px-1.5 py-1 text-xs font-medium">
-                  <Sparkles className="h-3 w-3" />
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <div>
+              <NotionTitle>
+                {user.name}
+                <NotionTitleBadge>
                   {user.role === "admin"
                     ? "Administrator"
                     : user.role === "faculty"
                       ? "Faculty"
                       : "Student"}
-                </Badge>
+                </NotionTitleBadge>
                 {user.isVerified && (
-                  <Badge variant="outline" className="gap-1 px-1.5 py-1 text-xs font-medium border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
-                    <ShieldCheck className="h-3 w-3" />
+                  <NotionTitleBadge>
+                    <ShieldCheck className="mr-1 inline-block h-3 w-3 text-emerald-500" />
                     Verified
-                  </Badge>
+                  </NotionTitleBadge>
                 )}
-              </div>
-
-              {/* Edit Profile Button — below the name block */}
-              {!isEditing && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 gap-2"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Edit2 className="h-3.5 w-3.5" />
-                  Edit Profile
-                </Button>
-              )}
+              </NotionTitle>
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                {user.email}
+              </p>
             </div>
-          </div>
-        </div>
 
-        {/* ── Personal Information Card ─────────────────────────── */}
-        <Card className="overflow-hidden rounded-2xl border-border/50 shadow-sm">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Personal Information</CardTitle>
-                <CardDescription>Manage your profile details</CardDescription>
-              </div>
-              {isEditing && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setName(user.name);
-                    setBranch(user.branch);
-                    setYear(user.year);
-                  }}
-                >
-                  <X className="h-4 w-4 mr-1" /> Cancel
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isEditing ? (
-              <form onSubmit={handleUpdate} className="space-y-6">
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      className="rounded-xl"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="branch">Academic Branch</Label>
-                    <Select
-                      value={branch}
-                      onValueChange={(val) => setBranch(val || "")}
-                      required
-                    >
-                      <SelectTrigger id="branch">
-                        <SelectValue placeholder="Select Branch" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Computer">Computer Engineering</SelectItem>
-                        <SelectItem value="IT">Information Technology</SelectItem>
-                        <SelectItem value="Civil">Civil Engineering</SelectItem>
-                        <SelectItem value="Mechanical">Mechanical Engineering</SelectItem>
-                        <SelectItem value="Electrical">Electrical Engineering</SelectItem>
-                        <SelectItem value="ENTC">E&TC Engineering</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Current Year</Label>
-                    <Select
-                      value={year}
-                      onValueChange={(val) => setYear(val || "")}
-                      required
-                    >
-                      <SelectTrigger id="year">
-                        <SelectValue placeholder="Select Year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="FE">First Year (FE)</SelectItem>
-                        <SelectItem value="SE">Second Year (SE)</SelectItem>
-                        <SelectItem value="TE">Third Year (TE)</SelectItem>
-                        <SelectItem value="BE">Final Year (BE)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex justify-end pt-4 border-t">
-                  <Button type="submit" disabled={loading} className="rounded-xl">
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" /> Save Changes
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="flex items-start gap-3 p-3.5 rounded-xl border border-border/50 bg-muted/20 transition-colors hover:bg-muted/30">
-                  <BookOpen className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">Branch</p>
-                    <p className="font-semibold text-sm">{user.branch || "—"}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3.5 rounded-xl border border-border/50 bg-muted/20 transition-colors hover:bg-muted/30">
-                  <CalendarDays className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">Current Year</p>
-                    <p className="font-semibold text-sm">{user.year || "—"}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3.5 rounded-xl border border-border/50 bg-muted/20 transition-colors hover:bg-muted/30">
-                  <ShieldCheck className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">Email Status</p>
-                    <p className="font-semibold text-sm">{user.isVerified ? "Verified" : "Pending"}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 p-3.5 rounded-xl border border-border/50 bg-muted/20 transition-colors hover:bg-muted/30">
-                  <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">Member Since</p>
-                    <p className="font-semibold text-sm">{formatDate(user.createdAt)}</p>
-                  </div>
-                </div>
-              </div>
+            {!isEditing && (
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                <Edit2 className="mr-2 h- 4 w-4" /> Edit Profile
+              </Button>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          <NotionProperties>
+            {isEditing ? (
+              <NotionFormContainer>
+                <form onSubmit={handleUpdate} className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input
+                        id="name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="branch">Academic Branch</Label>
+                      <Select value={branch} onValueChange={(val) => setBranch(val || "")} required>
+                        <SelectTrigger id="branch">
+                          <SelectValue placeholder="Select Branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Computer">Computer Engineering</SelectItem>
+                          <SelectItem value="IT">Information Technology</SelectItem>
+                          <SelectItem value="Civil">Civil Engineering</SelectItem>
+                          <SelectItem value="Mechanical">Mechanical Engineering</SelectItem>
+                          <SelectItem value="Electrical">Electrical Engineering</SelectItem>
+                          <SelectItem value="ENTC">E&TC Engineering</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="year">Current Year</Label>
+                      <Select value={year} onValueChange={(val) => setYear(val || "")} required>
+                        <SelectTrigger id="year">
+                          <SelectValue placeholder="Select Year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="FE">First Year (FE)</SelectItem>
+                          <SelectItem value="SE">Second Year (SE)</SelectItem>
+                          <SelectItem value="TE">Third Year (TE)</SelectItem>
+                          <SelectItem value="BE">Final Year (BE)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 border-t border-border/40 pt-4 mt-4">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setName(user.name);
+                        setBranch(user.branch);
+                        setYear(user.year);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                      {loading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                      )}
+                      Save Changes
+                    </Button>
+                  </div>
+                </form>
+              </NotionFormContainer>
+            ) : (
+              <>
+                <NotionPropertyRow
+                  icon={BookOpen}
+                  label="Academic Branch"
+                  value={user.branch || "Not specified"}
+                />
+                <NotionPropertyRow
+                  icon={CalendarDays}
+                  label="Current Year"
+                  value={user.year || "Not specified"}
+                />
+                <NotionPropertyRow
+                  icon={User}
+                  label="Member Since"
+                  value={formatDate(user.createdAt)}
+                />
+              </>
+            )}
+          </NotionProperties>
+        </NotionHeaderArea>
 
         {/* ── Add Content Section ────────────────────────────────── */}
         {token && (
-          <Card className="overflow-hidden rounded-2xl border-border/50 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
-                  <UploadCloud className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Add Content</CardTitle>
-                  <CardDescription>Upload study material for admin review</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <NotionSection title="Add Study Content" icon={UploadCloud}>
+            <NotionFormContainer>
               <form onSubmit={handleContentSubmit} className="space-y-5">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
@@ -806,11 +754,7 @@ export default function ProfilePage() {
                     id="content-credit"
                     value={creditName}
                     onChange={(e) => setCreditName(e.target.value)}
-                    placeholder={
-                      user?.name
-                        ? `Uploaded by ${user.name}`
-                        : "Your name"
-                    }
+                    placeholder={user?.name ? `Uploaded by ${user.name}` : "Your name"}
                     disabled={submitting}
                     className="rounded-xl"
                   />
@@ -824,8 +768,9 @@ export default function ProfilePage() {
                   <Button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex min-h-32 w-full flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-border/60 bg-muted/10 px-5 py-6 text-center transition-all duration-200 hover:bg-muted/25 hover:border-primary/30"
+                    className="flex min-h-[8rem] w-full flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-border/60 bg-muted/10 px-5 py-6 text-center transition-all duration-200 hover:border-primary/30 hover:bg-muted/25"
                     disabled={submitting}
+                    variant="ghost"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                       <UploadCloud className="h-5 w-5 text-primary" />
@@ -857,111 +802,164 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full rounded-xl"
-                  disabled={submitting || !token}
-                >
+                <Button type="submit" className="w-full rounded-xl" disabled={submitting || !token}>
                   {submitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Sending for review…
                     </>
                   ) : (
                     <>
-                      <UploadCloud className="h-4 w-4" />
+                      <UploadCloud className="mr-2 h-4 w-4" />
                       Submit Study Content
                     </>
                   )}
                 </Button>
               </form>
-            </CardContent>
-          </Card>
+            </NotionFormContainer>
+          </NotionSection>
         )}
 
         {/* ── Your Uploaded Content ──────────────────────────────── */}
         {token && (
-          <Card className="overflow-hidden rounded-2xl border-border/50 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/20">
-                  <FileText className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Your Uploaded Content</CardTitle>
-                  <CardDescription>
-                    Track the status of your submissions
-                  </CardDescription>
-                </div>
+          <NotionSection title="Your Uploaded Content" icon={FileText}>
+            {materialsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            </CardHeader>
-            <CardContent>
-              {materialsLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : userMaterials.length === 0 ? (
-                /* Empty state */
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted/50">
-                    <UploadCloud className="h-7 w-7 text-muted-foreground/60" />
-                  </div>
-                  <h3 className="text-base font-semibold">No uploads yet</h3>
-                  <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-                    Be the first to share! Upload study material above to help your peers.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {userMaterials.map((material) => {
-                    const status = statusConfig[material.status] || statusConfig.pending;
-                    const StatusIcon = status.icon;
+            ) : userMaterials.length === 0 ? (
+              <NotionEmptyState
+                icon={UploadCloud}
+                title="No uploads yet"
+                description="Be the first to share! Upload study material above to help your peers."
+              />
+            ) : (
+              <NotionGallery>
+                {userMaterials.map((material) => {
+                  const status = statusConfig[material.status] || statusConfig.pending;
+                  const StatusIcon = status.icon;
 
-                    return (
-                      <div
-                        key={material._id}
-                        className="group relative flex flex-col gap-3 rounded-xl border border-border/50 bg-card/50 p-4 transition-all duration-200 hover:bg-card hover:shadow-sm hover:border-border"
-                      >
-                        {/* Header row */}
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <h4 className="truncate text-sm font-semibold">
-                              {material.title}
-                            </h4>
-                            <p className="truncate text-xs text-muted-foreground mt-0.5">
-                              {material.subject}
-                            </p>
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className={`shrink-0 gap-1 rounded-lg text-[10px] font-semibold px-2 py-0.5 ${status.className}`}
-                          >
-                            <StatusIcon className="h-3 w-3" />
-                            {status.label}
-                          </Badge>
+                  return (
+                    <NotionGalleryCard key={material._id}>
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate text-sm font-semibold">{material.title}</h4>
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                            {material.subject}
+                          </p>
                         </div>
+                        <Badge
+                          variant="outline"
+                          className={`shrink-0 gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${status.className}`}
+                        >
+                          <StatusIcon className="h-3 w-3" />
+                          {status.label}
+                        </Badge>
+                      </div>
 
-                        {/* Footer row */}
-                        <div className="flex items-center justify-between">
-                          <Badge
-                            variant="secondary"
-                            className={`rounded-md text-[10px] font-medium px-2 py-0.5 ${typeBadgeColor[material.type] || ""}`}
+                      <div className="mt-auto flex items-center justify-between border-t border-border/40 pt-3">
+                        <Badge
+                          variant="secondary"
+                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${typeBadgeColor[material.type] || ""}`}
+                        >
+                          {material.type}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground">
+                          {formatDate(material.createdAt)}
+                        </span>
+                      </div>
+                    </NotionGalleryCard>
+                  );
+                })}
+              </NotionGallery>
+            )}
+          </NotionSection>
+        )}
+
+        {/* ── Bookmarked Content ─────────────────────────────────── */}
+        {token && (
+          <NotionSection
+            title="Bookmarked Content"
+            icon={Bookmark}
+            action={
+              bookmarkedMaterials.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => navigate("/resources")}>
+                  Browse more
+                </Button>
+              )
+            }
+          >
+            {bookmarksLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : bookmarkedMaterials.length === 0 ? (
+              <NotionEmptyState
+                icon={Bookmark}
+                title="No bookmarks yet"
+                description="You haven't bookmarked any study materials. Explore the Study Materials section and save what you find useful."
+                action={
+                  <Button variant="outline" className="rounded-xl" onClick={() => navigate("/resources")}>
+                    Browse Materials
+                  </Button>
+                }
+              />
+            ) : (
+              <NotionGallery>
+                {bookmarkedMaterials.map((material) => {
+                  const href =
+                    material.url ||
+                    (material.filePath
+                      ? buildAssetUrl(material.filePath, { studyMaterialId: material.id || material._id })
+                      : "");
+                  return (
+                    <NotionGalleryCard key={material._id}>
+                      <div className="mb-4 flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate text-sm font-semibold">{material.title}</h4>
+                          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                            {material.subject}
+                          </p>
+                        </div>
+                        <Badge
+                          variant="secondary"
+                          className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${typeBadgeColor[material.type] || ""}`}
+                        >
+                          {material.type}
+                        </Badge>
+                      </div>
+
+                      <div className="mt-auto flex items-center justify-between border-t border-border/40 pt-3">
+                        <span className="text-[11px] text-muted-foreground">
+                          By {material.author}
+                        </span>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-lg text-muted-foreground hover:text-red-500"
+                            onClick={() => handleRemoveBookmark(String(material.id || material._id))}
+                            title="Remove bookmark"
                           >
-                            {material.type}
-                          </Badge>
-                          <span className="text-[11px] text-muted-foreground">
-                            {formatDate(material.createdAt)}
-                          </span>
+                            <Bookmark className="h-3.5 w-3.5 fill-current" />
+                          </Button>
+                          {href && (
+                            <Button asChild variant="outline" size="sm" className="h-7 rounded-lg px-2 text-xs">
+                              <a href={href} target="_blank" rel="noreferrer">
+                                Open <ExternalLink className="ml-1 h-3 w-3" />
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    </NotionGalleryCard>
+                  );
+                })}
+              </NotionGallery>
+            )}
+          </NotionSection>
         )}
-      </div>
-    </div>
+      </NotionContent>
+    </NotionPage>
   );
 }

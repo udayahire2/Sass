@@ -1,7 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export function Hero() {
+  const navigate = useNavigate();
+
   return (
     <section className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-20 lg:pt-20 lg:pb-20">
 
@@ -37,12 +40,14 @@ export function Hero() {
           <div className="flex flex-col justify-center gap-4 pt-2 sm:flex-row">
             <Button
               size="lg"
+              onClick={() => navigate("/resources")}
             >
               Start studying
             </Button>
             <Button
               size="lg"
               variant="outline"
+              onClick={() => navigate("/resources")}
             >
               Browse subjects
             </Button>

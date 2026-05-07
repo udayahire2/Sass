@@ -1,4 +1,4 @@
-import { ChevronRight, ExternalLink, FileText, Ghost, Home, Loader2, Search, UploadCloud, X } from "lucide-react";
+import { ChevronRight, ExternalLink, FileText, Home, Loader2, Search, UploadCloud, X, Bookmark } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -17,7 +17,7 @@ import {
   type Topic,
   type Unit,
 } from "@/services/api";
-import { fetchApprovedMaterials, type StudyMaterial } from "@/services/study-service";
+import { fetchApprovedMaterials, fetchBookmarkedMaterials, toggleBookmark, type StudyMaterial } from "@/services/study-service";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
 
@@ -195,27 +195,27 @@ export default function StudyMaterialsPage() {
       "mx-auto w-full space-y-10 px-4 py-8 sm:px-6 md:py-12",
       isTopicView ? "max-w-270" : "max-w-270"
     )}>
-      
+
       {/* Header — hidden in topic view since TopicViewer renders its own */}
       {!isTopicView && (
         <>
           {/* Minimalistic Header Section */}
           <div className="flex flex-col gap-5">
-            
+
             {/* Notion-style Clean Breadcrumbs */}
             <nav className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap text-[13px] font-medium text-muted-foreground pb-1">
-              <Link 
-                to="/resources" 
+              <Link
+                to="/resources"
                 className="flex items-center gap-1.5 rounded-[6px] px-2 py-1 transition-colors hover:bg-muted/60 hover:text-foreground"
               >
                 <Home className="h-3.5 w-3.5 opacity-80" />
                 <span className="hidden sm:inline">Home</span>
               </Link>
-              
+
               {branch && (
                 <>
                   <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
-                  <button 
+                  <button
                     onClick={() => navigate("/resources")}
                     className="rounded-[6px] px-2 py-1 transition-colors hover:bg-muted/60 hover:text-foreground"
                   >
@@ -223,7 +223,7 @@ export default function StudyMaterialsPage() {
                   </button>
                 </>
               )}
-              
+
               {branch && semester && (
                 <>
                   <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
@@ -235,7 +235,7 @@ export default function StudyMaterialsPage() {
                   </button>
                 </>
               )}
-              
+
               {activeSubject && (
                 <>
                   <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
@@ -255,14 +255,14 @@ export default function StudyMaterialsPage() {
                     ? activeSubject.name
                     : `Semester ${semester} Subjects`}
               </h1>
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <p className="text-[14px] leading-relaxed text-muted-foreground max-w-2xl">
-                  {isRoot 
-                    ? "Start by selecting your branch and semester. Your customized study material is just a click away." 
-                     : "Streamlined and organized to save you time. Dive into your resources below."}
+                  {isRoot
+                    ? "Start by selecting your branch and semester. Your customized study material is just a click away."
+                    : "Streamlined and organized to save you time. Dive into your resources below."}
                 </p>
-                
+
                 {/* Minimal Property Badges */}
                 {!isRoot && (
                   <div className="flex flex-wrap items-center gap-2">
@@ -309,7 +309,7 @@ export default function StudyMaterialsPage() {
 
         {!loadingAcademicContent && isTopicView && activeTopic && <TopicViewer topic={activeTopic} subject={activeSubject} />}
       </div>
-      
+
     </div>
   );
 }
@@ -332,6 +332,35 @@ function ApprovedUploadsSection({
   const { user } = useLocalAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+
+  // Fetch bookmarked materials to highlight
+  useEffect(() => {
+    if (user) {
+      fetchBookmarkedMaterials().then((materials) => {
+        const ids = new Set(materials.map((m) => String(m.id || m._id)));
+        setBookmarkedIds(ids);
+      }).catch(console.error);
+    } else {
+      setBookmarkedIds(new Set());
+    }
+  }, [user]);
+
+  const handleToggleBookmark = async (materialId: string) => {
+    if (!user) return;
+    const result = await toggleBookmark(materialId);
+    if (result.success) {
+      setBookmarkedIds(prev => {
+        const next = new Set(prev);
+        if (result.bookmarked) {
+          next.add(materialId);
+        } else {
+          next.delete(materialId);
+        }
+        return next;
+      });
+    }
+  };
 
   // Get unique types for filter pills
   const types = useMemo(() => {
@@ -406,11 +435,10 @@ function ApprovedUploadsSection({
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
               <button
                 onClick={() => setActiveTypeFilter(null)}
-                className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  !activeTypeFilter
+                className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${!activeTypeFilter
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "border border-border/60 bg-background/80 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                }`}
+                  }`}
               >
                 All
               </button>
@@ -418,11 +446,10 @@ function ApprovedUploadsSection({
                 <button
                   key={type}
                   onClick={() => setActiveTypeFilter(activeTypeFilter === type ? null : type)}
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    activeTypeFilter === type
+                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${activeTypeFilter === type
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "border border-border/60 bg-background/80 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                  }`}
+                    }`}
                 >
                   {type}
                 </button>
@@ -480,14 +507,25 @@ function ApprovedUploadsSection({
 
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-border/30 pt-3">
                   <p className="text-xs font-medium text-muted-foreground">Uploaded by {material.author}</p>
-                  {href && (
-                    <Button asChild size="sm" className="rounded-xl">
-                      <a href={href} target="_blank" rel="noreferrer">
-                       <Button variant="outline"> Open
-                        <ExternalLink className="h-3.5 w-3.5" /></Button>
-                      </a>
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {user && (
+                      <Button
+                        variant={bookmarkedIds.has(String(material.id || material._id)) ? "default" : "outline"}
+                        size="icon"
+                        className={cn("rounded-xl h-9 w-9", bookmarkedIds.has(String(material.id || material._id)) ? "bg-primary text-primary-foreground" : "")}
+                        onClick={() => handleToggleBookmark(String(material.id || material._id))}
+                      >
+                        <Bookmark className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {href && (
+                      <Button asChild size="sm" className="rounded-xl" variant="outline">
+                        <a href={href} target="_blank" rel="noreferrer">
+                          Open <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </article>
             );
