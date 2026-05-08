@@ -1,184 +1,189 @@
 # Requirements
 
-This document explains the functional and non-functional requirements implemented in the current codebase.
+This document describes requirements that are implemented in the current codebase.
 
 ## Functional Requirements
 
 ### 1. Authentication and Account Management
 
-The system must allow users to create and manage accounts.
-
-Implemented features:
+Implemented:
 
 - Student signup with name, email, password, branch, and year.
 - Faculty signup with name, email, password, designation, department, college name, and subjects.
-- Email OTP generation and verification.
+- Email OTP generation, hashing, expiry, and verification.
 - Password hashing with bcrypt.
-- Login with email and password.
+- Login with email/password.
 - JWT access-token generation.
-- Refresh-token session support through an HTTP-only cookie.
+- Rotating refresh-token sessions through an HTTP-only cookie.
 - Logout with refresh-token family revocation.
 - Current-user lookup through `GET /api/v1/auth/me`.
-- Profile update for authenticated users.
-- Avatar upload for authenticated users.
+- Profile update for name, branch, and year.
+- Avatar upload with client-side cropping in the profile page and backend image storage.
 
-### 2. Student Study Material Browsing
+### 2. Academic Content Browsing
 
-The system must help students find study material quickly.
+Implemented:
 
-Implemented features:
+- `/resources` starts with branch and semester selection.
+- `/resources/:branch/:semester` loads subjects from `GET /api/v1/subjects`.
+- `/resources/:branch/:semester/:subjectId` loads units and topics from `GET /api/v1/subjects/:id/units`.
+- `/resources/:branch/:semester/:subjectId/topic/:topicId` loads an individual topic from `GET /api/v1/topics/:id`.
+- Topic records include Markdown content and optional YouTube video URLs.
+- Subject data is seeded into SQLite from `app/src/data/study-data.ts` by `backend/src/seeds/seedSubjects.js`.
 
-- `/resources` page starts with branch and semester selection.
-- Branch and semester routes are supported through React Router.
-- Subject dashboard and topic viewer are available for static demo content.
-- Approved user uploads are fetched dynamically from the backend.
+Requirement caveat:
+
+- The UI can browse seeded content, but there is no admin CRUD UI yet for subjects, units, and topics.
+
+### 3. Approved Upload Browsing and Bookmarks
+
+Implemented:
+
+- Approved user uploads are listed on `/resources`.
 - Approved uploads can be searched by title, subject, or author.
 - Approved uploads can be filtered by material type.
-- Uploaded files can be opened from their static file URL.
+- Signed-in users can bookmark and unbookmark study materials.
+- Bookmarked materials appear on the profile page.
+- Local uploaded files open through `/api/v1/files/:studyMaterialId`.
 
-Current limitation:
+### 4. Study Content Upload and Approval
 
-- Subject/unit/topic data in `app/src/data/study-data.ts` is static demo data, not yet fully stored in the backend database.
+Implemented:
 
-### 3. Study Content Upload and Approval
-
-The system must allow useful study content to be submitted and reviewed before publishing.
-
-Implemented features:
-
-- Signed-in users can upload study content.
-- Faculty must be admin-approved before upload access is allowed.
+- Signed-in users can upload study content from `/add-study-content` and `/profile`.
+- Unapproved faculty are blocked by backend middleware.
 - Supported uploaded file extensions are `.pdf`, `.ppt`, `.pptx`, `.docx`, and `.md`.
 - Maximum study-material file size is 50 MB.
-- Uploaded material is stored with status `pending`.
-- Admins can view pending uploads.
+- Uploaded material is inserted with status `pending`.
+- Admins can view pending, approved, and rejected uploads.
+- Admins can preview files during review.
 - Admins can approve or reject uploaded material.
 - Approved content becomes publicly visible through `GET /api/v1/study-materials/approved`.
-- Rejected content is kept in review history but not publicly shown.
+- Rejected content remains available to admin review history and user upload history, but is not public.
 
-### 4. Syllabus Management
+### 5. Syllabus Management
 
-The system must provide searchable syllabus information.
-
-Implemented public features:
+Public features:
 
 - List syllabus records.
-- Search by course title or subject code.
+- Search by title or code.
 - Filter by branch.
 - Filter by semester.
 - View Markdown syllabus content in-app.
-- Open PDF syllabus files.
+- Open PDF syllabus files through `GET /api/v1/syllabus/:id/file`.
 
-Implemented admin features:
+Admin features:
 
-- Add a syllabus entry.
-- Upload a syllabus file.
-- Supported syllabus upload types: PDF, Markdown, and text.
+- Add a syllabus entry from `/admin/syllabus`.
+- Upload PDF, Markdown, Markdown extension, or text files.
 - Maximum syllabus file size is 20 MB.
-- Delete syllabus entries through soft delete.
-- Automatically ensure a matching subject record exists when syllabus is created.
+- Store PDF files on disk and Markdown/text content in the database.
+- Delete syllabus records through soft delete.
+- Automatically ensure a matching `subjects` row exists when a syllabus record is created.
 
-### 5. Resource Management
+Current behavior:
 
-The system must allow admins to maintain official resource links.
+- New syllabus rows store `credits = 0`; the current frontend and backend create schema do not collect credits.
 
-Implemented features:
+### 6. Resource Management
 
-- Admin can create resources.
-- Admin can delete resources.
-- Public users can view approved resources.
-- Admin users can view resources with status filtering.
-- Resources include title, subject, semester, branch, type, description, category, pattern, unit, academic year, author, and URL.
-- Supported resource types: `pdf`, `video`, `doc`, `markdown`.
-- Supported categories: `Notes`, `PYQ`, `Syllabus`, `Lab Manual`, `Reference Book`, `Other`.
+Implemented:
+
+- Admins can create, update, and delete resource URL records through the API.
+- The current admin UI supports create and delete.
+- Public users can view approved resources from the API.
+- Admin-created resources default to `approved`.
+- Resources include title, subject, semester, branch, type, description, category, pattern, unit, academic year, author, URL, and status.
 
 Important distinction:
 
-- Admin resources are URL-based records.
-- Study-material uploads are file-or-URL submissions that go through approval.
+- Resources are URL records managed by admins.
+- Study materials are user submissions that can be file uploads or URLs and go through moderation.
 
-### 6. Admin Dashboard
+### 7. Search
 
-The system must give admins a central management area.
+Implemented:
 
-Implemented features:
+- `/search` loads syllabus and approved materials.
+- Query state is stored in the `q` URL parameter.
+- Syllabus search matches title, code, and branch.
+- Study-material search matches title, subject, and author.
+- Syllabus results link back to `/syllabus?search=...`.
+- Study-material results open external URLs or file-proxy URLs.
 
-- Dashboard statistics:
+### 8. Admin Dashboard and Management
+
+Implemented:
+
+- Dashboard stats:
   - Total users
   - Total resources plus study materials
   - New users in the last 7 days
   - New resources/materials in the last 7 days
-- Content approval summary.
-- Pending/approved material view.
-- Student management navigation.
-- Settings/profile navigation.
+- Pending and approved material tables.
+- Approval rate calculation in the frontend.
 - Theme switching in the admin UI.
+- Student search/list/delete.
+- Faculty pending/all views with approve/revoke actions.
+- Syllabus and resource management pages.
 
-### 7. Student Management
+### 9. Faculty Dashboard and Feedback
 
-The system must allow admins to review student accounts.
+Implemented:
 
-Implemented features:
-
-- List students.
-- Search students by name or email.
-- Show branch, year, role, verification status, avatar, and join date.
-- Soft-delete student accounts.
-
-### 8. Faculty Management
-
-The system must allow admins to control faculty access.
-
-Implemented features:
-
-- List pending faculty.
-- List all faculty.
-- Show designation, department, college name, and subjects.
-- Approve faculty.
-- Revoke faculty approval.
-- Queue email notifications for faculty approval changes.
+- Faculty dashboard route at `/dashboard/faculty`.
+- Fresh profile lookup through `GET /api/v1/auth/me`.
+- Faculty stats from `GET /api/v1/study-materials/faculty/stats`.
+- Personal upload list from `GET /api/v1/study-materials/my`.
+- Approved material list for peer feedback.
+- Feedback retrieval and upsert through `/study-materials/:id/feedback`.
+- One feedback row per reviewer/material enforced by a database uniqueness constraint.
 
 ## Non-Functional Requirements
 
 ### Security
 
-- Passwords must never be stored in plain text.
-- Access tokens must be signed with a server-side secret.
-- Refresh tokens must be hashed before database storage.
-- Protected APIs must reject missing or invalid tokens.
-- Admin APIs must require the `admin` role.
-- Inputs must be validated with Zod.
-- HTTP security headers are applied through Helmet.
+- Passwords are hashed with bcrypt.
+- Access tokens and refresh tokens use server-side secrets.
+- Refresh tokens are stored only as hashes.
+- Protected APIs reject missing or invalid tokens.
+- Admin APIs require the admin role.
+- Inputs are validated with Zod.
+- Helmet security headers are enabled.
 - CORS is restricted to configured origins.
-- Uploaded file types are restricted by extension.
+- Uploads are extension/MIME limited depending on the endpoint.
+- File proxy endpoints prevent public access to non-approved study-material files unless the requester is admin.
 
 ### Reliability
 
 - SQLite foreign keys are enabled.
-- SQLite uses WAL journal mode for better local concurrency.
-- Soft deletes are used for users, resources, syllabus, and study materials.
-- Email sending is queued in a `jobs` table rather than blocking registration.
-- Failed jobs can retry up to the configured attempt count.
+- SQLite uses WAL mode and a busy timeout.
+- Main tables use soft deletes where appropriate.
+- Admin stats cache invalidates after content/resource changes.
+- Email jobs are persisted in the `jobs` table.
+
+Reliability caveat:
+
+- The job queue worker exists in `backend/src/services/jobQueue.js`, but `backend/src/server.js` currently does not call `startJobWorker()`. Without a worker call, queued email jobs are recorded but not processed in the running server process. OTPs are still logged to the server console in development.
 
 ### Performance
 
 - Admin stats are cached for 60 seconds.
-- Cache uses Redis when `REDIS_URL` is configured.
-- If Redis is not available, the backend falls back to in-memory cache.
-- Database indexes exist for common filters such as role, email, branch, semester, status, and created date.
+- Redis is used when `REDIS_URL` is configured.
+- In-memory cache is used as a fallback.
+- Database indexes cover common lookups for users, subjects, syllabus, resources, study materials, refresh tokens, OTPs, jobs, feedback, and bookmarks.
 
 ### Maintainability
 
-- Backend routes are grouped by domain: auth, admin, resources, study materials, and syllabus.
-- Controllers and services separate HTTP logic from database helpers.
+- Frontend service helpers are centralized under `app/src/services`.
+- Backend route groups are organized by domain.
 - Validation schemas are centralized in `backend/src/validation/schemas.js`.
-- Frontend API helpers are centralized in `app/src/services/api.ts`.
+- SQLite formatting helpers are centralized in `backend/src/services/dbService.js`.
 
-## Current Gaps and Future Improvements
+## Current Gaps
 
-- Move static subject/unit/topic content from frontend demo data into backend tables.
-- Add full CRUD for subjects and topic content.
-- Add a proper faculty dashboard implementation beyond the route shell.
-- Add pagination support on more frontend screens where backend query schemas already support page/limit.
-- Add automated tests for authentication, upload validation, and admin approval workflows.
-- Add cloud file storage for production deployments, because local uploads are not ideal for serverless hosting.
+- No admin UI for subject/unit/topic CRUD.
+- No pagination applied in most frontend lists even where query validation accepts `page` and `limit`.
+- Faculty dashboard is reachable by route, but backend middleware remains the primary protection for faculty-only actions.
+- Local file storage is not ideal for serverless production.
+- Automated tests are not yet present for the main auth, upload, approval, bookmark, and feedback flows.

@@ -1,20 +1,20 @@
 # User Types and Roles
 
-The application supports three user roles: **student**, **faculty**, and **admin**. Roles are stored in the `users.role` field and enforced by backend middleware.
+The application supports three roles: **student**, **faculty**, and **admin**. Roles are stored in `users.role` and enforced in the backend by authentication middleware.
 
 ## Role Overview
 
-| Role    | Main Purpose                                                       | Created Through  | Approval Required            |
-| ------- | ------------------------------------------------------------------ | ---------------- | ---------------------------- |
-| Student | Consume syllabus and study materials, submit useful content.       | Public signup    | Email OTP only               |
-| Faculty | Academic contributor with faculty profile details.                 | Public signup    | Email OTP and admin approval |
-| Admin   | Manage users, content, faculty approvals, syllabus, and resources. | Seed/admin setup | Not through public signup    |
+| Role | Created through | Approval required | Main purpose |
+| --- | --- | --- | --- |
+| Student | Public signup | Email OTP | Browse syllabus/materials, upload content, manage profile and bookmarks. |
+| Faculty | Public signup | Email OTP plus admin approval | Contribute approved academic content and review materials. |
+| Admin | Seeded from environment/script | Not public | Manage users, faculty access, syllabus, resources, and approvals. |
 
 ## Student
 
-Students are the main consumers of the platform.
+Students are the primary consumers of the platform.
 
-### Student Registration Fields
+Registration fields:
 
 - Full name
 - Email
@@ -22,35 +22,32 @@ Students are the main consumers of the platform.
 - Branch: `Computer`, `IT`, `Civil`, `Mechanical`, `Electrical`, `ENTC`
 - Year: `FE`, `SE`, `TE`, `BE`
 
-### Student Permissions
-
 Students can:
 
-- Register and verify their email using OTP.
-- Login after email verification.
-- View public syllabus records.
-- Browse static subject/topic study content in the frontend.
-- View approved uploaded study materials.
-- Search and filter approved uploads.
-- Submit PDF, PPT, DOCX, or Markdown study content for admin review.
-- Update profile details.
-- Upload/update avatar image.
-
-### Student Restrictions
+- Register and verify email with OTP.
+- Log in after verification.
+- View syllabus records.
+- Browse seeded subjects, units, and topics from the backend.
+- View approved study-material uploads.
+- Search/filter approved uploads.
+- Bookmark approved uploads.
+- Submit study material for admin review.
+- Update profile name, branch, year, and avatar.
+- View their own upload status history from the profile page.
 
 Students cannot:
 
-- Access the admin dashboard.
-- Approve or reject uploaded content.
-- Create or delete syllabus records.
-- Create or delete admin-managed resources.
-- Approve faculty accounts.
+- Access admin APIs.
+- Approve or reject submitted content.
+- Create/delete syllabus records.
+- Create/delete admin resource links.
+- Approve or revoke faculty access.
 
 ## Faculty
 
-Faculty users represent academic staff. They register separately from students and provide professional details.
+Faculty users represent academic staff and controlled contributors.
 
-### Faculty Registration Fields
+Registration fields:
 
 - Full name
 - Email
@@ -60,84 +57,83 @@ Faculty users represent academic staff. They register separately from students a
 - College name
 - Subjects taught
 
-### Faculty Approval Flow
+Faculty flow:
 
 1. Faculty signs up.
-2. Faculty verifies email through OTP.
-3. Faculty account is stored with `is_approved = 0`.
-4. Admin reviews the faculty request from the Faculty Manager screen.
-5. Admin approves or revokes faculty access.
-
-### Faculty Permissions
+2. Backend stores the user with `is_approved = 0`.
+3. Faculty verifies email by OTP.
+4. Faculty can log in and view the faculty dashboard.
+5. Admin approves or revokes faculty access from `/admin/faculty`.
 
 Faculty can:
 
-- Register and verify email using OTP.
-- Login after email verification.
-- Access the faculty dashboard route after login.
-- Submit study content after admin approval.
+- Register and verify email.
+- Log in after verification.
+- View faculty profile/status on `/dashboard/faculty`.
+- Upload study material after admin approval.
+- View contribution stats for their own uploads.
+- See their pending, approved, and rejected uploads.
+- Give or update feedback and 1-5 star ratings on approved study materials.
 
-### Faculty Restrictions
+Faculty restrictions:
 
-Unapproved faculty can login, but protected faculty contribution actions are blocked by the backend through `requireApprovedFaculty`.
-
-Faculty cannot:
-
-- Access admin-only pages.
-- Approve content.
-- Manage students.
-- Manage syllabus or resources unless their role is changed to admin.
+- Unapproved faculty are blocked by `requireApprovedFaculty` on contribution routes.
+- Faculty are not admins and cannot manage students, syllabus, resources, or approvals.
 
 ## Admin
 
-Admins are privileged users who manage the product. The backend includes a `seed:admin` script to create an admin account using environment variables.
-
-### Admin Permissions
+Admins are privileged users. The active backend can create a default admin on startup when `ADMIN_EMAIL` and `ADMIN_PASSWORD` are configured, and also includes `scripts/seedAdmin.js`.
 
 Admins can:
 
 - View dashboard statistics.
-- View and update admin profile.
-- Search and manage student accounts.
-- Delete non-admin users through soft delete.
-- View all faculty.
-- View pending faculty.
-- Approve faculty accounts.
+- Search/list students.
+- Soft-delete non-admin users.
+- View pending and all faculty.
+- Approve faculty users.
 - Revoke faculty approval.
-- View pending, approved, and rejected uploaded study materials.
+- View pending, approved, and rejected study materials.
 - Approve or reject uploaded study materials.
-- Create and delete syllabus entries.
-- Create and delete admin-managed resource links.
+- Preview uploaded files through file proxy endpoints.
+- Create and delete syllabus records.
+- Create, update, and delete resource links through the API.
+- Update admin profile fields through the API.
 
-### Admin Restrictions
+Admin restrictions:
 
-Admins cannot be deleted through the student deletion endpoint. The backend explicitly blocks deletion of admin accounts through `DELETE /api/v1/admin/users/:id`.
+- Admin users cannot be deleted through `DELETE /api/v1/admin/users/:id`.
+- Admin creation is not exposed through public signup.
 
 ## Authorization Middleware
 
 | Middleware | Purpose |
 | --- | --- |
-| `protect` / `loadAuthenticatedUser` | Requires a valid access token and loads `req.user`. |
-| `optionalAuth` | Loads the user if a valid token exists but allows public access otherwise. |
+| `loadAuthenticatedUser` / `protect` | Requires a valid access token and loads `req.user`. |
+| `optionalAuth` | Attempts to load a valid user but allows public access. |
 | `authorize('admin')` | Allows only admin users. |
 | `requireApprovedFaculty` | Blocks faculty users whose account is not approved. Students and admins pass this check. |
 
-## Role-Based Feature Matrix
+## Feature Matrix
 
 | Feature | Student | Faculty | Admin |
 | --- | --- | --- | --- |
-| Register publicly | Yes | Yes | No |
-| Email OTP verification | Yes | Yes | Admin is seeded |
+| Public registration | Yes | Yes | No |
+| OTP verification | Yes | Yes | Seeded admin is already verified |
 | Login | Yes | Yes | Yes |
 | View syllabus | Yes | Yes | Yes |
-| View approved study uploads | Yes | Yes | Yes |
+| Browse subject/unit/topic content | Yes | Yes | Yes |
+| View approved uploads | Yes | Yes | Yes |
+| Bookmark uploads | Yes | Yes | Yes |
 | Upload study material | Yes | Yes, after approval | Yes |
+| Give material feedback | No | Yes, after approval | Yes |
 | Approve study material | No | No | Yes |
 | Manage resources | No | No | Yes |
 | Manage syllabus | No | No | Yes |
 | Manage students | No | No | Yes |
 | Approve faculty | No | No | Yes |
 
-## Mentor Notes
+## Frontend Routing Notes
 
-The role system is clear and practical. Students are the primary audience, faculty are controlled contributors, and admins act as moderators and managers. The biggest security boundary is the admin role, because all management APIs use `protect` plus `authorize('admin')`.
+- `/` is wrapped in `RoleGuard`, which redirects authenticated admins to `/admin/dashboard` and faculty to `/dashboard/faculty`.
+- `/admin/*` is guarded in `AdminLayout` using the locally stored user/token plus backend-protected API calls.
+- `/dashboard/faculty` loads authenticated user data and faculty stats from protected endpoints; upload access is ultimately enforced by the backend.

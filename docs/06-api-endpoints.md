@@ -10,7 +10,7 @@ The frontend builds this from `VITE_API_URL` or defaults to `/api/v1`.
 
 ## Standard Response Shape
 
-Most successful backend responses follow this structure:
+Most successful responses use:
 
 ```json
 {
@@ -20,7 +20,7 @@ Most successful backend responses follow this structure:
 }
 ```
 
-Some endpoints also include legacy fields for compatibility with existing frontend code.
+Some endpoints also return legacy top-level fields for compatibility with existing frontend code.
 
 ## Health
 
@@ -32,17 +32,17 @@ Some endpoints also include legacy fields for compatibility with existing fronte
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `POST` | `/auth/register` | Public | Register student or faculty user and create OTP. |
+| `POST` | `/auth/register` | Public | Register student/faculty and create OTP. |
 | `POST` | `/auth/login` | Public | Login with email and password. |
 | `POST` | `/auth/verify-otp` | Public | Verify 6-digit OTP and create session. |
-| `POST` | `/auth/refresh` | Refresh cookie | Rotate refresh token and create new access token. |
+| `POST` | `/auth/refresh` | Refresh cookie | Rotate refresh token and create a new access token. |
 | `POST` | `/auth/logout` | Optional refresh cookie | Revoke refresh-token family and clear cookie. |
 | `GET` | `/auth/me` | User | Return current authenticated user. |
-| `GET` | `/auth/faculty/profile` | User (Faculty) | Return current authenticated faculty profile. |
+| `GET` | `/auth/faculty/profile` | Faculty user | Return current faculty profile. |
 | `PUT` | `/auth/updatedetails` | User | Update name, branch, or year. |
 | `PUT` | `/auth/updateavatar` | User | Upload avatar image. |
 
-### Register Student Request
+Student registration:
 
 ```json
 {
@@ -55,7 +55,7 @@ Some endpoints also include legacy fields for compatibility with existing fronte
 }
 ```
 
-### Register Faculty Request
+Faculty registration:
 
 ```json
 {
@@ -70,7 +70,7 @@ Some endpoints also include legacy fields for compatibility with existing fronte
 }
 ```
 
-### Verify OTP Request
+OTP verification:
 
 ```json
 {
@@ -79,14 +79,17 @@ Some endpoints also include legacy fields for compatibility with existing fronte
 }
 ```
 
-### Login Request
+Profile update:
 
 ```json
 {
-  "email": "student@example.com",
-  "password": "password123"
+  "name": "Updated Name",
+  "branch": "Computer",
+  "year": "TE"
 }
 ```
+
+Avatar upload uses `multipart/form-data` with field name `avatar`.
 
 ## Admin: `/admin`
 
@@ -96,7 +99,7 @@ All admin endpoints require:
 Authorization: Bearer <access-token>
 ```
 
-and the authenticated user must have `role = admin`.
+The authenticated user must have `role = admin`.
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
@@ -110,29 +113,27 @@ and the authenticated user must have `role = admin`.
 | `PATCH` | `/admin/faculty/:id/approve` | Approve faculty access. |
 | `PATCH` | `/admin/faculty/:id/reject` | Revoke faculty approval. |
 
-### Admin Query Parameters
-
-`GET /admin/users` supports:
+`GET /admin/users` accepts:
 
 | Query | Purpose |
 | --- | --- |
-| `page` | Page number. |
-| `limit` | Page size, max 100. |
+| `page` | Page number. Defaults to 1. |
+| `limit` | Page size. Maximum 100. |
 | `search` | Search by student name or email. |
 
 ## Resources: `/resources`
 
-Resources are admin-managed URL records. Public users can view approved resources.
+Resources are admin-managed URL records. Public callers see approved records only. Admin callers can filter by status.
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/resources` | Optional | List resources. Public sees approved only. Admin may filter by status. |
+| `GET` | `/resources` | Optional | List resources. |
 | `POST` | `/resources` | Admin | Create an approved resource record. |
 | `GET` | `/resources/:id` | Optional | Get one resource. Public cannot view non-approved resources. |
 | `PATCH` | `/resources/:id` | Admin | Update a resource. |
 | `DELETE` | `/resources/:id` | Admin | Soft-delete a resource. |
 
-### Resource Query Parameters
+Resource query parameters:
 
 | Query | Purpose |
 | --- | --- |
@@ -140,21 +141,21 @@ Resources are admin-managed URL records. Public users can view approved resource
 | `semester` | Filter by semester. |
 | `search` | Search title, subject, or author. |
 | `status` | Admin-only status filter. |
-| `page`, `limit` | Accepted by validation schema, although current controller returns all matching rows. |
+| `page`, `limit` | Accepted by validation, but current controller returns all matching rows. |
 
-### Create Resource Request
+Create resource:
 
 ```json
 {
   "title": "Unit 1 DBMS Notes",
   "subject": "DBMS",
-  "semester": "4",
+  "semester": "Sem 4",
   "branch": "Computer",
   "type": "pdf",
   "description": "Complete unit 1 notes with examples.",
   "category": "Notes",
-  "pattern": "2024",
-  "unit": "Unit 1",
+  "pattern": "2019",
+  "unit": "All",
   "year": "SE",
   "author": "Admin",
   "url": "https://example.com/dbms-unit-1.pdf"
@@ -171,16 +172,15 @@ Study materials are user submissions that go through admin moderation.
 | `GET` | `/study-materials/pending` | Admin | List pending submissions. |
 | `GET` | `/study-materials/rejected` | Admin | List rejected submissions. |
 | `GET` | `/study-materials/my` | User | List uploads created by the logged-in user. |
-| `POST` | `/study-materials` | User plus approved faculty check | Upload or submit a study material. |
+| `GET` | `/study-materials/bookmarks` | User | List materials bookmarked by the logged-in user. |
+| `POST` | `/study-materials/:id/bookmark` | User | Toggle bookmark for one material. |
+| `POST` | `/study-materials` | User plus approved-faculty check | Upload or submit a study material. |
 | `PATCH` | `/study-materials/:id/status` | Admin | Approve or reject a material. |
+| `GET` | `/study-materials/faculty/stats` | Faculty/Admin | Return contribution and feedback counts for current user. |
+| `GET` | `/study-materials/:id/feedback` | User | Fetch feedback for one material. |
+| `POST` | `/study-materials/:id/feedback` | Approved faculty/Admin | Create or update feedback for one material. |
 
-### Upload Study Material Request
-
-Content type:
-
-```text
-multipart/form-data
-```
+Upload study material uses `multipart/form-data`.
 
 Fields:
 
@@ -188,7 +188,7 @@ Fields:
 | --- | --- | --- |
 | `title` | Yes | Material title. |
 | `subject` | Yes | Subject name. |
-| `type` | Optional | `PDF`, `PPT`, `DOCX`, `Markdown`, `Video`, or `Notes`. If file is uploaded, type is inferred and must match. |
+| `type` | Optional | `PDF`, `PPT`, `DOCX`, `Markdown`, `Video`, or `Notes`. If a file is uploaded, type is inferred and must match if supplied. |
 | `author` | Optional | Credit name. Defaults to logged-in user name or `Student`. |
 | `url` | Required only if no file | External material URL. |
 | `file` | Required only if no URL | Uploaded file. |
@@ -207,7 +207,7 @@ Maximum file size:
 50 MB
 ```
 
-### Update Material Status Request
+Update material status:
 
 ```json
 {
@@ -216,21 +216,25 @@ Maximum file size:
 }
 ```
 
-Allowed status values:
+Feedback request:
 
-- `approved`
-- `rejected`
+```json
+{
+  "feedback_text": "Clear and useful material for revision.",
+  "rating": 5
+}
+```
 
 ## Syllabus: `/syllabus`
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/syllabus` | Public | List all non-deleted syllabus records. |
-| `GET` | `/syllabus/:id/file` | Public | Stream the uploaded syllabus file. |
-| `POST` | `/syllabus` | Admin | Create syllabus record, optionally with uploaded file. |
+| `GET` | `/syllabus/:id/file` | Public | Stream an uploaded syllabus PDF file. |
+| `POST` | `/syllabus` | Admin | Create syllabus record from uploaded file or supplied content. |
 | `DELETE` | `/syllabus/:id` | Admin | Soft-delete syllabus record. |
 
-### Create Syllabus JSON Request
+Create syllabus with JSON:
 
 ```json
 {
@@ -238,19 +242,12 @@ Allowed status values:
   "code": "CS401",
   "branch": "Computer",
   "semester": "4",
-  "type": "pdf",
-  "credits": 4,
-  "contentUrl": "https://example.com/cs401.pdf"
+  "type": "markdown",
+  "contentUrl": "# Data Structures and Algorithms"
 }
 ```
 
-### Create Syllabus Upload Request
-
-Content type:
-
-```text
-multipart/form-data
-```
+Create syllabus with upload uses `multipart/form-data`.
 
 Fields:
 
@@ -258,9 +255,10 @@ Fields:
 | --- | --- | --- |
 | `title` | Yes | Course title. |
 | `code` | Yes | Subject code. |
-| `branch` | Yes | Branch enum. |
-| `semester` | Yes | `1` to `8`. |
-| `credits` | Yes | Integer from 1 to 10. |
+| `branch` | Yes | Branch enum. Supports `Both` in validation. |
+| `semester` | Yes | `1` to `8`, or `all`. |
+| `type` | Yes | `pdf` or `markdown`. Overwritten from uploaded file extension when file is supplied. |
+| `contentUrl` | Required after upload preparation | PDF path or Markdown content. |
 | `file` | Optional | PDF, Markdown, or text file. |
 
 Allowed file extensions:
@@ -276,51 +274,53 @@ Maximum file size:
 20 MB
 ```
 
+Current note:
+
+- Credits are not accepted by the current create syllabus schema. New rows store `credits = 0`.
+
 ## Academic Content: `/subjects` and `/topics`
 
-These endpoints serve the curriculum data (Subjects, Units, Topics).
+These endpoints serve seeded academic content.
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/subjects` | Public | Fetch subjects filtered by `branch` and `semester`. |
-| `GET` | `/subjects/:id/units` | Public | Get all units (and nested topics) for a given subject. |
-| `GET` | `/topics/:id` | Public | Fetch a specific topic's details and markdown content. |
+| `GET` | `/subjects?branch=Computer&semester=4` | Public | Fetch subjects for a branch/semester. |
+| `GET` | `/subjects/:id/units` | Public | Fetch units and nested topics for a subject. |
+| `GET` | `/topics/:id` | Public | Fetch a topic with Markdown content, video info, unit, and subject metadata. |
 
 ## File Proxy: `/files`
 
-Provides secure streaming of protected or local uploads to the frontend.
-
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/files/:studyMaterialId` | Optional | Stream local file for a study material. Restricts non-approved access to admins. |
+| `GET` | `/files/:studyMaterialId` | Optional | Stream a local file for a study material. Non-approved material files are restricted to admins. |
 
 ## Validation Enums
 
-### Branch
+Branch:
 
 ```text
-Computer, IT, Civil, Mechanical, Electrical, ENTC
+Computer, IT, Civil, Mechanical, Electrical, ENTC, Both
 ```
 
-### Academic Year
+Academic year:
 
 ```text
 FE, SE, TE, BE
 ```
 
-### Resource Types
+Resource types:
 
 ```text
 pdf, video, doc, markdown
 ```
 
-### Resource Categories
+Resource categories:
 
 ```text
 Notes, PYQ, Syllabus, Lab Manual, Reference Book, Other
 ```
 
-### Study Material Types
+Study material types:
 
 ```text
 PDF, PPT, DOCX, Markdown, Video, Notes

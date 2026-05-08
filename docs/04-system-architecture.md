@@ -2,23 +2,31 @@
 
 NMU Study Hub follows a client-server architecture:
 
-- The **frontend** is a React single-page application.
-- The **backend** is an Express REST API.
-- The **database** is SQLite.
-- Uploaded files are stored on the backend filesystem and served from `/uploads`.
+- The frontend is a React single-page application in `app/`.
+- The backend is an Express REST API in `backend/`.
+- The active database is SQLite.
+- Uploaded study files, syllabus files, and avatars are stored on the backend filesystem.
+- File access for study materials and syllabus PDFs is handled through API proxy routes.
 
 ## Repository Structure
 
 | Path | Purpose |
 | --- | --- |
-| `app/` | Main React frontend application. |
+| `app/` | Main React/Vite frontend application. |
+| `app/src` | Routes, pages, components, hooks, services, styles, and seeded study data source. |
 | `backend/` | Main Express API backend. |
-| `docs/` | Product and technical documentation. |
+| `backend/src` | Active backend app, routes, controllers, services, middleware, config, and utilities. |
 | `backend/migrations/` | SQLite schema migrations. |
-| `backend/uploads/` | Local uploaded files, avatars, and syllabus files. |
-| `backend/data/` | SQLite database files. |
+| `backend/src/seeds/seedSubjects.js` | Imports `app/src/data/study-data.ts` into SQLite subjects, units, and topics. |
+| `backend/uploads/` | Runtime folder for study-material uploads. |
+| `backend/uploads/syllabus/` | Runtime folder for syllabus PDF files. |
+| `backend/uploads/avatars/` | Runtime folder for avatar uploads. |
+| `docs/` | Product and technical documentation. |
 
-Note: `app/backend/` appears to be an older or secondary backend folder. The main backend used by the current API is the top-level `backend/` folder.
+Legacy note:
+
+- `app/backend/` is an older MongoDB backend and is not the active API.
+- `backend/src/models/*.js` are legacy Mongoose model files. Current data access uses SQLite helpers in `backend/src/services/dbService.js`.
 
 ## Frontend Architecture
 
@@ -29,47 +37,58 @@ Note: `app/backend/` appears to be an older or secondary backend folder. The mai
 - Vite
 - React Router
 - Tailwind CSS 4
-- Radix/shadcn-style components
+- Radix/shadcn-style UI components
 - Lucide icons
-- Sonner toast notifications
+- Sonner toasts
+- React Hook Form and Zod on several forms
+
+### Frontend Entry Points
+
+| File | Purpose |
+| --- | --- |
+| `app/src/main.tsx` | Creates the React root, installs `ThemeProvider`, and renders `RouterProvider`. |
+| `app/src/router.tsx` | Defines all client routes. |
+| `app/src/App.tsx` | Currently unused/inert because routing is handled directly from `main.tsx`. |
+| `app/src/index.css` | Tailwind and global styles. |
 
 ### Main Frontend Routes
 
 | Route | Component | Purpose |
 | --- | --- | --- |
-| `/` | `HomePage` | Public home screen. |
+| `/` | `HomePage` | Public home screen. Wrapped in `RoleGuard` for admin/faculty redirects. |
 | `/login` | `LoginPage` | User login. |
 | `/signup` | `SignUpPage` | Student/faculty registration. |
 | `/verify-otp` | `VerifyOtpPage` | Email OTP verification. |
-| `/resources` | `StudyMaterialsPage` | Branch/semester selection plus approved uploads. |
-| `/resources/:branch/:semester` | `StudyMaterialsPage` | Subject list for branch and semester. |
-| `/resources/:branch/:semester/:subjectId` | `StudyMaterialsPage` | Subject dashboard. |
+| `/resources` | `StudyMaterialsPage` | Branch/semester selector plus approved community uploads. |
+| `/resources/:branch/:semester` | `StudyMaterialsPage` | Subject list for selected branch and semester. |
+| `/resources/:branch/:semester/:subjectId` | `StudyMaterialsPage` | Subject dashboard with units/topics. |
 | `/resources/:branch/:semester/:subjectId/topic/:topicId` | `StudyMaterialsPage` | Topic viewer. |
 | `/syllabus` | `SyllabusPage` | Public syllabus search and viewing. |
-| `/add-study-content` | `AddStudyContentPage` | Upload study content for review. |
-| `/profile` | `ProfilePage` | User profile. |
-| `/dashboard/faculty` | `FacultyDashboard` | Faculty dashboard route. |
-| `/admin/dashboard` | `DashboardPage` | Admin overview. |
-| `/admin/syllabus` | `SyllabusManagerPage` | Admin syllabus management. |
-| `/admin/resources` | `ResourceManagerPage` | Admin resource management. |
+| `/add-study-content` | `AddStudyContentPage` | Upload study material for review. |
+| `/profile` | `ProfilePage` | Profile, avatar, personal uploads, upload form, and bookmarks. |
+| `/search` | `SearchPage` | Global search over syllabus and approved uploads. |
+| `/dashboard/faculty` | `FacultyDashboard` | Faculty status, stats, uploads, and feedback. |
+| `/admin` and `/admin/dashboard` | `DashboardPage` | Admin overview. |
+| `/admin/syllabus` | `SyllabusManagerPage` | Admin syllabus upload/delete. |
+| `/admin/resources` | `ResourceManagerPage` | Admin resource create/delete UI. |
 | `/admin/students` | `StudentsPage` | Admin student management. |
 | `/admin/approvals` | `ContentApprovalPage` | Admin content moderation. |
-| `/admin/faculty` | `FacultyManager` | Admin faculty management. |
-| `/admin/settings` | `SettingsPage` | Admin settings/profile area. |
+| `/admin/faculty` | `FacultyManager` | Admin faculty approval and revocation. |
+
+There is a `SettingsPage.tsx` file, but no `/admin/settings` route is registered in the current router.
 
 ### Frontend API Layer
 
-The frontend uses fetch wrappers and helpers in `app/src/services/`.
-
 | File | Responsibility |
 | --- | --- |
-| `api.ts` | Builds API URLs, asset URLs, auth headers, response parsing, and error messages. |
-| `study-service.ts` | Fetch approved/pending/rejected/my uploads, upload material, update approval status. |
-| `syllabus-service.ts` | Fetch, create, and delete syllabus records. |
-| `resource-service.ts` | Fetch, create, and delete admin-managed resources. |
-| `admin-service.ts` | Fetch dashboard stats and admin profile. |
+| `app/src/services/api.ts` | API base URL, asset URL construction, auth headers, response parsing, error messages, and academic content calls. |
+| `app/src/services/study-service.ts` | Approved/pending/rejected/my study materials, upload, status update, bookmarks. |
+| `app/src/services/syllabus-service.ts` | Fetch, create, and delete syllabus records. |
+| `app/src/services/resource-service.ts` | Fetch, create, and delete resources. |
+| `app/src/services/admin-service.ts` | Dashboard stats and admin profile calls. |
+| `app/src/services/faculty-service.ts` | Faculty stats and material feedback calls. |
 
-The base API URL comes from `VITE_API_URL`. If it is not set, the frontend uses `/api/v1`.
+The frontend uses `VITE_API_URL` when configured. Otherwise it defaults to `/api/v1`.
 
 ## Backend Architecture
 
@@ -85,99 +104,121 @@ The base API URL comes from `VITE_API_URL`. If it is not set, the frontend uses 
 - Helmet security headers
 - CORS
 - Optional Redis cache
-- Nodemailer email sending
+- Nodemailer helper with fallback logging
 
 ### Backend Entry Points
 
 | File | Purpose |
 | --- | --- |
-| `backend/src/server.js` | Starts the HTTP server and background job worker. |
-| `backend/src/app.js` | Creates the Express app, middleware, static file serving, routes, and error handlers. |
-| `backend/api/index.js` | Serverless-style API entry point for deployment platforms. |
+| `backend/src/server.js` | Local server startup. Runs migrations, ensures default admin, connects cache, then listens. |
+| `backend/src/app.js` | Express app composition: middleware, static avatar serving, routes, error handlers. |
+| `backend/api/index.js` | Serverless-style entry point that exports the Express app. |
 
 ### Middleware Pipeline
 
 1. Disable `x-powered-by`.
-2. Parse JSON request bodies.
-3. Parse URL encoded form bodies.
-4. Apply CORS rules from environment config.
-5. Apply Helmet security headers.
-6. Serve `/uploads` statically.
-7. Apply Morgan logging in development.
+2. Parse JSON request bodies with configured size limit.
+3. Parse URL-encoded form bodies with configured size limit.
+4. Apply CORS rules from `CORS_ORIGINS`.
+5. Apply Helmet.
+6. Serve avatar files from `/uploads/avatars`.
+7. Apply Morgan request logging in development.
 8. Mount all API routes at `/api/v1`.
-9. Handle 404 routes.
-10. Handle application errors globally.
+9. Apply 404 handler.
+10. Apply global error handler.
+
+Study-material and syllabus files are not broadly served by `express.static`; they are streamed through `/api/v1/files/:studyMaterialId` and `/api/v1/syllabus/:id/file`.
 
 ## Backend Route Groups
 
-| Base Route | File | Purpose |
+| Base route | File | Purpose |
 | --- | --- | --- |
 | `/api/v1/auth` | `authRoutes.js` | Registration, login, OTP, sessions, profile, avatar. |
 | `/api/v1/admin` | `adminRoutes.js` | Admin stats, profile, users, faculty management. |
 | `/api/v1/resources` | `resourceRoutes.js` | Admin-managed resource links. |
-| `/api/v1/study-materials` | `studyMaterialRoutes.js` | Uploads, approval queue, public approved content. |
-| `/api/v1/syllabus` | `syllabusRoutes.js` | Public syllabus list and admin syllabus creation/deletion. |
-| `/api/v1/health` | `routes/index.js` | API health check. |
+| `/api/v1/study-materials` | `studyMaterialRoutes.js` | Uploads, moderation, bookmarks, faculty stats, feedback. |
+| `/api/v1/syllabus` | `syllabusRoutes.js` | Public syllabus list, admin create/delete, file streaming. |
+| `/api/v1/files` | `fileRoutes.js` | Study-material file proxy. |
+| `/api/v1/subjects` | `subjectRoutes.js` | Subject list by branch/semester. |
+| `/api/v1/subjects/:id/units` | `subjectRoutes.js` | Units with nested topics. |
+| `/api/v1/topics/:id` | `subjectRoutes.js` | Single topic with Markdown and subject metadata. |
+| `/api/v1/health` | `routes/index.js` | Health check. |
 
 ## Database Architecture
 
-The backend uses SQLite with migration files in `backend/migrations`.
+The backend uses SQLite migrations in `backend/migrations`.
 
-### Database Configuration
-
-The database path is controlled by `DB_PATH`. If not configured, it defaults to:
+Default database path:
 
 ```text
 backend/data/studyhub.sqlite
 ```
 
-SQLite settings used at startup:
+This can be overridden with `DB_PATH`.
+
+SQLite startup settings:
 
 - Foreign keys enabled
 - WAL journal mode
 - Normal synchronous mode
 - 5000 ms busy timeout
 
-## Core Data Flow
+## Core Data Flows
 
 ### Login Flow
 
-1. User submits email and password from React.
+1. User submits email and password.
 2. Frontend calls `POST /api/v1/auth/login`.
-3. Backend validates body with Zod.
-4. Backend finds user by email.
-5. Backend compares password using bcrypt.
-6. Backend checks email verification.
-7. Backend signs an access token.
-8. Backend creates a refresh token record and sets an HTTP-only refresh cookie.
-9. Frontend stores the access token and user in `localStorage`.
-10. Frontend redirects based on role.
+3. Backend validates the request with Zod.
+4. Backend finds the user by email and compares the password with bcrypt.
+5. Backend blocks unverified accounts and creates a fresh OTP.
+6. Backend signs an access token and creates a refresh token.
+7. Backend stores the refresh-token hash and sets the raw refresh token as an HTTP-only cookie.
+8. Frontend stores access token and user object in `localStorage`.
+9. Frontend redirects by role.
+
+### Academic Browsing Flow
+
+1. User opens `/resources`.
+2. User selects branch and semester.
+3. Frontend calls `GET /api/v1/subjects?branch=...&semester=...`.
+4. User opens a subject.
+5. Frontend calls `GET /api/v1/subjects/:id/units`.
+6. User opens a topic.
+7. Frontend calls `GET /api/v1/topics/:id` and renders Markdown content.
 
 ### Study Upload Flow
 
-1. Authenticated user opens `/add-study-content`.
-2. User selects PDF, PPT, PPTX, DOCX, or Markdown file.
-3. Frontend sends `FormData` to `POST /api/v1/study-materials`.
-4. Backend authenticates the access token.
-5. Backend blocks unapproved faculty.
-6. Multer saves the file in `backend/uploads/`.
-7. Backend inserts a `pending` row into `study_materials`.
-8. Admin views pending upload in `/admin/approvals`.
-9. Admin approves or rejects the upload.
-10. Approved uploads appear publicly in `/resources`.
+1. Signed-in user opens `/add-study-content` or profile upload form.
+2. Frontend sends `multipart/form-data` to `POST /api/v1/study-materials`.
+3. Backend authenticates the user.
+4. Backend blocks unapproved faculty.
+5. Multer stores the file in `backend/uploads/`.
+6. Backend inserts a `pending` row into `study_materials`.
+7. Admin reviews the row from `/admin/approvals`.
+8. Admin approves or rejects the material.
+9. Approved materials appear in `/resources`, `/search`, and bookmark flows.
+
+### File Preview Flow
+
+1. Frontend builds an asset URL with `buildAssetUrl()`.
+2. Study-material files use `/api/v1/files/:studyMaterialId`.
+3. Syllabus PDF files use `/api/v1/syllabus/:id/file`.
+4. Backend verifies record status and streams the local file.
+5. Admin preview uses `fetchAssetBlobUrl()` to load a blob URL for iframe preview.
 
 ### Syllabus Flow
 
-1. Admin creates a syllabus entry from `/admin/syllabus`.
-2. Backend validates title, code, branch, semester, type, credits, and content.
-3. If a file is uploaded, Multer saves it in `backend/uploads/syllabus/`.
-4. Backend creates or reuses a subject row.
-5. Backend inserts a syllabus row.
-6. Students search and view syllabus from `/syllabus`.
+1. Admin uploads a syllabus from `/admin/syllabus`.
+2. Backend receives `multipart/form-data`.
+3. PDF files are stored in `backend/uploads/syllabus/`; Markdown/text files are read and stored as content.
+4. Backend ensures a matching subject row.
+5. Backend inserts a row into `syllabi`.
+6. Public users search and view syllabus from `/syllabus`.
 
 ## Deployment Considerations
 
-- The backend includes `vercel.json` and `api/index.js`, but local filesystem uploads can be problematic on serverless platforms because files may not persist.
-- For production, a cloud object storage provider should replace local uploads.
-- Redis is optional; without it, caching works in memory for the current process only.
-- SMTP variables are required for real email delivery. Without SMTP, OTPs may still be visible in server logs during development.
+- The backend contains a Vercel-style entry point, but local filesystem uploads are risky on serverless platforms because files may not persist.
+- Production should move uploaded files to object storage such as S3, Cloudinary, Supabase Storage, or equivalent.
+- Redis is optional. Without it, cache state is per-process memory only.
+- SMTP variables are required for real email delivery. Without SMTP and without a running job worker, email jobs are not delivered, though OTPs are printed to server logs in development.

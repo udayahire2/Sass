@@ -1,38 +1,35 @@
 # File Storage
 
-The application currently uses local filesystem storage for uploaded files.
-
-## Static File Serving
-
-The backend serves uploaded files through:
-
-```text
-/uploads
-```
-
-Implementation:
-
-```text
-backend/src/app.js
-```
-
-The Express app maps `/uploads` to:
-
-```text
-backend/uploads/
-```
+The current implementation uses local filesystem storage for uploaded files.
 
 ## Upload Categories
 
-| Category | Endpoint | Storage Folder | Max Size |
-| --- | --- | --- | --- |
-| Study material files | `POST /api/v1/study-materials` | `backend/uploads/` | 50 MB |
-| Syllabus files | `POST /api/v1/syllabus` | `backend/uploads/syllabus/` | 20 MB |
-| Avatar images | `PUT /api/v1/auth/updateavatar` | `backend/uploads/avatars/` | 5 MB |
+| Category | Endpoint | Storage folder | Max size | Access pattern |
+| --- | --- | --- | --- | --- |
+| Study material files | `POST /api/v1/study-materials` | `backend/uploads/` | 50 MB | Streamed through `/api/v1/files/:studyMaterialId`. |
+| Syllabus PDF files | `POST /api/v1/syllabus` | `backend/uploads/syllabus/` | 20 MB | Streamed through `/api/v1/syllabus/:id/file`. |
+| Avatar images | `PUT /api/v1/auth/updateavatar` | `backend/uploads/avatars/` | 5 MB | Served statically from `/uploads/avatars/...`. |
+
+## Static Serving vs File Proxy
+
+The Express app currently serves only avatar files statically:
+
+```text
+/uploads/avatars -> backend/uploads/avatars
+```
+
+Study-material files and syllabus files are not broadly exposed by `express.static` in the active backend. The frontend opens them through backend proxy routes:
+
+```text
+GET /api/v1/files/:studyMaterialId
+GET /api/v1/syllabus/:id/file
+```
+
+This matters because the file proxy can inspect database records before streaming a local file.
 
 ## Study Material Uploads
 
-Study material uploads are handled in:
+Handled in:
 
 ```text
 backend/src/routes/studyMaterialRoutes.js
@@ -40,7 +37,7 @@ backend/src/routes/studyMaterialRoutes.js
 
 Allowed file extensions:
 
-| Extension | Stored Type |
+| Extension | Stored type |
 | --- | --- |
 | `.pdf` | `PDF` |
 | `.ppt` | `PPT` |
@@ -50,29 +47,53 @@ Allowed file extensions:
 
 Process:
 
-1. User selects a supported file on `/add-study-content`.
+1. User selects a supported file on `/add-study-content` or `/profile`.
 2. Frontend sends `multipart/form-data`.
-3. Multer validates file extension.
-4. Multer creates a unique filename using timestamp plus random number.
-5. File is saved in `backend/uploads/`.
-6. Backend stores metadata in `study_materials`, including:
+3. Backend authenticates the user.
+4. Backend blocks unapproved faculty.
+5. Multer validates extension and file size.
+6. Multer creates a unique filename using timestamp plus random number.
+7. File is saved under `backend/uploads/`.
+8. Backend stores metadata in `study_materials`:
    - `file_path`
    - `original_filename`
    - `mime_type`
    - `file_size`
-7. Material status is set to `pending`.
-8. Admin approves or rejects it.
-9. Approved material becomes visible publicly.
+9. Material status starts as `pending`.
+10. Admin approves or rejects it.
+11. Approved material becomes discoverable publicly.
 
-Example stored file path:
+Example stored path:
 
 ```text
 /uploads/1776677223797-946434751.pdf
 ```
 
+## Study Material File Proxy
+
+Endpoint:
+
+```text
+GET /api/v1/files/:studyMaterialId
+```
+
+Behavior:
+
+- Looks up the `study_materials` row.
+- Requires a stored `file_path`.
+- Allows public access only when material status is `approved`.
+- Allows admins to access non-approved files for moderation.
+- Resolves the path through `backend/src/utils/fileProxy.js`.
+- Streams the file with stored MIME type and original filename.
+
+Frontend usage:
+
+- `buildAssetUrl(path, { studyMaterialId })` converts stored upload paths into `/api/v1/files/:studyMaterialId`.
+- Admin previews call `fetchAssetBlobUrl()` and render a blob URL in an iframe.
+
 ## Syllabus Uploads
 
-Syllabus uploads are handled in:
+Handled in:
 
 ```text
 backend/src/routes/syllabusRoutes.js
@@ -87,8 +108,10 @@ Allowed file extensions:
 
 Behavior:
 
-- PDF files are saved to `backend/uploads/syllabus/` and the public path is stored in `syllabi.content_url`.
-- Markdown and text files are read into memory and their text content is stored directly in `syllabi.content_url`.
+- PDF files are saved to `backend/uploads/syllabus/`.
+- PDF paths are stored in `syllabi.content_url`.
+- Markdown/text uploads are read into memory and stored directly in `syllabi.content_url`.
+- The API sets `req.body.type` from the uploaded file extension.
 
 Example PDF path:
 
@@ -96,9 +119,17 @@ Example PDF path:
 /uploads/syllabus/1777458074216-238900937.pdf
 ```
 
+Syllabus file endpoint:
+
+```text
+GET /api/v1/syllabus/:id/file
+```
+
+This endpoint streams local PDF files for syllabus records.
+
 ## Avatar Uploads
 
-Avatar uploads are handled in:
+Handled in:
 
 ```text
 backend/src/controllers/authController.js
@@ -108,7 +139,7 @@ Rules:
 
 - User must be authenticated.
 - Form field name must be `avatar`.
-- File MIME type must start with `image/`.
+- Allowed MIME types are JPEG, PNG, WEBP, and GIF.
 - Maximum file size is 5 MB.
 - File is saved to `backend/uploads/avatars/`.
 - If the previous avatar was a local avatar, the backend deletes the old file.
@@ -119,40 +150,37 @@ Example avatar path:
 /uploads/avatars/avatar-1777202860253-477675532.jpg
 ```
 
+The profile page also crops the selected avatar client-side before upload.
+
 ## Frontend Asset URL Handling
 
-The frontend uses `buildAssetUrl()` in:
+`app/src/services/api.ts` contains `buildAssetUrl()`.
 
-```text
-app/src/services/api.ts
-```
+Behavior:
 
-This helper:
-
-- Returns full external URLs unchanged.
-- Converts relative paths such as `/uploads/file.pdf` into a full URL using the API origin.
-
-This allows the frontend to open uploaded files even when the API is hosted on a different origin than the frontend.
+- External `http` and `https` URLs are returned unchanged.
+- Study-material uploads with an ID are converted to `/api/v1/files/:studyMaterialId`.
+- Syllabus PDFs with an ID are converted to `/api/v1/syllabus/:id/file`.
+- Other relative paths are resolved against the API origin.
 
 ## Access Control
 
-Uploaded files under `/uploads` are publicly served if someone has the direct URL.
+Access is mixed by file category:
 
-The application controls discovery of files, not file access itself:
+- Avatar files are public static assets.
+- Syllabus PDF files are public through the syllabus file endpoint.
+- Approved study-material files are public through the file proxy.
+- Pending/rejected study-material files are restricted to admins through the file proxy.
 
-- Pending uploads are only listed to admins.
-- Approved uploads are listed publicly.
-- The file URL itself is static and not token-protected.
-
-For stricter production security, file serving should use signed URLs or an authenticated file proxy.
+The system controls both discovery and proxy access for study-material files. For stricter production security, use private object storage and signed URLs.
 
 ## Production Considerations
 
-Local filesystem storage is fine for local development and simple deployments. It is not ideal for production serverless hosting because files may not persist across deployments or function instances.
+Local filesystem storage works for local development and simple long-lived servers. It is not suitable for many serverless deployments because local files may disappear between deployments or function instances.
 
-Recommended production upgrade:
+Recommended production upgrades:
 
-- Store uploads in S3, Cloudinary, Supabase Storage, or another object storage provider.
-- Store only the object URL/key in SQLite.
-- Use signed URLs for private or pending content.
+- Store uploads in S3, Cloudinary, Supabase Storage, or another object store.
+- Store object keys/URLs in SQLite instead of local paths.
+- Use signed URLs for private files.
 - Keep local storage only for development.
