@@ -2,7 +2,7 @@
 
 import { useState, useEffect, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut, User } from "lucide-react";
+import { Sun, Moon, LogOut, User, ChevronDown } from "lucide-react";
 import Menu from "@/svgs/menu";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
@@ -104,7 +104,40 @@ function DesktopNavLinks() {
       {links.map((link) => {
         const active = isActive(link.path);
 
-        return (
+        return link.dropdown ? (
+          <DropdownMenu key={link.path}>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none",
+                  active
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+              >
+                {link.label}
+                <ChevronDown className="h-3 w-3 opacity-60" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 rounded-xl border-border/50 bg-background/95 backdrop-blur-xl p-1 shadow-lg">
+              {link.dropdown.map((subItem) => (
+                <DropdownMenuItem key={subItem.path} asChild className="rounded-lg cursor-pointer">
+                  <Link
+                    to={subItem.path}
+                    className={cn(
+                      "w-full px-3 py-2 text-sm",
+                      isActive(subItem.path) && subItem.path !== link.path
+                        ? "bg-muted font-medium text-foreground"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    {subItem.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
           <Link
             key={link.path}
             to={link.path}
@@ -119,8 +152,8 @@ function DesktopNavLinks() {
             {link.label}
           </Link>
         );
-      })}
-    </nav>
+        })}
+      </nav>
   );
 }
 
@@ -293,6 +326,38 @@ function PopoverMobileMenu() {
         {/* Navigation Links */}
         {links.map((link) => {
           const active = isActive(link.path);
+
+          if (link.dropdown) {
+            return (
+              <div key={link.path} className="flex flex-col mb-1">
+                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  {link.label}
+                </div>
+                {link.dropdown.map((subItem) => {
+                  const subActive = isActive(subItem.path) && subItem.path !== link.path;
+                  return (
+                    <DropdownMenuItem
+                      key={subItem.path}
+                      asChild
+                      className={cn("rounded-md cursor-pointer ml-2", subActive && "bg-muted")}
+                    >
+                      <Link
+                        to={subItem.path}
+                        className={cn(
+                          "flex w-full items-center rounded-md px-3 py-2 text-sm",
+                          subActive
+                            ? "bg-muted text-foreground font-medium"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {subItem.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </div>
+            );
+          }
 
           return (
             <DropdownMenuItem

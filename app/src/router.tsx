@@ -8,6 +8,9 @@ import SignUpPage from "./pages/SignUpPage";
 import VerifyOtpPage from "./pages/VerifyOtpPage";
 import ProfilePage from "./pages/ProfilePage";
 import StudyMaterialsPage from "./pages/StudyMaterialsPage";
+import StudyStockPage from "./pages/StudyStockPage";
+import ImpQuestionsPage from "./pages/ImpQuestionsPage";
+import SamplePapersPage from "./pages/SamplePapersPage";
 import AddStudyContentPage from "./pages/AddStudyContentPage";
 import SyllabusPage from "./pages/SyllabusPage";
 import AdminLayout from "./layouts/AdminLayout";
@@ -65,6 +68,18 @@ export const router = createBrowserRouter([
                                 element: <StudyMaterialsPage />,
                             },
                         ]
+                    },
+                    {
+                        path: "/study-stock",
+                        element: <StudyStockPage />,
+                    },
+                    {
+                        path: "/study-material/imp-questions",
+                        element: <ImpQuestionsPage />,
+                    },
+                    {
+                        path: "/study-material/sample-papers",
+                        element: <SamplePapersPage />,
                     },
                     {
                         path: "/syllabus",
