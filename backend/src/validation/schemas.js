@@ -6,6 +6,8 @@ const syllabusTypeEnum = z.enum(['pdf', 'markdown']);
 const resourceTypeEnum = z.enum(['pdf', 'video', 'doc', 'markdown']);
 const resourceCategoryEnum = z.enum(['Notes', 'PYQ', 'Syllabus', 'Lab Manual', 'Reference Book', 'Other']);
 const materialTypeEnum = z.enum(['PDF', 'PPT', 'DOCX', 'Markdown', 'Video', 'Notes']);
+const contentTypeEnum = z.enum(['study_stock', 'imp_questions', 'lecture_notes', 'practice_quizzes']);
+const contentRoleEnum = z.enum(['student', 'faculty', 'admin']);
 
 const trimmedString = (minimum, field) =>
     z.string().trim().min(minimum, `${field} must be at least ${minimum} characters`);
@@ -110,6 +112,23 @@ const materialUploadBodySchema = z.object({
     url: z.string().trim().url().optional(),
 });
 
+const contentUploadBodySchema = z.object({
+    title: trimmedString(2, 'Title'),
+    type: contentTypeEnum.default('study_stock'),
+    description: z.string().trim().max(1000).optional().default(''),
+    fileUrl: z.string().trim().url().optional(),
+    file_url: z.string().trim().url().optional(),
+}).transform((data) => ({
+    ...data,
+    fileUrl: data.fileUrl || data.file_url,
+}));
+
+const contentQuerySchema = z.object({
+    type: contentTypeEnum.optional(),
+    role: contentRoleEnum.optional(),
+    sort: z.enum(['date_desc', 'date_asc']).optional().default('date_desc'),
+});
+
 const materialFeedbackSchema = z.object({
     feedback_text: trimmedString(5, 'Feedback'),
     rating: z.coerce.number().int().min(1).max(5),
@@ -119,6 +138,8 @@ module.exports = {
     adminProfileSchema,
     createResourceSchema,
     createSyllabusSchema,
+    contentQuerySchema,
+    contentUploadBodySchema,
     loginSchema,
     materialFeedbackSchema,
     materialUploadBodySchema,

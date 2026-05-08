@@ -3,6 +3,7 @@ const router = express.Router();
 const resourceRoutes = require('./resourceRoutes');
 const authRoutes = require('./authRoutes');
 const fileRoutes = require('./fileRoutes');
+const contentRoutes = require('./contentRoutes');
 
 const adminRoutes = require('./adminRoutes');
 const studyMaterialRoutes = require('./studyMaterialRoutes');
@@ -12,6 +13,7 @@ const subjectRoutes = require('./subjectRoutes');
 router.use('/resources', resourceRoutes);
 router.use('/auth', authRoutes);
 router.use('/admin', adminRoutes);
+router.use('/content', contentRoutes);
 router.use('/files', fileRoutes);
 router.use('/study-materials', studyMaterialRoutes);
 router.use('/syllabus', syllabusRoutes);

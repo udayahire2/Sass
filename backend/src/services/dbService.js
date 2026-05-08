@@ -121,6 +121,39 @@ function formatStudyMaterial(row) {
     };
 }
 
+function formatContent(row) {
+    if (!row) {
+        return null;
+    }
+
+    const uploaderName = row.uploader_name || [row.first_name, row.last_name].filter(Boolean).join(' ').trim();
+
+    return {
+        _id: row.id,
+        id: row.id,
+        title: row.title,
+        type: row.type,
+        uploaderRole: row.uploader_role,
+        uploader_role: row.uploader_role,
+        uploaderName,
+        uploader_name: uploaderName,
+        uploaderAvatar: row.avatar_url || null,
+        uploader_avatar: row.avatar_url || null,
+        uploaderUserId: row.uploader_user_id,
+        uploader_user_id: row.uploader_user_id,
+        fileUrl: row.file_url,
+        file_url: row.file_url,
+        description: row.description,
+        resourceFormat: row.resource_format,
+        resource_format: row.resource_format,
+        originalFilename: row.original_filename,
+        mimeType: row.mime_type,
+        fileSize: row.file_size,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+    };
+}
+
 function formatResource(row) {
     if (!row) {
         return null;
@@ -210,6 +243,7 @@ module.exports = {
     createTimestamps,
     db,
     ensureSubject,
+    formatContent,
     formatResource,
     formatStudyMaterial,
     formatSyllabus,
