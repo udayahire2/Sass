@@ -45,7 +45,6 @@ export default function ResourceCollectionPage({
 
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
 
     fetchResources({ category })
       .then((items) => {
