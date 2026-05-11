@@ -24,8 +24,15 @@ app.use(cors({
     },
     credentials: true,
 }));
+
+// Static avatar files — must be BEFORE helmet so CORP header can be set to cross-origin
+// Helmet defaults to same-origin which blocks <img src="http://localhost:5001/..."> from localhost:5173
+app.use('/uploads/avatars', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+}, express.static(path.join(__dirname, '../uploads/avatars')));
+
 app.use(helmet());
-app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
 
 if (env.nodeEnv === 'development') {
     app.use(morgan('dev'));
