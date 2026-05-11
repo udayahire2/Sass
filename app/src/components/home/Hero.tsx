@@ -24,7 +24,7 @@ export function Hero() {
           {/* Heading – period moved outside gradient for clarity */}
           <h1 className="text-3xl  tracking-tight sm:text-5xl md:text-5xl lg:text-6xl">
             Find your exact{" "}
-            <span className="bg-gradient-to-r from-primary to-primary/40 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-primary to-primary/40 bg-clip-text text-transparent">
               exam notes in seconds
             </span>
             .
@@ -42,14 +42,14 @@ export function Hero() {
               size="lg"
               onClick={() => navigate("/resources")}
             >
-              Start studying
+              Explore content
             </Button>
             <Button
               size="lg"
-              variant="outline"
-              onClick={() => navigate("/resources")}
+              variant="ghost"
+              onClick={() => navigate("/syllabus")}
             >
-              Browse subjects
+              Browse syllabus
             </Button>
           </div>
 
