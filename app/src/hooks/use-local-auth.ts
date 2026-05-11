@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { buildApiUrl, parseApiData, buildAssetUrl } from "@/services/api"
+import { buildApiUrl, parseApiData, buildAvatarUrl } from "@/services/api"
 
 export interface User {
     name: string
@@ -41,9 +41,9 @@ export function useLocalAuth() {
                     const currentUser = parseApiData<User | null>(data, null) ?? (data.user as User | null);
                     if (data.success && currentUser) {
                         if (currentUser.avatar && currentUser.avatar.startsWith('/')) {
-                            currentUser.avatar = buildAssetUrl(currentUser.avatar);
+                            currentUser.avatar = buildAvatarUrl(currentUser.avatar);
                         } else if ((currentUser as any).avatarUrl && (currentUser as any).avatarUrl.startsWith('/')) {
-                            currentUser.avatar = buildAssetUrl((currentUser as any).avatarUrl);
+                            currentUser.avatar = buildAvatarUrl((currentUser as any).avatarUrl);
                         }
                         setUser(currentUser);
                         localStorage.setItem('user', JSON.stringify(currentUser));

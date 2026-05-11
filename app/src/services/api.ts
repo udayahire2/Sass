@@ -51,6 +51,18 @@ export const buildAssetUrl = (path: string, options: AssetUrlOptions = {}): stri
     return `${getApiOrigin()}${normalizedPath}`;
 };
 
+/**
+ * Resolve an avatar path (relative or absolute) to a full URL
+ * pointing to the backend static file server.
+ * Always uses the API origin so cross-origin avatar images load correctly.
+ */
+export const buildAvatarUrl = (path: string): string => {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;  // already absolute
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${getApiOrigin()}${normalizedPath}`;
+};
+
 export const fetchAssetBlobUrl = async (url: string): Promise<string> => {
     const response = await fetch(url, {
         headers: getAuthHeaders(),
