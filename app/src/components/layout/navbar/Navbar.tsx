@@ -64,7 +64,7 @@ function NavbarSearch() {
           placeholder="Search…"
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)} // ✅ FIX
+          onChange={(e) => setQuery(e.target.value)}
         />
         <InputGroupAddon align="inline-end">
           <Kbd>Ctrl</Kbd>
@@ -78,16 +78,10 @@ function NavbarSearch() {
 // Desktop Navigation Links Component
 function DesktopNavLinks() {
   const location = useLocation();
-  const { user } = useLocalAuth();
+
 
   const links = [
     ...NAV_LINKS,
-    ...(user?.role === "faculty"
-      ? [{ path: "/dashboard/faculty", label: "Dashboard" }]
-      : []),
-    ...(user?.role === "admin"
-      ? [{ path: "/admin/dashboard", label: "Admin" }]
-      : []),
   ];
 
   const isActive = (path: string) => {
@@ -152,8 +146,8 @@ function DesktopNavLinks() {
             {link.label}
           </Link>
         );
-        })}
-      </nav>
+      })}
+    </nav>
   );
 }
 
@@ -245,9 +239,12 @@ function UserMenuDesktop() {
               {/* Menu Items */}
               <div className="p-1.5">
                 <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm">
-                  <Link to="/profile" className="flex items-center gap-2.5">
+                  <Link
+                    to={user?.role === "admin" ? "/admin/dashboard" : user?.role === "faculty" ? "/dashboard/faculty" : "/profile"}
+                    className="flex items-center gap-2.5"
+                  >
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <span>View Profile</span>
+                    <span>{user?.role === "student" || !user?.role ? "View Profile" : "Dashboard"}</span>
                   </Link>
                 </DropdownMenuItem>
               </div>
@@ -290,12 +287,6 @@ function PopoverMobileMenu() {
 
   const links = [
     ...NAV_LINKS,
-    ...(user?.role === "faculty"
-      ? [{ path: "/dashboard/faculty", label: "Dashboard" }]
-      : []),
-    ...(user?.role === "admin"
-      ? [{ path: "/admin/dashboard", label: "Admin" }]
-      : []),
   ];
 
   const isActive = (path: string) => {
@@ -411,14 +402,14 @@ function PopoverMobileMenu() {
             <DropdownMenuItem
               asChild
               className="rounded-md cursor-pointer"
-              onClick={() => navigate("/profile")}
+              onClick={() => navigate(user?.role === "admin" ? "/admin/dashboard" : user?.role === "faculty" ? "/dashboard/faculty" : "/profile")}
             >
               <Link
-                to="/profile"
+                to={user?.role === "admin" ? "/admin/dashboard" : user?.role === "faculty" ? "/dashboard/faculty" : "/profile"}
                 className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground"
               >
                 <User className="mr-2 h-4 w-4" />
-                View Profile
+                {user?.role === "student" || !user?.role ? "View Profile" : "Dashboard"}
               </Link>
             </DropdownMenuItem>
 
