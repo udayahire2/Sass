@@ -64,9 +64,26 @@ const createSyllabusSchema = z.object({
     title: trimmedString(2, 'Title'),
     code: trimmedString(2, 'Code'),
     branch: branchEnum,
-    semester: z.string().trim().regex(/^([1-8]|all)$/, 'Semester must be between 1 and 8, or "all"'),
+    semester: z.string().trim().regex(/^[1-8]$/, 'Semester must be between 1 and 8').optional(),
+    year: z.string().trim().regex(/^[1-4]$/, 'Year must be between 1 and 4').optional(),
     type: syllabusTypeEnum,
     contentUrl: trimmedString(2, 'Content'),
+}).superRefine((data, ctx) => {
+    if (!data.semester && !data.year) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select either a semester or a year',
+            path: ['semester'],
+        });
+    }
+
+    if (data.semester && data.year) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Select semester or year, not both',
+            path: ['year'],
+        });
+    }
 });
 
 const createResourceSchema = z.object({

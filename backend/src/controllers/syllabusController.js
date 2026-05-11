@@ -19,7 +19,7 @@ exports.getSyllabus = async (_req, res, next) => {
             `SELECT *
              FROM syllabi
              WHERE deleted_at IS NULL
-             ORDER BY branch ASC, CAST(semester AS INTEGER) ASC, code ASC`
+             ORDER BY branch ASC, CAST(semester AS INTEGER) ASC, CAST(academic_year AS INTEGER) ASC, code ASC`
         ).map((row) => formatSyllabus(row));
 
         return sendSuccess(res, {
@@ -38,25 +38,28 @@ exports.createSyllabus = async (req, res, next) => {
     try {
         const timestamps = createTimestamps();
         const syllabusId = crypto.randomUUID();
-        const subjectId = ensureSubject({
-            branch: req.body.branch,
-            code: req.body.code,
-            credits: 0,
-            semester: req.body.semester === 'all' ? '1' : req.body.semester,
-            title: req.body.title,
-        });
+        const subjectId = req.body.semester
+            ? ensureSubject({
+                branch: req.body.branch,
+                code: req.body.code,
+                credits: 0,
+                semester: req.body.semester,
+                title: req.body.title,
+            })
+            : null;
 
         run(
             `INSERT INTO syllabi (
-                id, subject_id, title, code, branch, semester, type, credits, content_url, created_at, updated_at, deleted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+                id, subject_id, title, code, branch, semester, academic_year, type, credits, content_url, created_at, updated_at, deleted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
             [
                 syllabusId,
                 subjectId,
                 req.body.title,
                 req.body.code,
                 req.body.branch,
-                req.body.semester,
+                req.body.semester ?? '',
+                req.body.year ?? null,
                 req.body.type,
                 0,
                 req.body.contentUrl,

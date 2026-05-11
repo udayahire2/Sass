@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FileUp, FileText, FileCode, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
     Form,
     FormControl,
@@ -25,20 +24,24 @@ import { createSyllabus } from '@/services/syllabus-service';
 
 const branchOptions = ['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC', 'Both'];
 const semesterOptions = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const yearOptions = ['1', '2', '3', '4'];
 
 const formSchema = z.object({
     title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
     code: z.string().min(2, { message: 'Course code is required.' }),
     semester: z.string().optional(),
+    year: z.string().optional(),
     branch: z.string().min(1, { message: 'Branch is required.' }),
     type: z.enum(['pdf', 'markdown']),
     contentUrl: z.string().optional(),
+}).refine((values) => Boolean(values.semester) !== Boolean(values.year), {
+    message: 'Select either semester or year.',
+    path: ['semester'],
 });
 
 export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [allSemesters, setAllSemesters] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -47,6 +50,7 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
             title: '',
             code: '',
             semester: '',
+            year: '',
             branch: '',
             type: 'pdf',
             contentUrl: '',
@@ -56,6 +60,14 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
     const selectedType = useWatch({
         control: form.control,
         name: 'type',
+    });
+    const selectedSemester = useWatch({
+        control: form.control,
+        name: 'semester',
+    });
+    const selectedYear = useWatch({
+        control: form.control,
+        name: 'year',
     });
 
     const acceptedExtensions = selectedType === 'pdf' ? '.pdf' : '.md,.markdown,.txt';
@@ -105,16 +117,19 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
             return;
         }
 
-        if (!allSemesters && !values.semester) {
-            form.setError('semester', { type: 'manual', message: 'Please select a semester or check "All Semesters".' });
+        if (!values.semester && !values.year) {
+            form.setError('semester', { type: 'manual', message: 'Please select either a semester or a year.' });
+            return;
+        }
+
+        if (values.semester && values.year) {
+            form.setError('year', { type: 'manual', message: 'Select semester or year, not both.' });
             return;
         }
 
         const formData = new FormData();
-        const semester = allSemesters ? 'all' : (values.semester ?? '');
-        const submitValues = { ...values, semester };
-        Object.entries(submitValues).forEach(([k, v]) => {
-            if (v !== undefined) formData.append(k, String(v));
+        Object.entries(values).forEach(([k, v]) => {
+            if (v !== undefined && String(v).trim() !== '') formData.append(k, String(v));
         });
         formData.append('file', uploadedFile);
 
@@ -123,7 +138,6 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
         if (created) {
             form.reset();
             setUploadedFile(null);
-            setAllSemesters(false);
             onSuccess();
             return;
         }
@@ -167,7 +181,7 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                     />
                 </div>
 
-                {/* Branch & Semester */}
+                {/* Branch, Semester & Year */}
                 <div className="grid gap-5 sm:grid-cols-2">
                     <FormField
                         control={form.control}
@@ -198,15 +212,19 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                         name="semester"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Semester / Year</FormLabel>
+                                <FormLabel>Semester</FormLabel>
                                 <Select
-                                    onValueChange={field.onChange}
-                                    value={allSemesters ? '' : field.value}
-                                    disabled={allSemesters}
+                                    onValueChange={(value) => {
+                                        field.onChange(value);
+                                        form.setValue('year', '');
+                                        form.clearErrors('year');
+                                    }}
+                                    value={field.value}
+                                    disabled={Boolean(selectedYear)}
                                 >
                                     <FormControl>
-                                        <SelectTrigger className={allSemesters ? 'opacity-50 cursor-not-allowed' : ''}>
-                                            <SelectValue placeholder={allSemesters ? 'All semesters' : 'Select semester'} />
+                                        <SelectTrigger className={selectedYear ? 'opacity-50 cursor-not-allowed' : ''}>
+                                            <SelectValue placeholder="Select semester" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -217,30 +235,66 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <Checkbox
-                                        id="all-semesters"
-                                        checked={allSemesters}
-                                        onCheckedChange={(checked) => {
-                                            setAllSemesters(Boolean(checked));
-                                            if (checked) {
-                                                form.setValue('semester', '');
-                                                form.clearErrors('semester');
-                                            }
-                                        }}
-                                    />
-                                    <label
-                                        htmlFor="all-semesters"
-                                        className="text-xs text-muted-foreground cursor-pointer select-none"
+                                {field.value && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="mt-2 h-7 px-2 text-xs"
+                                        onClick={() => form.setValue('semester', '')}
                                     >
-                                        Applies to all semesters
-                                    </label>
-                                </div>
+                                        Clear semester
+                                    </Button>
+                                )}
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
                 </div>
+
+                <FormField
+                    control={form.control}
+                    name="year"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Year</FormLabel>
+                            <Select
+                                onValueChange={(value) => {
+                                    field.onChange(value);
+                                    form.setValue('semester', '');
+                                    form.clearErrors('semester');
+                                }}
+                                value={field.value}
+                                disabled={Boolean(selectedSemester)}
+                            >
+                                <FormControl>
+                                    <SelectTrigger className={selectedSemester ? 'opacity-50 cursor-not-allowed' : ''}>
+                                        <SelectValue placeholder="Select year" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {yearOptions.map((year) => (
+                                        <SelectItem key={year} value={year}>
+                                            Year {year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {field.value && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="mt-2 h-7 px-2 text-xs"
+                                    onClick={() => form.setValue('year', '')}
+                                >
+                                    Clear year
+                                </Button>
+                            )}
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <FormField
                     control={form.control}

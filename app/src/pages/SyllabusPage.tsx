@@ -46,7 +46,7 @@ export default function SyllabusPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") ?? "");
   const [selectedBranch, setSelectedBranch] = useState("All");
-  const [selectedSemester, setSelectedSemester] = useState("All");
+  const [selectedTerm, setSelectedTerm] = useState("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [syllabus, setSyllabus] = useState<SyllabusItem[]>([]);
@@ -80,12 +80,15 @@ export default function SyllabusPage() {
     [syllabus],
   );
 
-  const semesterOptions = useMemo(
+  const termOptions = useMemo(
     () => [
-      "All",
-      ...Array.from(new Set(syllabus.map((item) => item.semester))).sort(
-        (a, b) => Number(a) - Number(b),
-      ),
+      { label: "All semesters and years", value: "All" },
+      ...Array.from(new Set(syllabus.map((item) => item.semester).filter(Boolean)))
+        .sort((a, b) => Number(a) - Number(b))
+        .map((semester) => ({ label: `Semester ${semester}`, value: `semester:${semester}` })),
+      ...Array.from(new Set(syllabus.map((item) => item.year).filter(Boolean)))
+        .sort((a, b) => Number(a) - Number(b))
+        .map((year) => ({ label: `Year ${year}`, value: `year:${year}` })),
     ],
     [syllabus],
   );
@@ -97,9 +100,12 @@ export default function SyllabusPage() {
       item.title.toLowerCase().includes(query) ||
       item.code.toLowerCase().includes(query);
     const matchesBranch = selectedBranch === "All" || item.branch === selectedBranch;
-    const matchesSemester = selectedSemester === "All" || item.semester === selectedSemester;
+    const matchesTerm =
+      selectedTerm === "All" ||
+      (selectedTerm.startsWith("semester:") && item.semester === selectedTerm.replace("semester:", "")) ||
+      (selectedTerm.startsWith("year:") && item.year === selectedTerm.replace("year:", ""));
 
-    return matchesSearch && matchesBranch && matchesSemester;
+    return matchesSearch && matchesBranch && matchesTerm;
   });
 
   const handleSearchChange = (value: string) => {
@@ -116,12 +122,12 @@ export default function SyllabusPage() {
 
   const clearFilters = () => {
     setSelectedBranch("All");
-    setSelectedSemester("All");
+    setSelectedTerm("All");
     handleSearchChange("");
   };
 
   const hasActiveFilters =
-    searchQuery.trim().length > 0 || selectedBranch !== "All" || selectedSemester !== "All";
+    searchQuery.trim().length > 0 || selectedBranch !== "All" || selectedTerm !== "All";
 
   return (
     <div className="space-y-8 pb-14 pt-8">
@@ -170,14 +176,14 @@ export default function SyllabusPage() {
               </SelectContent>
             </Select>
 
-            <Select value={selectedSemester} onValueChange={(val) => val && setSelectedSemester(val)}>
+            <Select value={selectedTerm} onValueChange={(val) => val && setSelectedTerm(val)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select semester" />
+                <SelectValue placeholder="Select semester or year" />
               </SelectTrigger>
               <SelectContent>
-                {semesterOptions.map((semester) => (
-                  <SelectItem key={semester} value={semester}>
-                    {semester === "All" ? "All semesters" : `Semester ${semester}`}
+                {termOptions.map((term) => (
+                  <SelectItem key={term.value} value={term.value}>
+                    {term.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -245,7 +251,7 @@ export default function SyllabusPage() {
                     <div>
                       <h2 className="text-lg font-semibold tracking-tight">{item.title}</h2>
                       <p className="text-sm text-muted-foreground">
-                        {item.branch} · Semester {item.semester}
+                        {item.branch} · {formatSyllabusTerm(item)}
                       </p>
                     </div>
                   </div>
@@ -283,7 +289,7 @@ export default function SyllabusPage() {
                 <InfoCard label="Course code" value={viewItem.code} />
                 <InfoCard label="Credits" value={String(viewItem.credits)} />
                 <InfoCard label="Branch" value={viewItem.branch} />
-                <InfoCard label="Semester" value={`Semester ${viewItem.semester}`} />
+                <InfoCard label="Semester / Year" value={formatSyllabusTerm(viewItem)} />
               </div>
 
               <Separator />
@@ -319,6 +325,12 @@ export default function SyllabusPage() {
       </Dialog>
     </div>
   );
+}
+
+function formatSyllabusTerm(item: SyllabusItem) {
+  if (item.semester) return `Semester ${item.semester}`;
+  if (item.year) return `Year ${item.year}`;
+  return "Not specified";
 }
 
 function InfoCard({ label, value }: { label: string; value: string }) {

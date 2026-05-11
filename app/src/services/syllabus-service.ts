@@ -9,6 +9,7 @@ export interface SyllabusItem {
     code: string;
     branch: string;
     semester: string;
+    year?: string | null;
     type: 'pdf' | 'markdown';
     credits: number;
     contentUrl: string;

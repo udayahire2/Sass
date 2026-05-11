@@ -192,6 +192,7 @@ function formatSyllabus(row) {
         code: row.code,
         branch: row.branch,
         semester: row.semester,
+        year: row.academic_year,
         type: row.type,
         credits: row.credits,
         contentUrl: row.content_url,

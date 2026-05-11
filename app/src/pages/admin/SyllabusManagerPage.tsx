@@ -140,7 +140,7 @@ export default function SyllabusManagerPage() {
                             <TableRow>
                                 <TableHead className="w-[120px]">Code</TableHead>
                                 <TableHead>Course Title</TableHead>
-                                <TableHead>Branch / Semester</TableHead>
+                                <TableHead>Branch / Semester-Year</TableHead>
                                 <TableHead>Type</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
@@ -170,9 +170,11 @@ export default function SyllabusManagerPage() {
                                             <div className="flex flex-col gap-0.5">
                                                 <span>{item.branch}</span>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {item.semester === 'all'
-                                                        ? 'All Semesters'
-                                                        : `Semester ${item.semester}`}
+                                                    {item.semester
+                                                        ? `Semester ${item.semester}`
+                                                        : item.year
+                                                            ? `Year ${item.year}`
+                                                            : 'Not specified'}
                                                 </span>
                                             </div>
                                         </TableCell>

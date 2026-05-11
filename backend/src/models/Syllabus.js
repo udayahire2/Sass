@@ -19,7 +19,12 @@ const syllabusSchema = new mongoose.Schema({
     },
     semester: {
         type: String,
-        required: [true, 'Please add a semester']
+        default: ''
+    },
+    year: {
+        type: String,
+        enum: ['1', '2', '3', '4'],
+        required: false
     },
     type: {
         type: String,
