@@ -2,8 +2,17 @@
 import React from "react";
 import { type LucideIcon } from "lucide-react";
 
-export const NotionPage = ({ children }: { children: React.ReactNode }) => (
-  <div className="min-h-screen bg-background pb-24 text-foreground selection:bg-primary/20">
+export const NotionPage = ({
+  children,
+  variant = "default",
+}: {
+  children: React.ReactNode;
+  variant?: "default" | "dashboard";
+}) => (
+  <div className={[
+    "min-h-screen pb-24 text-foreground selection:bg-primary/20",
+    variant === "dashboard" ? "bg-muted/20" : "bg-background",
+  ].join(" ")}>
     {children}
   </div>
 );
@@ -18,16 +27,38 @@ export const NotionCover = ({ src }: { src?: string }) => (
   </div>
 );
 
-export const NotionContent = ({ children }: { children: React.ReactNode }) => (
-  <main className="mx-auto max-w-4xl px-4 sm:px-8 xl:px-0">{children}</main>
+export const NotionContent = ({
+  children,
+  variant = "default",
+}: {
+  children: React.ReactNode;
+  variant?: "default" | "dashboard";
+}) => (
+  <main className={[
+    "mx-auto px-4 sm:px-8",
+    variant === "dashboard" ? "max-w-6xl py-6 lg:py-8" : "max-w-4xl xl:px-0",
+  ].join(" ")}>
+    {children}
+  </main>
 );
 
 export const NotionHeaderArea = ({ children }: { children: React.ReactNode }) => (
   <div className="relative mb-8 pb-4 border-b border-border/30">{children}</div>
 );
 
-export const NotionAvatarWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="relative -mt-16 mb-4 inline-block sm:-mt-20">{children}</div>
+export const NotionAvatarWrapper = ({
+  children,
+  variant = "default",
+}: {
+  children: React.ReactNode;
+  variant?: "default" | "dashboard";
+}) => (
+  <div className={[
+    "relative mb-4 inline-block",
+    variant === "dashboard" ? "" : "-mt-16 sm:-mt-20",
+  ].join(" ")}>
+    {children}
+  </div>
 );
 
 export const NotionTitle = ({ children }: { children: React.ReactNode }) => (

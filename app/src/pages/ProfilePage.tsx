@@ -475,11 +475,13 @@ export default function ProfilePage() {
     );
   }
 
+  const isStudent = user.role === "student";
+
   /* ================================================================ */
   /*  RENDER                                                          */
   /* ================================================================ */
   return (
-    <NotionPage>
+    <NotionPage variant={isStudent ? "dashboard" : "default"}>
       {/* ── Crop Modal ───────────────────────────────────────────── */}
       {cropModalOpen && imageSrc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
@@ -556,12 +558,22 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <NotionCover />
+      {!isStudent && <NotionCover />}
 
-      <NotionContent>
+      <NotionContent variant={isStudent ? "dashboard" : "default"}>
+        {isStudent && (
+          <div className="mb-6 flex flex-col gap-2">
+            <Badge variant="outline" className="w-fit">Student Workspace</Badge>
+            <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your academic details, uploads, and bookmarked study material.
+            </p>
+          </div>
+        )}
         {/* ── Header & Profile Info ──────────────────────────────── */}
+        <div className={isStudent ? "rounded-lg border bg-background p-4 shadow-sm sm:p-6" : ""}>
         <NotionHeaderArea>
-          <NotionAvatarWrapper>
+          <NotionAvatarWrapper variant={isStudent ? "dashboard" : "default"}>
             <div className="group relative">
               <div className="relative h-28 w-28 rounded-xl bg-background p-1 shadow-sm transition-shadow hover:shadow-md sm:h-32 sm:w-32">
                 <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
@@ -717,9 +729,10 @@ export default function ProfilePage() {
             )}
           </NotionProperties>
         </NotionHeaderArea>
+        </div>
 
         {/* ── Add Content Section ────────────────────────────────── */}
-        {token && (
+        {token && isStudent && (
           <NotionSection title="Add Study Content" icon={UploadCloud}>
             <NotionFormContainer>
               <form onSubmit={handleContentSubmit} className="space-y-5">
