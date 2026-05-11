@@ -30,6 +30,11 @@ function buildResourceFilters(req) {
         params.push(req.query.semester);
     }
 
+    if (req.query.category) {
+        filters.push('category = ?');
+        params.push(req.query.category);
+    }
+
     if (req.query.search) {
         const search = `%${String(req.query.search).toLowerCase()}%`;
         filters.push('(LOWER(title) LIKE ? OR LOWER(subject) LIKE ? OR LOWER(author) LIKE ?)');

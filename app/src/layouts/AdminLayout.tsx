@@ -5,6 +5,8 @@ import {
   BookOpen,
   ChevronRight,
   ClipboardCheck,
+  FileQuestion,
+  Files,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -54,6 +56,8 @@ const navSections = [
     items: [
       { icon: BookOpen, label: "Syllabus", path: "/admin/syllabus" },
       { icon: BookOpen, label: "Resources", path: "/admin/resources" },
+      { icon: FileQuestion, label: "IMP Questions", path: "/admin/imp-questions" },
+      { icon: Files, label: "Sample Papers", path: "/admin/sample-papers" },
       { icon: Users, label: "Faculty", path: "/admin/faculty" },
     ],
   },

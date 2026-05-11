@@ -10,7 +10,7 @@ export interface ResourceItem {
     branch: string;
     type: 'pdf' | 'video' | 'doc' | 'markdown';
     description: string;
-    category: 'Notes' | 'PYQ' | 'Syllabus' | 'Lab Manual' | 'Reference Book' | 'Other';
+    category: ResourceCategory;
     pattern?: string;
     unit?: string;
     year: 'FE' | 'SE' | 'TE' | 'BE';
@@ -20,10 +20,29 @@ export interface ResourceItem {
 }
 
 export type CreateResourcePayload = Omit<ResourceItem, '_id' | 'createdAt'>;
+export type ResourceCategory = 'Notes' | 'PYQ' | 'IMP Questions' | 'Sample Paper' | 'Syllabus' | 'Lab Manual' | 'Reference Book' | 'Other';
+export type FetchResourcesParams = {
+    category?: ResourceCategory;
+    branch?: string;
+    semester?: string;
+    status?: string;
+    search?: string;
+};
 
-export const fetchResources = async (): Promise<ResourceItem[]> => {
+const buildQuery = (params: FetchResourcesParams = {}) => {
+    const query = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value) query.set(key, value);
+    });
+
+    const queryString = query.toString();
+    return queryString ? `?${queryString}` : '';
+};
+
+export const fetchResources = async (params: FetchResourcesParams = {}): Promise<ResourceItem[]> => {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${API_URL}${buildQuery(params)}`, {
             headers: getAuthHeaders(),
         });
         const payload = await response.json();
@@ -60,6 +79,32 @@ export const createResource = async (
         return parseApiData<ResourceItem | null>(data, null);
     } catch (error) {
         console.error('Error creating resource:', error);
+        return null;
+    }
+};
+
+export const updateResource = async (
+    id: string,
+    payload: Partial<CreateResourcePayload>
+): Promise<ResourceItem | null> => {
+    try {
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders(),
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        if (!response.ok || data.success === false) {
+            throw new Error(getErrorMessage(data, 'Failed to update resource'));
+        }
+
+        return parseApiData<ResourceItem | null>(data, null);
+    } catch (error) {
+        console.error('Error updating resource:', error);
         return null;
     }
 };

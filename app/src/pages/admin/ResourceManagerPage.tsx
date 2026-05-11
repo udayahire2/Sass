@@ -28,19 +28,33 @@ import ResourceForm from "@/components/admin/ResourceForm";
 import {
     deleteResource as deleteResourceById,
     fetchResources,
+    type ResourceCategory,
     type ResourceItem,
 } from "@/services/resource-service";
 
-export default function ResourceManagerPage() {
+type ResourceManagerPageProps = {
+    fixedCategory?: ResourceCategory;
+    title?: string;
+    description?: string;
+    addButtonLabel?: string;
+};
+
+export default function ResourceManagerPage({
+    fixedCategory,
+    title = "Resource Manager",
+    description = "Manage and organize published study resources.",
+    addButtonLabel = "Add New Resource",
+}: ResourceManagerPageProps) {
     const [resources, setResources] = useState<ResourceItem[]>([]);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingResource, setEditingResource] = useState<ResourceItem | null>(null);
 
     const loadResources = async () => {
         setLoading(true);
         try {
-            const data = await fetchResources();
+            const data = await fetchResources(fixedCategory ? { category: fixedCategory } : {});
             setResources(data);
         } finally {
             setLoading(false);
@@ -49,7 +63,14 @@ export default function ResourceManagerPage() {
 
     useEffect(() => {
         loadResources();
-    }, []);
+    }, [fixedCategory]);
+
+    const handleDialogOpenChange = (open: boolean) => {
+        setDialogOpen(open);
+        if (!open) {
+            setEditingResource(null);
+        }
+    };
 
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure you want to delete this resource?")) return;
@@ -85,26 +106,31 @@ export default function ResourceManagerPage() {
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Resource Manager</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        Manage and organize published study resources.
+                        {description}
                     </p>
                 </div>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
                     <DialogTrigger asChild>
                         <Button className="w-full md:w-auto">
                             <Plus className="mr-2 h-4 w-4" />
-                            Add New Resource
+                            {addButtonLabel}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[650px] p-0 flex flex-col overflow-hidden max-h-[90vh]">
                         <ScrollArea className="max-h-[90vh] w-full p-6 sm:p-8">
                             <DialogHeader className="pb-2">
-                                <DialogTitle className="text-2xl font-bold tracking-tight">Add New Resource</DialogTitle>
+                                <DialogTitle className="text-2xl font-bold tracking-tight">
+                                    {editingResource ? "Edit Resource" : addButtonLabel}
+                                </DialogTitle>
                             </DialogHeader>
                             <ResourceForm
+                                fixedCategory={fixedCategory}
+                                initialValues={editingResource}
                                 onSuccess={() => {
                                     setDialogOpen(false);
+                                    setEditingResource(null);
                                     loadResources();
                                 }}
                             />
@@ -127,7 +153,7 @@ export default function ResourceManagerPage() {
                     />
                 </InputGroup>
                 <div className="text-sm text-muted-foreground">
-                    {resources.length} total resources
+                    {resources.length} total {fixedCategory ? fixedCategory.toLowerCase() : "resources"}
                 </div>
             </div>
 
@@ -184,6 +210,16 @@ export default function ResourceManagerPage() {
                                         <TableCell>{resource.author}</TableCell>
                                         <TableCell>{resource.year}</TableCell>
                                         <TableCell className="text-right">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setEditingResource(resource);
+                                                    setDialogOpen(true);
+                                                }}
+                                            >
+                                                Edit
+                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"

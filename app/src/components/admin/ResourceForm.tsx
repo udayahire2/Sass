@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,12 +20,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { createResource, type CreateResourcePayload } from '@/services/resource-service';
+import { createResource, updateResource, type CreateResourcePayload, type ResourceCategory, type ResourceItem } from '@/services/resource-service';
 
 const branchOptions = ['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'ENTC'];
 const semesterOptions = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'];
 const yearOptions = ['FE', 'SE', 'TE', 'BE'] as const;
-const categoryOptions = ['Notes', 'PYQ', 'Lab Manual', 'Reference Book', 'Other'] as const;
+const categoryOptions = ['Notes', 'PYQ', 'IMP Questions', 'Sample Paper', 'Syllabus', 'Lab Manual', 'Reference Book', 'Other'] as const;
 
 const formSchema = z.object({
     title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
@@ -32,14 +33,21 @@ const formSchema = z.object({
     semester: z.string().min(1, { message: 'Semester is required.' }),
     branch: z.string().min(1, { message: 'Branch is required.' }),
     year: z.enum(yearOptions),
-    category: z.enum(['Notes', 'PYQ', 'Lab Manual', 'Reference Book', 'Other']),
+    category: z.enum(categoryOptions),
     type: z.enum(['pdf', 'video', 'doc', 'markdown']),
     description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
     author: z.string().min(2, { message: 'Author is required.' }),
     url: z.string().min(1, { message: 'Please enter a valid resource URL.' }),
 });
 
-export default function ResourceForm({ onSuccess }: { onSuccess: () => void }) {
+type ResourceFormProps = {
+    fixedCategory?: ResourceCategory;
+    initialValues?: ResourceItem | null;
+    onSuccess: () => void;
+};
+
+export default function ResourceForm({ fixedCategory, initialValues, onSuccess }: ResourceFormProps) {
+    const isEditing = Boolean(initialValues);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -48,7 +56,7 @@ export default function ResourceForm({ onSuccess }: { onSuccess: () => void }) {
             semester: '',
             branch: '',
             year: 'SE',
-            category: 'Notes',
+            category: fixedCategory ?? 'Notes',
             type: 'pdf',
             description: '',
             author: '',
@@ -56,14 +64,32 @@ export default function ResourceForm({ onSuccess }: { onSuccess: () => void }) {
         },
     });
 
+    useEffect(() => {
+        form.reset({
+            title: initialValues?.title ?? '',
+            subject: initialValues?.subject ?? '',
+            semester: initialValues?.semester ?? '',
+            branch: initialValues?.branch ?? '',
+            year: initialValues?.year ?? 'SE',
+            category: initialValues?.category ?? fixedCategory ?? 'Notes',
+            type: initialValues?.type ?? 'pdf',
+            description: initialValues?.description ?? '',
+            author: initialValues?.author ?? '',
+            url: initialValues?.url ?? '',
+        });
+    }, [fixedCategory, form, initialValues]);
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         const payload: CreateResourcePayload = {
             ...values,
+            category: fixedCategory ?? values.category,
             pattern: '2019',
             unit: 'All',
         };
 
-        const resource = await createResource(payload);
+        const resource = initialValues
+            ? await updateResource(initialValues._id, payload)
+            : await createResource(payload);
 
         if (resource) {
             form.reset();
@@ -218,11 +244,11 @@ export default function ResourceForm({ onSuccess }: { onSuccess: () => void }) {
                         name="category"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select category" />
+                            <FormLabel>Category</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={Boolean(fixedCategory)}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select category" />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
@@ -290,7 +316,7 @@ export default function ResourceForm({ onSuccess }: { onSuccess: () => void }) {
 
                 <div className="pt-2">
                     <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? 'Saving...' : 'Add Resource'}
+                        {form.formState.isSubmitting ? 'Saving...' : isEditing ? 'Update Resource' : 'Add Resource'}
                     </Button>
                 </div>
             </form>

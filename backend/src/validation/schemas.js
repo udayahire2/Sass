@@ -4,7 +4,7 @@ const branchEnum = z.enum(['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical'
 const yearEnum = z.enum(['FE', 'SE', 'TE', 'BE']);
 const syllabusTypeEnum = z.enum(['pdf', 'markdown']);
 const resourceTypeEnum = z.enum(['pdf', 'video', 'doc', 'markdown']);
-const resourceCategoryEnum = z.enum(['Notes', 'PYQ', 'Syllabus', 'Lab Manual', 'Reference Book', 'Other']);
+const resourceCategoryEnum = z.enum(['Notes', 'PYQ', 'IMP Questions', 'Sample Paper', 'Syllabus', 'Lab Manual', 'Reference Book', 'Other']);
 const materialTypeEnum = z.enum(['PDF', 'PPT', 'DOCX', 'Markdown', 'Video', 'Notes']);
 const contentTypeEnum = z.enum(['study_stock', 'imp_questions', 'lecture_notes', 'practice_quizzes']);
 const contentRoleEnum = z.enum(['student', 'faculty', 'admin']);
@@ -101,6 +101,7 @@ const paginationQuerySchema = z.object({
     search: z.string().trim().optional(),
     branch: z.string().trim().optional(),
     semester: z.string().trim().optional(),
+    category: z.string().trim().optional(),
     status: z.string().trim().optional(),
 });
 

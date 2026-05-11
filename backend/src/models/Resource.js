@@ -29,7 +29,7 @@ const resourceSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        enum: ['Notes', 'PYQ', 'Syllabus', 'Lab Manual', 'Reference Book', 'Other'],
+        enum: ['Notes', 'PYQ', 'IMP Questions', 'Sample Paper', 'Syllabus', 'Lab Manual', 'Reference Book', 'Other'],
         required: [true, 'Please select a category']
     },
     pattern: {

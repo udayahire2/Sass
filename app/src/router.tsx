@@ -18,6 +18,8 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import StudentsPage from "./pages/admin/StudentsPage";
 import ResourceManagerPage from "./pages/admin/ResourceManagerPage";
 import SyllabusManagerPage from "./pages/admin/SyllabusManagerPage";
+import ImpQuestionsManagerPage from "./pages/admin/ImpQuestionsManagerPage";
+import SamplePapersManagerPage from "./pages/admin/SamplePapersManagerPage";
 import FacultyManager from "./pages/admin/FacultyManager";
 import ContentApprovalPage from "./pages/admin/ContentApprovalPage";
 import FacultyDashboard from "./pages/dashboard/FacultyDashboard";
@@ -131,6 +133,14 @@ export const router = createBrowserRouter([
                     {
                         path: "resources",
                         element: <ResourceManagerPage />,
+                    },
+                    {
+                        path: "imp-questions",
+                        element: <ImpQuestionsManagerPage />,
+                    },
+                    {
+                        path: "sample-papers",
+                        element: <SamplePapersManagerPage />,
                     },
                     {
                         path: "students",
