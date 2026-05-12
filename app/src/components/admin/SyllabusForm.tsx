@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { FileUp, FileText, FileCode, X } from 'lucide-react';
+import { FileUp, FileText, FileCode, Link, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Form,
@@ -26,6 +26,8 @@ const branchOptions = ['Computer', 'IT', 'Civil', 'Mechanical', 'Electrical', 'E
 const semesterOptions = ['1', '2', '3', '4', '5', '6', '7', '8'];
 const yearOptions = ['1', '2', '3', '4'];
 
+type SourceMode = 'upload' | 'link';
+
 const formSchema = z.object({
     title: z.string().min(2, { message: 'Title must be at least 2 characters.' }),
     code: z.string().min(2, { message: 'Course code is required.' }),
@@ -40,6 +42,7 @@ const formSchema = z.object({
 });
 
 export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
+    const [sourceMode, setSourceMode] = useState<SourceMode>('upload');
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,6 +74,17 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
     });
 
     const acceptedExtensions = selectedType === 'pdf' ? '.pdf' : '.md,.markdown,.txt';
+
+    const handleSourceModeChange = (mode: SourceMode) => {
+        setSourceMode(mode);
+        // Clear file & URL when switching modes
+        setUploadedFile(null);
+        form.setValue('contentUrl', '');
+        form.clearErrors('contentUrl');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
 
     const handleFileChange = (file: File | null) => {
         const extension = file?.name.split('.').pop()?.toLowerCase();
@@ -112,8 +126,13 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
     };
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (!uploadedFile) {
+        if (sourceMode === 'upload' && !uploadedFile) {
             form.setError('contentUrl', { type: 'manual', message: 'Please upload a file.' });
+            return;
+        }
+
+        if (sourceMode === 'link' && (!values.contentUrl || values.contentUrl.trim() === '')) {
+            form.setError('contentUrl', { type: 'manual', message: 'Please provide a valid URL.' });
             return;
         }
 
@@ -131,13 +150,18 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
         Object.entries(values).forEach(([k, v]) => {
             if (v !== undefined && String(v).trim() !== '') formData.append(k, String(v));
         });
-        formData.append('file', uploadedFile);
+
+        if (sourceMode === 'upload' && uploadedFile) {
+            formData.append('file', uploadedFile);
+        }
+        formData.append('sourceMode', sourceMode);
 
         const created = await createSyllabus(formData);
 
         if (created) {
             form.reset();
             setUploadedFile(null);
+            setSourceMode('upload');
             onSuccess();
             return;
         }
@@ -324,81 +348,142 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="contentUrl"
-                    render={({ fieldState }) => (
-                        <FormItem>
-                            <FormLabel>
-                                {selectedType === 'pdf' ? 'Upload PDF File' : 'Upload Markdown File'}
-                            </FormLabel>
-                            <FormControl>
-                                <div
-                                    className={[
-                                        'relative flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-colors',
-                                        isDragging
-                                            ? 'border-primary bg-primary/5'
-                                            : uploadedFile
-                                            ? 'border-green-500/60 bg-green-500/5'
-                                            : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-accent/30',
-                                    ].join(' ')}
-                                    onClick={() => fileInputRef.current?.click()}
-                                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                                    onDragLeave={() => setIsDragging(false)}
-                                    onDrop={handleDrop}
-                                >
-                                    <Input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept={acceptedExtensions}
-                                        className="hidden"
-                                        onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
-                                    />
-                                    {uploadedFile ? (
-                                        <>
-                                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10">
-                                                {selectedType === 'pdf'
-                                                    ? <FileText className="h-6 w-6 text-green-600" />
-                                                    : <FileCode className="h-6 w-6 text-green-600" />}
-                                            </div>
-                                            <div className="min-w-0 text-center">
-                                                <p className="text-sm font-medium text-foreground truncate max-w-[280px]">{uploadedFile.name}</p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">
-                                                    {(uploadedFile.size / 1024).toFixed(1)} KB
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}
-                                                className="absolute top-2 right-2 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                                                aria-label="Remove uploaded file"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-                                                <FileUp className="h-6 w-6 text-muted-foreground" />
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-sm font-medium text-foreground">
-                                                    {isDragging ? 'Drop file here' : 'Click to upload or drag & drop'}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    {selectedType === 'pdf' ? 'PDF files only' : 'Markdown / .md / .txt files'}
-                                                </p>
-                                            </div>
-                                        </>
+                {/* Source Mode Tabs */}
+                <div className="space-y-4">
+                    <FormLabel className="text-sm font-medium">Content Source</FormLabel>
+                    <div className="flex gap-1 rounded-xl bg-muted/60 p-1 border border-border/50">
+                        <button
+                            type="button"
+                            onClick={() => handleSourceModeChange('upload')}
+                            className={[
+                                'flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
+                                sourceMode === 'upload'
+                                    ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50',
+                            ].join(' ')}
+                        >
+                            <Upload className="h-4 w-4" />
+                            Upload File
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleSourceModeChange('link')}
+                            className={[
+                                'flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
+                                sourceMode === 'link'
+                                    ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50',
+                            ].join(' ')}
+                        >
+                            <Link className="h-4 w-4" />
+                            External Link
+                        </button>
+                    </div>
+
+                    {/* Upload File Panel */}
+                    {sourceMode === 'upload' && (
+                        <FormField
+                            control={form.control}
+                            name="contentUrl"
+                            render={({ fieldState }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <div
+                                            className={[
+                                                'relative flex min-h-40 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200',
+                                                isDragging
+                                                    ? 'border-primary bg-primary/5 scale-[1.01]'
+                                                    : uploadedFile
+                                                    ? 'border-green-500/60 bg-green-500/5'
+                                                    : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-accent/30',
+                                            ].join(' ')}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                            onDragLeave={() => setIsDragging(false)}
+                                            onDrop={handleDrop}
+                                        >
+                                            <Input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept={acceptedExtensions}
+                                                className="hidden"
+                                                onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+                                            />
+                                            {uploadedFile ? (
+                                                <>
+                                                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10">
+                                                        {selectedType === 'pdf'
+                                                            ? <FileText className="h-6 w-6 text-green-600" />
+                                                            : <FileCode className="h-6 w-6 text-green-600" />}
+                                                    </div>
+                                                    <div className="min-w-0 text-center">
+                                                        <p className="text-sm font-medium text-foreground truncate max-w-[280px]">{uploadedFile.name}</p>
+                                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                                            {(uploadedFile.size / 1024).toFixed(1)} KB
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}
+                                                        className="absolute top-2 right-2 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                                        aria-label="Remove uploaded file"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
+                                                        <FileUp className="h-6 w-6 text-muted-foreground" />
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-sm font-medium text-foreground">
+                                                            {isDragging ? 'Drop file here' : 'Click to upload or drag & drop'}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            {selectedType === 'pdf' ? 'PDF files only' : 'Markdown / .md / .txt files'}
+                                                        </p>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    </FormControl>
+                                    {fieldState.error && (
+                                        <p className="text-sm text-destructive">{fieldState.error.message}</p>
                                     )}
-                                </div>
-                            </FormControl>
-                            {fieldState.error && (
-                                <p className="text-sm text-destructive">{fieldState.error.message}</p>
+                                </FormItem>
                             )}
-                        </FormItem>
+                        />
                     )}
-                />
+
+                    {/* External Link Panel */}
+                    {sourceMode === 'link' && (
+                        <FormField
+                            control={form.control}
+                            name="contentUrl"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <div className="relative">
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                            <Link className="h-4 w-4" />
+                                        </div>
+                                        <FormControl>
+                                            <Input
+                                                placeholder="https://example.com/syllabus.pdf"
+                                                className="pl-9"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1.5">
+                                        Paste a direct link to the syllabus document (Google Drive, Dropbox, etc.)
+                                    </p>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                </div>
 
                 {form.formState.errors.root && (
                     <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
