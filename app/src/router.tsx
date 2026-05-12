@@ -25,6 +25,9 @@ import ContentApprovalPage from "./pages/admin/ContentApprovalPage";
 import FacultyDashboard from "./pages/dashboard/FacultyDashboard";
 
 
+import FeedbackPage from "./pages/FeedbackPage";
+import HowToUsePage from "./pages/HowToUsePage";
+import FeedbackManagerPage from "./pages/admin/FeedbackManagerPage";
 import SearchPage from "./pages/SearchPage";
 
 import ErrorPage from "./pages/ErrorPage";
@@ -99,6 +102,14 @@ export const router = createBrowserRouter([
                         path: "/search",
                         element: <SearchPage />,
                     },
+                    {
+                        path: "/feedback",
+                        element: <FeedbackPage />,
+                    },
+                    {
+                        path: "/how-to-use",
+                        element: <HowToUsePage />,
+                    },
                 ],
             },
             {
@@ -153,6 +164,10 @@ export const router = createBrowserRouter([
                     {
                         path: "faculty",
                         element: <FacultyManager />,
+                    },
+                    {
+                        path: "feedback",
+                        element: <FeedbackManagerPage />,
                     },
                     {
                         path: "",

@@ -229,7 +229,7 @@ export default function ProfilePage() {
     }
     try {
       const parsedUser = JSON.parse(storedUser);
-      
+
       // Redirect admins and faculty to their respective dashboards
       if (parsedUser.role === "admin") {
         navigate("/admin/dashboard");
@@ -511,19 +511,19 @@ export default function ProfilePage() {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={() => setActiveTab("profile")} 
+                  <SidebarMenuButton
+                    onClick={() => setActiveTab("profile")}
                     isActive={activeTab === "profile"}
                   >
                     <User className="h-4 w-4" />
                     <span>Overview</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                
+
                 {token && isStudent && (
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      onClick={() => setActiveTab("add-content")} 
+                    <SidebarMenuButton
+                      onClick={() => setActiveTab("add-content")}
                       isActive={activeTab === "add-content"}
                     >
                       <UploadCloud className="h-4 w-4" />
@@ -531,11 +531,11 @@ export default function ProfilePage() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
-                
+
                 {token && (
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      onClick={() => setActiveTab("uploads")} 
+                    <SidebarMenuButton
+                      onClick={() => setActiveTab("uploads")}
                       isActive={activeTab === "uploads"}
                     >
                       <FileText className="h-4 w-4" />
@@ -546,8 +546,8 @@ export default function ProfilePage() {
 
                 {token && (
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      onClick={() => setActiveTab("bookmarks")} 
+                    <SidebarMenuButton
+                      onClick={() => setActiveTab("bookmarks")}
                       isActive={activeTab === "bookmarks"}
                     >
                       <Bookmark className="h-4 w-4" />
@@ -573,10 +573,10 @@ export default function ProfilePage() {
             </BreadcrumbList>
           </Breadcrumb>
         </header>
-        
+
         <main className="flex-1 overflow-auto bg-muted/20 p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-4xl space-y-8">
-            
+
             {/* Crop Modal */}
             {cropModalOpen && imageSrc && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
@@ -691,7 +691,7 @@ export default function ProfilePage() {
                           className="sr-only"
                         />
                       </div>
-                      
+
                       <h3 className="font-semibold text-lg flex items-center gap-1.5 justify-center">
                         {user.name}
                         {user.isVerified && <ShieldCheck className="h-4 w-4 text-emerald-500" />}

@@ -78,11 +78,18 @@ function NavbarSearch() {
 // Desktop Navigation Links Component
 function DesktopNavLinks() {
   const location = useLocation();
-
+  const { user } = useLocalAuth();
 
   const links = [
     ...NAV_LINKS,
   ];
+
+  if (user && user.role !== "admin") {
+    links.push(
+      { path: "/feedback", label: "Feedback" },
+      { path: "/how-to-use", label: "How to use" }
+    );
+  }
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -288,6 +295,13 @@ function PopoverMobileMenu() {
   const links = [
     ...NAV_LINKS,
   ];
+
+  if (user && user.role !== "admin") {
+    links.push(
+      { path: "/feedback", label: "Feedback" },
+      { path: "/how-to-use", label: "How to use" }
+    );
+  }
 
   const isActive = (path: string) => {
     if (path === "/") {

@@ -9,6 +9,7 @@ const adminRoutes = require('./adminRoutes');
 const studyMaterialRoutes = require('./studyMaterialRoutes');
 const syllabusRoutes = require('./syllabusRoutes');
 const subjectRoutes = require('./subjectRoutes');
+const platformFeedbackRoutes = require('./platformFeedbackRoutes');
 
 router.use('/resources', resourceRoutes);
 router.use('/auth', authRoutes);
@@ -18,6 +19,7 @@ router.use('/files', fileRoutes);
 router.use('/study-materials', studyMaterialRoutes);
 router.use('/syllabus', syllabusRoutes);
 router.use('/', subjectRoutes);
+router.use('/feedback', platformFeedbackRoutes);
 
 router.get('/health', (req, res) => {
     res.status(200).json({

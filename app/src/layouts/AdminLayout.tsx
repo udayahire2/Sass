@@ -59,6 +59,7 @@ const navSections = [
       { icon: FileQuestion, label: "IMP Questions", path: "/admin/imp-questions" },
       { icon: Files, label: "Sample Papers", path: "/admin/sample-papers" },
       { icon: Users, label: "Faculty", path: "/admin/faculty" },
+      { icon: Users, label: "Feedback", path: "/admin/feedback" },
     ],
   },
 ];
