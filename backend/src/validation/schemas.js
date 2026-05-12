@@ -67,7 +67,8 @@ const createSyllabusSchema = z.object({
     semester: z.string().trim().regex(/^[1-8]$/, 'Semester must be between 1 and 8').optional(),
     year: z.string().trim().regex(/^[1-4]$/, 'Year must be between 1 and 4').optional(),
     type: syllabusTypeEnum,
-    contentUrl: trimmedString(2, 'Content'),
+    contentUrl: z.string().trim().optional(),
+    sourceMode: z.enum(['upload', 'link']).optional(),
 }).superRefine((data, ctx) => {
     if (!data.semester && !data.year) {
         ctx.addIssue({
@@ -98,7 +99,8 @@ const createResourceSchema = z.object({
     unit: z.string().trim().optional().default(''),
     year: yearEnum,
     author: trimmedString(2, 'Author'),
-    url: z.string().trim().url('A valid URL is required'),
+    url: z.string().trim().optional().default(''),
+    sourceMode: z.enum(['upload', 'link']).optional(),
 });
 
 const updateMaterialStatusSchema = z.object({

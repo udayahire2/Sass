@@ -110,9 +110,10 @@ exports.createResource = async (req, res, next) => {
         run(
             `INSERT INTO resources (
                 id, subject_id, title, subject, semester, branch, type, description, category, pattern, unit,
-                academic_year, author, url, status, created_by_user_id, approved_by_user_id, approved_at,
+                academic_year, author, url, file_path, original_filename, mime_type, file_size,
+                status, created_by_user_id, approved_by_user_id, approved_at,
                 created_at, updated_at, deleted_at
-            ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?, NULL)`,
+            ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?, ?, NULL)`,
             [
                 resourceId,
                 req.body.title,
@@ -126,7 +127,11 @@ exports.createResource = async (req, res, next) => {
                 req.body.unit || '',
                 req.body.year,
                 req.body.author,
-                req.body.url,
+                req.body.url || '',
+                req.body.filePath || null,
+                req.body.originalFilename || null,
+                req.body.mimeType || null,
+                req.body.fileSize || null,
                 req.user.id,
                 req.user.id,
                 timestamps.createdAt,
@@ -169,6 +174,10 @@ exports.updateResource = async (req, res, next) => {
             unit: 'unit',
             url: 'url',
             year: 'academic_year',
+            filePath: 'file_path',
+            originalFilename: 'original_filename',
+            mimeType: 'mime_type',
+            fileSize: 'file_size',
         };
 
         const updates = [];
