@@ -32,6 +32,18 @@ app.use('/uploads/avatars', (req, res, next) => {
     next();
 }, express.static(path.join(__dirname, '../uploads/avatars')));
 
+// Static resource files — cross-origin for frontend access
+app.use('/uploads/resources', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+}, express.static(path.join(__dirname, '../uploads/resources')));
+
+// Static syllabus files — cross-origin for frontend access
+app.use('/uploads/syllabus', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+}, express.static(path.join(__dirname, '../uploads/syllabus')));
+
 app.use(helmet());
 
 if (env.nodeEnv === 'development') {

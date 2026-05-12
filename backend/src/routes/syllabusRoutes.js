@@ -48,18 +48,28 @@ const upload = multer({
 });
 
 function prepareSyllabusUpload(req, _res, next) {
-    if (!req.file) {
+    // If a file was uploaded, process it
+    if (req.file) {
+        const extension = path.extname(req.file.originalname).toLowerCase();
+        const type = FILE_TYPE_BY_EXTENSION[extension];
+        req.body.type = type;
+
+        if (type === 'markdown') {
+            req.body.contentUrl = fs.readFileSync(req.file.path, 'utf8');
+        } else {
+            req.body.contentUrl = `/uploads/syllabus/${req.file.filename}`;
+        }
+
         return next();
     }
 
-    const extension = path.extname(req.file.originalname).toLowerCase();
-    const type = FILE_TYPE_BY_EXTENSION[extension];
-    req.body.type = type;
-
-    if (type === 'markdown') {
-        req.body.contentUrl = fs.readFileSync(req.file.path, 'utf8');
-    } else {
-        req.body.contentUrl = `/uploads/syllabus/${req.file.filename}`;
+    // If using external link mode, contentUrl should already be in the body
+    if (req.body.sourceMode === 'link' && req.body.contentUrl) {
+        // Keep the type as is (or default to pdf for external links)
+        if (!req.body.type) {
+            req.body.type = 'pdf';
+        }
+        return next();
     }
 
     return next();
