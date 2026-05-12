@@ -16,6 +16,8 @@ export interface ResourceItem {
     year: 'FE' | 'SE' | 'TE' | 'BE';
     author: string;
     url: string;
+    filePath?: string;
+    originalFilename?: string;
     createdAt?: string;
 }
 
@@ -59,16 +61,19 @@ export const fetchResources = async (params: FetchResourcesParams = {}): Promise
 };
 
 export const createResource = async (
-    payload: CreateResourcePayload
+    payload: CreateResourcePayload | FormData
 ): Promise<ResourceItem | null> => {
     try {
+        const isFormData = payload instanceof FormData;
         const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(),
-            },
-            body: JSON.stringify(payload),
+            headers: isFormData
+                ? getAuthHeaders()
+                : {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders(),
+                },
+            body: isFormData ? payload : JSON.stringify(payload),
         });
 
         const data = await response.json();
@@ -85,16 +90,19 @@ export const createResource = async (
 
 export const updateResource = async (
     id: string,
-    payload: Partial<CreateResourcePayload>
+    payload: Partial<CreateResourcePayload> | FormData
 ): Promise<ResourceItem | null> => {
     try {
+        const isFormData = payload instanceof FormData;
         const response = await fetch(`${API_URL}/${id}`, {
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                ...getAuthHeaders(),
-            },
-            body: JSON.stringify(payload),
+            headers: isFormData
+                ? getAuthHeaders()
+                : {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders(),
+                },
+            body: isFormData ? payload : JSON.stringify(payload),
         });
 
         const data = await response.json();
