@@ -22,8 +22,10 @@ import ImpQuestionsManagerPage from "./pages/admin/ImpQuestionsManagerPage";
 import SamplePapersManagerPage from "./pages/admin/SamplePapersManagerPage";
 import FacultyManager from "./pages/admin/FacultyManager";
 import ContentApprovalPage from "./pages/admin/ContentApprovalPage";
-import FacultyDashboard from "./pages/dashboard/FacultyDashboard";
+import FacultyDashboard from "./pages/faculty/FacultyDashboard";
 import FacultyLayout from "./layouts/FacultyLayout";
+import FacultyAddMaterial from "./pages/faculty/FacultyAddMaterial";
+import FacultyProfile from "./pages/faculty/FacultyProfile";
 
 
 import FeedbackPage from "./pages/FeedbackPage";
@@ -184,6 +186,14 @@ export const router = createBrowserRouter([
                     {
                         index: true,
                         element: <FacultyDashboard />,
+                    },
+                    {
+                        path: "upload",
+                        element: <FacultyAddMaterial />,
+                    },
+                    {
+                        path: "profile",
+                        element: <FacultyProfile />,
                     }
                 ]
             },
