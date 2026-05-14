@@ -23,6 +23,7 @@ import SamplePapersManagerPage from "./pages/admin/SamplePapersManagerPage";
 import FacultyManager from "./pages/admin/FacultyManager";
 import ContentApprovalPage from "./pages/admin/ContentApprovalPage";
 import FacultyDashboard from "./pages/dashboard/FacultyDashboard";
+import FacultyLayout from "./layouts/FacultyLayout";
 
 
 import FeedbackPage from "./pages/FeedbackPage";
@@ -177,8 +178,14 @@ export const router = createBrowserRouter([
             },
             {
                 path: "/dashboard/faculty",
-                element: <Layout><FacultyDashboard /></Layout>,
+                element: <FacultyLayout />,
                 errorElement: <ErrorPage />,
+                children: [
+                    {
+                        index: true,
+                        element: <FacultyDashboard />,
+                    }
+                ]
             },
         ]
     },
