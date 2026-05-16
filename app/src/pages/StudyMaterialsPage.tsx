@@ -288,8 +288,13 @@ export default function StudyMaterialsPage() {
 
 function AcademicLoadingState() {
   return (
-    <div className="flex min-h-64 items-center justify-center rounded-xl border border-border/50">
-      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+    <div className="w-full space-y-6">
+      <div className="h-8 w-48 rounded-md bg-muted animate-pulse" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="h-32 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
+        ))}
+      </div>
     </div>
   );
 }
