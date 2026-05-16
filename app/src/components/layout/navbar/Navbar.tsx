@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Sun, Moon, LogOut, User, ChevronDown } from "lucide-react";
+import { gsap } from "gsap";
 import Menu from "@/svgs/menu";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { NAV_LINKS } from "@/config/nav-config";
@@ -26,34 +20,125 @@ import { useTheme } from "@/components/theme-provider";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
 
+/* -------------------------------------------------------------------------- */
+/*  GSAP-powered dropdown (replaces Radix DropdownMenuContent)                */
+/* -------------------------------------------------------------------------- */
+function GsapDropdown({
+  trigger,
+  children,
+  panelClassName,
+}: {
+  trigger: (props: { open: boolean; toggle: () => void }) => React.ReactNode;
+  children: (close: () => void) => React.ReactNode;
+  panelClassName?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
+
+  const close = () => setOpen(false);
+  const toggle = () => setOpen((prev) => !prev);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      // hide the panel initially without animation
+      gsap.set(panel, { autoAlpha: 0, scale: 0.96, y: -8 });
+      return;
+    }
+
+    gsap.killTweensOf(panel);
+
+    if (open) {
+      gsap.fromTo(
+        panel,
+        { autoAlpha: 0, scale: 0.96, y: -6 },
+        {
+          autoAlpha: 1,
+          scale: 1,
+          y: 0,
+          duration: 0.3,
+          ease: "power3.out",
+        },
+      );
+    } else {
+      gsap.to(panel, {
+        autoAlpha: 0,
+        scale: 0.97,
+        y: -4,
+        duration: 0.2,
+        ease: "power2.inOut",
+        onStart: () => {
+          if (panel) panel.style.pointerEvents = "none";
+        },
+        onComplete: () => {
+          if (panel) panel.style.pointerEvents = "";
+        },
+      });
+    }
+  }, [open]);
+
+  // Dismiss on outside click & Escape
+  useEffect(() => {
+    const handlePointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) close();
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  return (
+    <div ref={rootRef} className="relative">
+      {trigger({ open, toggle })}
+      <div
+        ref={panelRef}
+        className={cn(
+          "absolute top-full right-0 mt-1 z-50 min-w-[12rem] overflow-hidden rounded-md border border-border/40 bg-background/95 p-1 shadow-lg backdrop-blur-xl",
+          panelClassName,
+        )}
+      >
+        {children(close)}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Search bar (unchanged)                                                    */
+/* -------------------------------------------------------------------------- */
 function NavbarSearch() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     const normalizedQuery = query.trim();
-
     if (!normalizedQuery) {
       navigate("/resources");
       return;
     }
-
     navigate(`/syllabus?search=${encodeURIComponent(normalizedQuery)}`);
   };
 
-  // ✅ Ctrl + K shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        navigate("/search"); // 🔥 redirect page
+        navigate("/search");
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
-
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [navigate]);
 
@@ -75,93 +160,169 @@ function NavbarSearch() {
   );
 }
 
-// Desktop Navigation Links Component
+/* -------------------------------------------------------------------------- */
+/*  Desktop Navigation – regrouped links into “Study” & “Support” dropdowns   */
+/* -------------------------------------------------------------------------- */
 function DesktopNavLinks() {
   const location = useLocation();
   const { user } = useLocalAuth();
-
-  const links = [
-    ...NAV_LINKS,
-  ];
-
-  if (user && user.role !== "admin") {
-    links.push(
-      { path: "/feedback", label: "Feedback" },
-      { path: "/how-to-use", label: "How to use" }
-    );
-  }
+  const navigate = useNavigate();
 
   const isActive = (path: string) => {
-    if (path === "/") {
-      return location.pathname === "/";
-    }
-    return (
-      location.pathname === path || location.pathname.startsWith(`${path}/`)
-    );
+    if (path === "/") return location.pathname === "/";
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
+
+  // Build two dropdown groups from NAV_LINKS
+  const studyLinks = NAV_LINKS.filter((link) =>
+    ["/study-stock", "/resources", "/syllabus"].includes(link.path),
+  );
+  // For resources, we also want to show its sub-items inside the same Study dropdown
+  const resourcesLink = studyLinks.find((l) => l.path === "/resources");
+  const supportLinks = user && user.role !== "admin"
+    ? [
+      { path: "/feedback", label: "Feedback" },
+      { path: "/how-to-use", label: "How to use" },
+    ]
+    : [];
 
   return (
     <nav className="flex items-center gap-1">
-      {links.map((link) => {
-        const active = isActive(link.path);
+      {/* Home link – always visible */}
+      <Link
+        to="/"
+        className={cn(
+          "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+          isActive("/")
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+        )}
+        aria-current={isActive("/") ? "page" : undefined}
+      >
+        Home
+      </Link>
 
-        return link.dropdown ? (
-          <DropdownMenu key={link.path}>
-            <DropdownMenuTrigger asChild>
-              <button
-                className={cn(
-                  "flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none",
-                  active
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                )}
-              >
-                {link.label}
-                <ChevronDown className="h-3 w-3 opacity-60" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48 rounded-xl border-border/50 bg-background/95 backdrop-blur-xl p-1 shadow-lg">
-              {link.dropdown.map((subItem) => (
-                <DropdownMenuItem key={subItem.path} asChild className="rounded-lg cursor-pointer">
-                  <Link
-                    to={subItem.path}
-                    className={cn(
-                      "w-full px-3 py-2 text-sm",
-                      isActive(subItem.path) && subItem.path !== link.path
-                        ? "bg-muted font-medium text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {subItem.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <Link
-            key={link.path}
-            to={link.path}
+      {/* Study dropdown */}
+      <GsapDropdown
+        trigger={({ open, toggle }) => (
+          <button
+            type="button"
+            onClick={toggle}
             className={cn(
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-              active
+              "flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none",
+              studyLinks.some((l) => isActive(l.path)) || open
                 ? "bg-muted text-foreground"
                 : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
             )}
-            aria-current={active ? "page" : undefined}
           >
-            {link.label}
-          </Link>
-        );
-      })}
+            Study
+            <ChevronDown
+              className={cn(
+                "h-3 w-3 opacity-60 transition-transform duration-200",
+                open && "rotate-180",
+              )}
+            />
+          </button>
+        )}
+      >
+        {(close) => (
+          <>
+            {studyLinks.map((link) => {
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={close}
+                  className={cn(
+                    "flex w-full items-center rounded-md px-3 py-2 text-sm",
+                    active
+                      ? "bg-muted text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted/50",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+            {/* Sub‑items of Resources (if present) */}
+            {resourcesLink?.dropdown?.map((sub) => {
+              const active = isActive(sub.path);
+              return (
+                <Link
+                  key={sub.path}
+                  to={sub.path}
+                  onClick={close}
+                  className={cn(
+                    "flex w-full items-center rounded-md px-6 py-2 text-sm", // indent sub-items
+                    active
+                      ? "bg-muted text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted/50",
+                  )}
+                >
+                  {sub.label}
+                </Link>
+              );
+            })}
+          </>
+        )}
+      </GsapDropdown>
+
+      {/* Support dropdown (only for non‑admin users) */}
+      {supportLinks.length > 0 && (
+        <GsapDropdown
+          trigger={({ open, toggle }) => (
+            <button
+              type="button"
+              onClick={toggle}
+              className={cn(
+                "flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none",
+                supportLinks.some((l) => isActive(l.path)) || open
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              Support
+              <ChevronDown
+                className={cn(
+                  "h-3 w-3 opacity-60 transition-transform duration-200",
+                  open && "rotate-180",
+                )}
+              />
+            </button>
+          )}
+        >
+          {(close) =>
+            supportLinks.map((link) => {
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={close}
+                  className={cn(
+                    "flex w-full items-center rounded-md px-3 py-2 text-sm",
+                    active
+                      ? "bg-muted text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted/50",
+                  )}
+                >
+                  {link.label}
+                </Link>
+              );
+            })
+          }
+        </GsapDropdown>
+      )}
     </nav>
   );
 }
 
-// Theme Toggle Component
+/* -------------------------------------------------------------------------- */
+/*  Theme toggle, user menu, mobile menu (adapted to use GsapDropdown)        */
+/* -------------------------------------------------------------------------- */
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-
   return (
     <Button
       variant="ghost"
@@ -179,15 +340,17 @@ function ThemeToggle() {
   );
 }
 
-// User Menu Component (Desktop) — Vercel-style avatar dropdown
 function UserMenuDesktop() {
   const { user, logout, getInitials } = useLocalAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="hidden items-center md:flex">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <GsapDropdown
+        trigger={({ open, toggle }) => (
           <button
+            type="button"
+            onClick={toggle}
             className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground/90 to-foreground/70 text-background ring-1 ring-border/50 transition-all duration-200 hover:ring-2 hover:ring-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
             aria-label="User menu"
           >
@@ -208,16 +371,12 @@ function UserMenuDesktop() {
               </Avatar>
             )}
           </button>
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent
-          align="end"
-          sideOffset={8}
-          className="w-64 rounded-xl border-border/50 bg-popover/95 p-0 shadow-xl shadow-black/10 backdrop-blur-xl"
-        >
-          {user ? (
+        )}
+        panelClassName="w-64 rounded-md p-0"
+      >
+        {(close) =>
+          user ? (
             <>
-              {/* User Info Header */}
               <div className="border-b border-border/40 px-4 py-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground/90 to-foreground/70 text-background">
@@ -233,271 +392,253 @@ function UserMenuDesktop() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium leading-tight">
-                      {user.name}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {user.email}
-                    </p>
+                    <p className="truncate text-sm font-medium leading-tight">{user.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
               </div>
-
-              {/* Menu Items */}
               <div className="p-1.5">
-                <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm">
-                  <Link
-                    to={user?.role === "admin" ? "/admin/dashboard" : user?.role === "faculty" ? "/dashboard/faculty" : "/profile"}
-                    className="flex items-center gap-2.5"
-                  >
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span>{user?.role === "student" || !user?.role ? "View Profile" : "Dashboard"}</span>
-                  </Link>
-                </DropdownMenuItem>
+                <Link
+                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/profile"}
+                  onClick={close}
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                >
+                  <User className="h-4 w-4" />
+                  {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
+                </Link>
               </div>
-
-              <DropdownMenuSeparator className="mx-2 bg-border/40" />
-
-              {/* Logout */}
+              <div className="border-t border-border/40 mx-2" />
               <div className="p-1.5">
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="cursor-pointer rounded-lg px-3 py-2 text-sm text-destructive focus:bg-destructive/10 focus:text-destructive"
+                <button
+                  onClick={() => { close(); logout(); }}
+                  className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
                 >
                   <LogOut className="mr-2.5 h-4 w-4" />
                   Log out
-                </DropdownMenuItem>
+                </button>
               </div>
             </>
           ) : (
             <div className="p-1.5">
-              <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2 text-sm">
-                <Link to="/login" className="flex items-center gap-2.5">
-                  <User className="h-4 w-4 text-muted-foreground" />
-                  <span>Log in</span>
-                </Link>
-              </DropdownMenuItem>
+              <Link
+                to="/login"
+                onClick={close}
+                className="flex items-center rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+              >
+                <User className="mr-2.5 h-4 w-4" />
+                Log in
+              </Link>
             </div>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          )
+        }
+      </GsapDropdown>
     </div>
   );
 }
 
-// Popover Mobile Menu Component
 function PopoverMobileMenu() {
   const location = useLocation();
   const { user, logout, getInitials } = useLocalAuth();
-  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
 
-  const links = [
-    ...NAV_LINKS,
-  ];
-
-  if (user && user.role !== "admin") {
-    links.push(
-      { path: "/feedback", label: "Feedback" },
-      { path: "/how-to-use", label: "How to use" }
-    );
-  }
-
   const isActive = (path: string) => {
-    if (path === "/") {
-      return location.pathname === "/";
-    }
-    return (
-      location.pathname === path || location.pathname.startsWith(`${path}/`)
-    );
+    if (path === "/") return location.pathname === "/";
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
+  const studyLinks = NAV_LINKS.filter((link) =>
+    ["/study-stock", "/resources", "/syllabus"].includes(link.path),
+  );
+  const resourcesLink = studyLinks.find((l) => l.path === "/resources");
+  const supportLinks = user && user.role !== "admin"
+    ? [
+      { path: "/feedback", label: "Feedback" },
+      { path: "/how-to-use", label: "How to use" },
+    ]
+    : [];
+
+  const closeDropdownRef = useRef<() => void>(() => { });
+  useEffect(() => {
+    closeDropdownRef.current();
+  }, [location.pathname]);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <GsapDropdown
+      panelClassName="w-64 rounded-md"
+      trigger={({ open, toggle }) => (
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-md  bg-transparent hover:bg-muted/50 lg:hidden"
+          onClick={toggle}
+          className={cn(
+            "h-9 w-9 rounded-md bg-transparent hover:bg-muted/50 lg:hidden",
+            open && "bg-muted text-foreground",
+          )}
           aria-label="Open navigation menu"
         >
           <Menu />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-56 rounded-md border-border/40 p-2"
-      >
-        {/* Navigation Links */}
-        {links.map((link) => {
-          const active = isActive(link.path);
-
-          if (link.dropdown) {
-            return (
-              <div key={link.path} className="flex flex-col mb-1">
-                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {link.label}
-                </div>
-                {link.dropdown.map((subItem) => {
-                  const subActive = isActive(subItem.path) && subItem.path !== link.path;
-                  return (
-                    <DropdownMenuItem
-                      key={subItem.path}
-                      asChild
-                      className={cn("rounded-md cursor-pointer ml-2", subActive && "bg-muted")}
-                    >
-                      <Link
-                        to={subItem.path}
-                        className={cn(
-                          "flex w-full items-center rounded-md px-3 py-2 text-sm",
-                          subActive
-                            ? "bg-muted text-foreground font-medium"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {subItem.label}
-                      </Link>
-                    </DropdownMenuItem>
-                  );
-                })}
-              </div>
-            );
-          }
-
-          return (
-            <DropdownMenuItem
-              key={link.path}
-              asChild
-              className={cn("rounded-md cursor-pointer", active && "bg-muted")}
+      )}
+    >
+      {(close) => {
+        closeDropdownRef.current = close;
+        return (
+          <div className="space-y-1">
+            {/* Home */}
+            <Link
+              to="/"
+              onClick={close}
+              className={cn(
+                "flex w-full items-center rounded-md px-3 py-2 text-sm",
+                isActive("/")
+                  ? "bg-muted text-foreground font-medium"
+                  : "text-muted-foreground hover:bg-muted/50",
+              )}
             >
+              Home
+            </Link>
+
+            {/* Study section */}
+            <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Study
+            </div>
+            {studyLinks.map((link) => (
               <Link
+                key={link.path}
                 to={link.path}
+                onClick={close}
                 className={cn(
                   "flex w-full items-center rounded-md px-3 py-2 text-sm",
-                  active
+                  isActive(link.path)
                     ? "bg-muted text-foreground font-medium"
-                    : "text-muted-foreground",
+                    : "text-muted-foreground hover:bg-muted/50",
                 )}
               >
                 {link.label}
               </Link>
-            </DropdownMenuItem>
-          );
-        })}
-
-        <DropdownMenuSeparator className="my-2" />
-
-        {/* User Section */}
-        {user ? (
-          <>
-            <div className="px-3 py-2">
-              <div className="flex items-center gap-2">
-                {user.avatar ? (
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className="text-xs">
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <DefaultAvatar name={user.name} size={24} />
+            ))}
+            {resourcesLink?.dropdown?.map((sub) => (
+              <Link
+                key={sub.path}
+                to={sub.path}
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center rounded-md pl-6 pr-3 py-2 text-sm",
+                  isActive(sub.path)
+                    ? "bg-muted text-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted/50",
                 )}
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-medium">{user.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {user.email}
-                  </p>
+              >
+                {sub.label}
+              </Link>
+            ))}
+
+            {/* Support section (only for non‑admin) */}
+            {supportLinks.length > 0 && (
+              <>
+                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Support
                 </div>
-              </div>
-            </div>
+                {supportLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={close}
+                    className={cn(
+                      "flex w-full items-center rounded-md px-3 py-2 text-sm",
+                      isActive(link.path)
+                        ? "bg-muted text-foreground font-medium"
+                        : "text-muted-foreground hover:bg-muted/50",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </>
+            )}
 
-            <DropdownMenuSeparator className="my-2" />
+            <div className="my-2 border-t border-border/40" />
 
-            <DropdownMenuItem
-              asChild
-              className="rounded-md cursor-pointer"
-              onClick={() => navigate(user?.role === "admin" ? "/admin/dashboard" : user?.role === "faculty" ? "/dashboard/faculty" : "/profile")}
+            {/* User section (unchanged) */}
+            {user ? (
+              <>
+                <div className="px-3 py-2 flex items-center gap-2">
+                  {user.avatar ? (
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <DefaultAvatar name={user.name} size={24} />
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-medium">{user.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+                <Link
+                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/profile"}
+                  onClick={close}
+                  className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
+                </Link>
+                <button
+                  onClick={() => { close(); logout(); }}
+                  className="flex w-full items-center rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  onClick={close}
+                  className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={close}
+                  className="flex items-center rounded-md px-3 py-2 text-sm font-medium"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-muted/50"
             >
-              <Link
-                to={user?.role === "admin" ? "/admin/dashboard" : user?.role === "faculty" ? "/dashboard/faculty" : "/profile"}
-                className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground"
-              >
-                <User className="mr-2 h-4 w-4" />
-                {user?.role === "student" || !user?.role ? "View Profile" : "Dashboard"}
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={logout}
-              className="rounded-md cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
-          </>
-        ) : (
-          <>
-            <DropdownMenuItem asChild className="rounded-md cursor-pointer">
-              <Link
-                to="/login"
-                className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground"
-              >
-                Sign in
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem asChild className="rounded-md cursor-pointer">
-              <Link
-                to="/signup"
-                className="flex items-center rounded-md px-3 py-2 text-sm font-medium"
-              >
-                Get started
-              </Link>
-            </DropdownMenuItem>
-          </>
-        )}
-
-        <DropdownMenuSeparator className="my-2" />
-
-        {/* Theme Toggle */}
-        <DropdownMenuItem
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="rounded-md cursor-pointer"
-        >
-          {theme === "dark" ? (
-            <>
-              <Sun className="mr-2 h-4 w-4" />
-              Light mode
-            </>
-          ) : (
-            <>
-              <Moon className="mr-2 h-4 w-4" />
-              Dark mode
-            </>
-          )}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+              {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </button>
+          </div>
+        );
+      }}
+    </GsapDropdown>
   );
 }
 
-// Main Navbar Component
+/* -------------------------------------------------------------------------- */
+/*  Main Navbar (unchanged structure)                                         */
+/* -------------------------------------------------------------------------- */
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95   backdrop-blur-sm">
+    <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        {/* Logo & Desktop Nav */}
         <div className="flex min-w-0 items-center gap-6 lg:gap-8">
           <Link to="/" className="shrink-0">
             <Logo />
           </Link>
-
           <div className="hidden lg:block">
             <DesktopNavLinks />
           </div>
         </div>
-
-        {/* Right Section: Search, Theme, User */}
         <div className="flex shrink-0 items-center gap-2">
           <div className="hidden md:block">
             <NavbarSearch />
