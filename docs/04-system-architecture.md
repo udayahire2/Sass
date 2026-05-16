@@ -67,13 +67,18 @@ Legacy note:
 | `/add-study-content` | `AddStudyContentPage` | Upload study material for review. |
 | `/profile` | `ProfilePage` | Profile, avatar, personal uploads, upload form, and bookmarks. |
 | `/search` | `SearchPage` | Global search over syllabus and approved uploads. |
+| `/feedback` | `FeedbackPage` | Submit platform feedback (bug reports, feature requests). |
+| `/how-to-use` | `HowToUsePage` | User guide and instructions. |
 | `/dashboard/faculty` | `FacultyDashboard` | Faculty status, stats, uploads, and feedback. |
-| `/admin` and `/admin/dashboard` | `DashboardPage` | Admin overview. |
+| `/dashboard/faculty/upload` | `FacultyAddMaterial` | Faculty upload study materials. |
+| `/dashboard/faculty/profile` | `FacultyProfile` | Faculty profile management. |
+| `/admin` and `/admin/dashboard` | `DashboardPage` | Admin overview and statistics. |
 | `/admin/syllabus` | `SyllabusManagerPage` | Admin syllabus upload/delete. |
 | `/admin/resources` | `ResourceManagerPage` | Admin resource create/delete UI. |
 | `/admin/students` | `StudentsPage` | Admin student management. |
 | `/admin/approvals` | `ContentApprovalPage` | Admin content moderation. |
 | `/admin/faculty` | `FacultyManager` | Admin faculty approval and revocation. |
+| `/admin/feedback` | `FeedbackManagerPage` | Admin platform feedback review and management. |
 
 There is a `SettingsPage.tsx` file, but no `/admin/settings` route is registered in the current router.
 
@@ -135,10 +140,11 @@ Study-material and syllabus files are not broadly served by `express.static`; th
 | --- | --- | --- |
 | `/api/v1/auth` | `authRoutes.js` | Registration, login, OTP, sessions, profile, avatar. |
 | `/api/v1/admin` | `adminRoutes.js` | Admin stats, profile, users, faculty management. |
-| `/api/v1/resources` | `resourceRoutes.js` | Admin-managed resource links. |
+| `/api/v1/resources` | `resourceRoutes.js` | Admin-managed resource links and file uploads. |
 | `/api/v1/study-materials` | `studyMaterialRoutes.js` | Uploads, moderation, bookmarks, faculty stats, feedback. |
 | `/api/v1/syllabus` | `syllabusRoutes.js` | Public syllabus list, admin create/delete, file streaming. |
 | `/api/v1/files` | `fileRoutes.js` | Study-material file proxy. |
+| `/api/v1/feedback` | `platformFeedbackRoutes.js` | Platform feedback submission, listing, and management. |
 | `/api/v1/subjects` | `subjectRoutes.js` | Subject list by branch/semester. |
 | `/api/v1/subjects/:id/units` | `subjectRoutes.js` | Units with nested topics. |
 | `/api/v1/topics/:id` | `subjectRoutes.js` | Single topic with Markdown and subject metadata. |

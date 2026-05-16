@@ -123,12 +123,12 @@ The authenticated user must have `role = admin`.
 
 ## Resources: `/resources`
 
-Resources are admin-managed URL records. Public callers see approved records only. Admin callers can filter by status.
+Resources are admin-managed URL records or uploaded files. Public callers see approved records only. Admin callers can filter by status.
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/resources` | Optional | List resources. |
-| `POST` | `/resources` | Admin | Create an approved resource record. |
+| `POST` | `/resources` | Admin | Create an approved resource record (URL or file upload). |
 | `GET` | `/resources/:id` | Optional | Get one resource. Public cannot view non-approved resources. |
 | `PATCH` | `/resources/:id` | Admin | Update a resource. |
 | `DELETE` | `/resources/:id` | Admin | Soft-delete a resource. |
@@ -143,7 +143,7 @@ Resource query parameters:
 | `status` | Admin-only status filter. |
 | `page`, `limit` | Accepted by validation, but current controller returns all matching rows. |
 
-Create resource:
+Create resource with URL:
 
 ```json
 {
@@ -161,6 +161,30 @@ Create resource:
   "url": "https://example.com/dbms-unit-1.pdf"
 }
 ```
+
+Create resource with file upload uses `multipart/form-data`:
+
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `title` | Yes | Resource title. |
+| `subject` | Yes | Subject name. |
+| `semester` | Yes | Semester identifier. |
+| `branch` | Yes | Branch enum. |
+| `type` | Optional | `pdf`, `video`, `doc`, or `markdown`. |
+| `description` | Optional | Resource description. |
+| `category` | Optional | `Notes`, `PYQ`, `Syllabus`, `Lab Manual`, `Reference Book`, or `Other`. |
+| `author` | Optional | Author/source label. |
+| `file` | Yes (if no URL) | Uploaded resource file. |
+| `url` | Yes (if no file) | External resource URL. |
+
+File uploads store metadata:
+
+| Column | Meaning |
+| --- | --- |
+| `file_path` | Local upload path such as `/uploads/resources/file.pdf`. |
+| `original_filename` | Original uploaded filename. |
+| `mime_type` | Uploaded file MIME type. |
+| `file_size` | File size in bytes. |
 
 ## Study Materials: `/study-materials`
 
@@ -277,6 +301,46 @@ Maximum file size:
 Current note:
 
 - Credits are not accepted by the current create syllabus schema. New rows store `credits = 0`.
+
+## Platform Feedback: `/feedback`
+
+Users can submit platform feedback (bug reports, feature requests, general feedback). Admins can review and manage feedback.
+
+| Method | Endpoint | Auth | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/feedback` | User | Submit platform feedback. |
+| `GET` | `/feedback` | Admin | List all platform feedback with user details. |
+| `PUT` | `/feedback/:id/status` | Admin | Update feedback status. |
+| `DELETE` | `/feedback/:id` | Admin | Soft-delete feedback. |
+
+Submit feedback:
+
+```json
+{
+  "type": "bug",
+  "message": "Upload button not working on Firefox"
+}
+```
+
+Feedback types:
+
+```text
+bug, feature, general, other
+```
+
+Feedback statuses:
+
+```text
+pending, reviewed, resolved
+```
+
+Update feedback status:
+
+```json
+{
+  "status": "reviewed"
+}
+```
 
 ## Academic Content: `/subjects` and `/topics`
 

@@ -11,6 +11,10 @@ Key migrations:
 | `003_subjects_units_topics.up.sql` | Adds `units` and `topics` for academic content. |
 | `004_material_feedback.up.sql` | Adds faculty feedback/rating records. |
 | `005_bookmarks.up.sql` | Adds user bookmarks for study materials. |
+| `006_study_content.up.sql` | Additional study content structures. |
+| `007_syllabus_year.up.sql` | Adds academic year to syllabus records. |
+| `008_platform_feedback.up.sql` | Adds platform feedback table for bug reports and feature requests. |
+| `009_resource_file_uploads.up.sql` | Adds file upload support columns to resources table. |
 
 ## Database Location
 
@@ -135,7 +139,7 @@ Behavior:
 
 ### `resources`
 
-Stores admin-managed URL resources.
+Stores admin-managed URL resources or uploaded files.
 
 | Column | Meaning |
 | --- | --- |
@@ -148,7 +152,11 @@ Stores admin-managed URL resources.
 | `category` | `Notes`, `PYQ`, `Syllabus`, `Lab Manual`, `Reference Book`, or `Other`. |
 | `pattern`, `unit` | Optional tags/metadata. |
 | `author` | Author/source label. |
-| `url` | External resource URL. |
+| `url` | External resource URL (if not using file upload). |
+| `file_path` | Local upload path such as `/uploads/resources/file.pdf` (if uploaded). |
+| `original_filename` | Original uploaded filename. |
+| `mime_type` | Uploaded file MIME type. |
+| `file_size` | File size in bytes. |
 | `status` | `pending`, `approved`, or `rejected`. Admin-created records default to `approved`. |
 | `created_by_user_id`, `approved_by_user_id` | User/admin references. |
 | `approved_at`, `rejection_reason` | Moderation metadata. |
@@ -208,6 +216,19 @@ Stores faculty/admin feedback on approved study materials.
 Constraint:
 
 - One feedback row per reviewer/material pair.
+
+### `platform_feedback`
+
+Stores user-submitted platform feedback (bug reports, feature requests, general feedback).
+
+| Column | Meaning |
+| --- | --- |
+| `id` | UUID primary key. |
+| `user_id` | References `users.id`. |
+| `type` | Feedback type: `bug`, `feature`, `general`, or `other`. |
+| `message` | Feedback text/description. |
+| `status` | `pending`, `reviewed`, or `resolved`. Defaults to `pending`. |
+| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
 
 ### `refresh_tokens`
 
@@ -287,7 +308,8 @@ The schema includes indexes for:
 | User to bookmarks | One-to-many |
 | Study material to bookmarks | One-to-many |
 | Study material to feedback | One-to-many |
-| User to feedback | One-to-many |
+| User to material feedback | One-to-many |
+| User to platform feedback | One-to-many |
 | User to refresh tokens | One-to-many |
 | User to OTPs | One-to-many |
 

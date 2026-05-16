@@ -32,6 +32,7 @@ Students can:
 - Search/filter approved uploads.
 - Bookmark approved uploads.
 - Submit study material for admin review.
+- Submit platform feedback (bug reports, feature requests).
 - Update profile name, branch, year, and avatar.
 - View their own upload status history from the profile page.
 
@@ -96,7 +97,8 @@ Admins can:
 - Approve or reject uploaded study materials.
 - Preview uploaded files through file proxy endpoints.
 - Create and delete syllabus records.
-- Create, update, and delete resource links through the API.
+- Create, update, and delete resource links and file uploads through the API.
+- Review, update status, and delete user platform feedback.
 - Update admin profile fields through the API.
 
 Admin restrictions:
@@ -126,7 +128,9 @@ Admin restrictions:
 | Bookmark uploads | Yes | Yes | Yes |
 | Upload study material | Yes | Yes, after approval | Yes |
 | Give material feedback | No | Yes, after approval | Yes |
+| Submit platform feedback | Yes | Yes | Yes |
 | Approve study material | No | No | Yes |
+| Manage platform feedback | No | No | Yes |
 | Manage resources | No | No | Yes |
 | Manage syllabus | No | No | Yes |
 | Manage students | No | No | Yes |
