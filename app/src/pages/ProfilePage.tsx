@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   CalendarDays,
   BookOpen,
@@ -180,10 +180,29 @@ const typeBadgeColor: Record<string, string> = {
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+  const { tab } = useParams<{ tab: string }>();
+
+  const validTabs = ["profile", "add-content", "uploads", "bookmarks"] as const;
+  type TabType = typeof validTabs[number];
+
+  const initialTab = validTabs.includes(tab as TabType) ? (tab as TabType) : "profile";
 
   // ── user state ──────────────────────────────────────────────────
   const [user, setUser] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<"profile" | "add-content" | "uploads" | "bookmarks">("profile");
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+
+  useEffect(() => {
+    if (tab && validTabs.includes(tab as TabType)) {
+      setActiveTab(tab as TabType);
+    } else if (!tab) {
+      setActiveTab("profile");
+    }
+  }, [tab]);
+
+  const handleTabChange = (newTab: TabType) => {
+    setActiveTab(newTab);
+    navigate(newTab === "profile" ? "/profile" : `/profile/${newTab}`);
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
   const [branch, setBranch] = useState("");
@@ -512,7 +531,7 @@ export default function ProfilePage() {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    onClick={() => setActiveTab("profile")}
+                    onClick={() => handleTabChange("profile")}
                     isActive={activeTab === "profile"}
                   >
                     <User className="h-4 w-4" />
@@ -523,7 +542,7 @@ export default function ProfilePage() {
                 {token && isStudent && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setActiveTab("add-content")}
+                      onClick={() => handleTabChange("add-content")}
                       isActive={activeTab === "add-content"}
                     >
                       <UploadCloud className="h-4 w-4" />
@@ -535,7 +554,7 @@ export default function ProfilePage() {
                 {token && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setActiveTab("uploads")}
+                      onClick={() => handleTabChange("uploads")}
                       isActive={activeTab === "uploads"}
                     >
                       <FileText className="h-4 w-4" />
@@ -547,7 +566,7 @@ export default function ProfilePage() {
                 {token && (
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setActiveTab("bookmarks")}
+                      onClick={() => handleTabChange("bookmarks")}
                       isActive={activeTab === "bookmarks"}
                     >
                       <Bookmark className="h-4 w-4" />

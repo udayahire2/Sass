@@ -99,7 +99,16 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: "/profile",
-                        element: <ProfilePage />,
+                        children: [
+                            {
+                                index: true,
+                                element: <ProfilePage />,
+                            },
+                            {
+                                path: ":tab",
+                                element: <ProfilePage />,
+                            }
+                        ]
                     },
                     {
                         path: "/search",
