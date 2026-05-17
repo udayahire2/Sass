@@ -3,7 +3,6 @@ import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { Hero } from "@/components/home/Hero";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { RecentActivitySection } from "@/components/home/RecentActivitySection";
-import { OnboardingModal } from "@/components/home/OnboardingModal";
 
 export default function HomePage() {
   const { user } = useLocalAuth();
@@ -21,9 +20,6 @@ export default function HomePage() {
 
       {/* Show how-to guide only for non-authenticated users or faculty/admin */}
       {!user && <HowItWorksSection />}
-
-      {/* Onboarding modal for first-time users */}
-      <OnboardingModal />
     </main>
   );
 }

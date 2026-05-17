@@ -20,10 +20,10 @@ export function Hero() {
           </div>
 
           {/* Heading – Positive framing, clearer value prop */}
-          <h1 className="text-3xl tracking-tight sm:text-5xl md:text-5xl lg:text-6xl">
+          <h1 className="text-3xl tracking-tight sm:text-5xl md:text-4xl lg:text-5xl">
             Find exam prep material{" "}
             <span className="bg-linear-to-r from-primary to-primary/40 bg-clip-text text-transparent">
-              designed for YOUR semester
+              designed for <span className="font-bold font-mono">your</span> semester
             </span>
             .
           </h1>
@@ -51,14 +51,6 @@ export function Hero() {
             </Button>
           </div>
 
-          {/* Trust metrics – Credibility signals */}
-          <p className="pt-6 text-xs text-muted-foreground/70 sm:text-sm font-medium space-x-4">
-            <span>✓ 2,000+ students</span>
-            <span>•</span>
-            <span>500+ verified materials</span>
-            <span>•</span>
-            <span>Updated weekly</span>
-          </p>
         </div>
       </div>
     </section>

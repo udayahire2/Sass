@@ -1,92 +1,118 @@
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  BookmarkIcon,
+  History,
+  Upload,
+} from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowRight, BookmarkIcon, Upload, History } from "lucide-react";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
 
 interface RecentActivityProps {
   userName?: string;
 }
 
-export function RecentActivitySection({ userName }: RecentActivityProps) {
+const activities = [
+  {
+    title: "Continue studying",
+    description: "Resume from Data Structures - Unit 3",
+    buttonText: "Resume",
+    icon: History,
+    path: "/resources",
+  },
+  {
+    title: "Your bookmarks",
+    description: "8 saved materials ready to revisit",
+    buttonText: "View all",
+    icon: BookmarkIcon,
+    path: "/profile",
+  },
+  {
+    title: "Share materials",
+    description: "Upload notes and help classmates learn faster",
+    buttonText: "Upload now",
+    icon: Upload,
+    path: "/add-study-content",
+  },
+];
+
+export function RecentActivitySection({
+  userName,
+}: RecentActivityProps) {
   const navigate = useNavigate();
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4 max-w-5xl">
+    <section className="py-24">
+      <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
-        <div className="mb-10 space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Welcome back
-          </p>
-          <h2 className="text-2xl font-semibold tracking-tight">
-            {userName ? `Hi ${userName.split(" ")[0]}, ` : ""}Continue your study journey
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Pick up where you left off, or explore new materials.
-          </p>
+        <div className="mb-12 flex flex-col items-center text-center">
+          <Badge
+            variant="secondary"
+            className="mb-5 rounded-full px-3 py-1 font-medium"
+          >
+            Dashboard
+          </Badge>
+
+          <div className="max-w-2xl space-y-3">
+            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl">
+              {userName
+                ? `Welcome back, ${userName.split(" ")[0]}`
+                : "Continue your study journey"}
+            </h2>
+
+            <p className="text-base leading-7 text-muted-foreground">
+              Quickly access your recent learning activity, saved resources,
+              and uploaded study materials.
+            </p>
+          </div>
         </div>
 
-        {/* Quick Action Cards Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Card 1: Continue Studying */}
-          <Card className="p-5 border">
-            <div className="flex items-start justify-between mb-4">
-              <History className="h-5 w-5 text-muted-foreground" />
-              <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <h3 className="font-medium mb-1">Continue studying</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Last viewed: Data Structures - Unit 3
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/resources")}
-              className="w-full"
-            >
-              Resume
-            </Button>
-          </Card>
+        {/* Activity Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {activities.map((item) => {
+            const Icon = item.icon;
 
-          {/* Card 2: Your Bookmarks */}
-          <Card className="p-5 border">
-            <div className="flex items-start justify-between mb-4">
-              <BookmarkIcon className="h-5 w-5 text-muted-foreground" />
-              <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <h3 className="font-medium mb-1">Your bookmarks</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              8 materials saved for later
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/profile/bookmarks")}
-              className="w-full"
-            >
-              View all
-            </Button>
-          </Card>
+            return (
+              <Card
+                key={item.title}
+                className="group overflow-hidden border-border/60 bg-background shadow-none transition-colors hover:bg-muted/30"
+              >
+                <CardContent className="flex h-full flex-col p-6">
+                  {/* Icon */}
+                  <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border bg-muted/40">
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                  </div>
 
-          {/* Card 3: Upload Materials */}
-          <Card className="p-5 border">
-            <div className="flex items-start justify-between mb-4">
-              <Upload className="h-5 w-5 text-muted-foreground" />
-              <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <h3 className="font-medium mb-1">Share materials</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Help classmates. Get your uploads approved in 24-48 hours.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/profile/uploads")}
-              className="w-full"
-            >
-              Upload now
-            </Button>
-          </Card>
+                  {/* Content */}
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-lg font-medium tracking-tight">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {item.description}
+                    </p>
+                  </div>
+
+                  {/* CTA */}
+                  <Button
+                    variant="secondary"
+                    className="mt-8 justify-between"
+                    onClick={() => navigate(item.path)}
+                  >
+                    {item.buttonText}
+
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </section>

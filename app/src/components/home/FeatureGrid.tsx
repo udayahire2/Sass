@@ -1,16 +1,25 @@
-import type { ComponentType, SVGProps } from "react";
-import { ArrowUpRight } from "lucide-react";
+import type { ComponentType } from "react";
+import {
+  ArrowUpRight,
+  BookOpen,
+  FileText,
+  FolderOpen,
+  Users,
+} from "lucide-react";
+
 import { Link } from "react-router-dom";
 
+import { Badge } from "@/components/ui/badge";
 import {
-  ArchiveDocumentIcon,
-  CollaborationOrbitIcon,
-  CurriculumLayersIcon,
-  VerifiedStudyIcon,
-} from "@/svg/feature-icons";
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+
 import { cn } from "@/lib/utils";
 
-export type FeatureIcon = ComponentType<SVGProps<SVGSVGElement>>;
+export type FeatureIcon = ComponentType<{
+  className?: string;
+}>;
 
 interface FeatureItem {
   id: string;
@@ -23,95 +32,111 @@ interface FeatureItem {
 const FEATURE_ITEMS: FeatureItem[] = [
   {
     id: "verified-materials",
-    title: "Study materials by semester",
-    description: "Open the right subject quickly without browsing through noise.",
+    title: "Smart subject finder",
+    description:
+      "Find materials by branch, semester, and subject in seconds.",
     href: "/resources",
-    icon: VerifiedStudyIcon,
+    icon: BookOpen,
   },
   {
     id: "branch-curriculum",
-    title: "Simple syllabus search",
-    description: "Search by subject or code. Instantly view required modules.",
+    title: "Syllabus reference",
+    description:
+      "Search using subject name or course code and know what to study.",
     href: "/syllabus",
-    icon: CurriculumLayersIcon,
+    icon: FileText,
   },
   {
     id: "archives",
-    title: "Previous paper access",
-    description: "Keep revision practical with organized historical papers.",
+    title: "Previous papers & resources",
+    description:
+      "Access notes, exam papers, and curated study resources.",
     href: "/resources",
-    icon: ArchiveDocumentIcon,
+    icon: FolderOpen,
   },
   {
     id: "collaboration",
-    title: "Cleaner student flow",
-    description: "Built for speed. Less noise, faster reading, better grades.",
-    href: "/resources",
-    icon: CollaborationOrbitIcon,
+    title: "Share & help others",
+    description:
+      "Upload notes, contribute resources, and support classmates.",
+    href: "/add-study-content",
+    icon: Users,
   },
 ];
 
-// Bento Layout mapping for 4 items in a 3-column grid
-const bentoStyles = [
-  "lg:col-span-1", // top left (small)
-  "lg:col-span-2", // top right (wide)
-  "lg:col-span-2", // bottom left (wide)
-  "lg:col-span-1", // bottom right (small)
+const gridStyles = [
+  "lg:col-span-1",
+  "lg:col-span-2",
+  "lg:col-span-2",
+  "lg:col-span-1",
 ];
 
 export function FeatureGrid() {
   return (
-    <section className="py-24 relative overflow-hidden">
-      <div className="container px-4 md:px-6 mx-auto max-w-5xl relative z-10">
+    <section className="py-24">
+      <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
-        <div className="mb-14 max-w-2xl mx-auto text-center">
-          <p className="text-xs font-bold tracking-widest text-primary uppercase mb-3 px-3 py-1 bg-primary/10 w-fit mx-auto rounded-full">
-            Start fast
-          </p>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl mb-4">
-            Find your study material <br className="hidden sm:block" /> in seconds
-          </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Skip the clutter. Access syllabus, notes, and papers instantly.
-          </p>
+        <div className="mb-14 flex flex-col items-center text-center">
+          <Badge
+            variant="secondary"
+            className="mb-5 rounded-full px-3 py-1 font-medium"
+          >
+            Features
+          </Badge>
+
+          <div className="max-w-3xl space-y-4">
+            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-5xl">
+              Everything you need to
+              <span className="text-muted-foreground">
+                {" "}
+                prepare smarter.
+              </span>
+            </h2>
+
+            <p className="mx-auto max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+              Organized study materials, syllabus references,
+              previous papers, and collaborative uploads — all
+              designed for NMU students.
+            </p>
+          </div>
         </div>
 
-        {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {FEATURE_ITEMS.map((feature, index) => (
             <Link
               key={feature.id}
               to={feature.href}
               className={cn(
-                "group relative flex flex-col justify-between rounded-xl border border-border bg-card p-6 lg:p-8 transition-all hover:shadow-md hover:border-border/80",
-                bentoStyles[index]
+                "group block",
+                gridStyles[index]
               )}
             >
-              <div className="flex flex-col h-full">
-                {/* Icon */}
-                <div className="mb-6">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-border bg-background text-foreground group-hover:scale-105 transition-transform duration-200">
-                    <feature.icon className="h-6 w-6 opacity-80 group-hover:opacity-100" />
+              <Card className="h-full border-border/60 bg-background shadow-none transition-colors hover:bg-muted/30">
+                <CardContent className="flex h-full flex-col p-6 lg:p-8">
+                  {/* Top */}
+                  <div className="mb-10 flex items-start justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border bg-muted/40">
+                      <feature.icon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-background opacity-0 transition-all duration-200 group-hover:opacity-100">
+                      <ArrowUpRight className="h-4 w-4" />
+                    </div>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div className="mt-auto">
-                  <h3 className="text-xl lg:text-2xl font-semibold tracking-tight text-foreground mb-2 group-hover:text-primary transition-colors">
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
-                </div>
-              </div>
+                  {/* Content */}
+                  <div className="mt-auto max-w-md space-y-3">
+                    <h3 className="text-xl font-medium tracking-tight md:text-2xl">
+                      {feature.title}
+                    </h3>
 
-              {/* Top Right Arrow */}
-              <div className="absolute top-6 right-6 opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-200">
-                <div className="flex items-center justify-center h-8 w-8 rounded-full border border-border bg-background shadow-sm">
-                  <ArrowUpRight className="h-4 w-4 text-foreground" />
-                </div>
-              </div>
+                    <p className="text-sm leading-6 text-muted-foreground md:text-base">
+                      {feature.description}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </Link>
           ))}
         </div>
