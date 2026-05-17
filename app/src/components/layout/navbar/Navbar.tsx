@@ -104,7 +104,7 @@ function GsapDropdown({
       <div
         ref={panelRef}
         className={cn(
-          "absolute top-full right-0 mt-1 z-50 min-w-[12rem] overflow-hidden rounded-md border border-border/40 bg-background/95 p-1 shadow-lg backdrop-blur-xl",
+          "absolute top-full right-0 mt-1 z-50 min-w-48 overflow-hidden rounded-md border border-border/40 bg-background/95 p-1 shadow-lg backdrop-blur-xl",
           panelClassName,
         )}
       >
@@ -166,7 +166,6 @@ function NavbarSearch() {
 function DesktopNavLinks() {
   const location = useLocation();
   const { user } = useLocalAuth();
-  const navigate = useNavigate();
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -342,16 +341,15 @@ function ThemeToggle() {
 
 function UserMenuDesktop() {
   const { user, logout, getInitials } = useLocalAuth();
-  const navigate = useNavigate();
 
   return (
     <div className="hidden items-center md:flex">
       <GsapDropdown
-        trigger={({ open, toggle }) => (
+        trigger={({ toggle }) => (
           <button
             type="button"
             onClick={toggle}
-            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground/90 to-foreground/70 text-background ring-1 ring-border/50 transition-all duration-200 hover:ring-2 hover:ring-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
+            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-foreground/90 to-foreground/70 text-background ring-1 ring-border/50 transition-all duration-200 hover:ring-2 hover:ring-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
             aria-label="User menu"
           >
             {user?.avatar ? (
@@ -379,7 +377,7 @@ function UserMenuDesktop() {
             <>
               <div className="border-b border-border/40 px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-foreground/90 to-foreground/70 text-background">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-foreground/90 to-foreground/70 text-background">
                     {user.avatar ? (
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user.avatar} alt={user.name} />
@@ -628,6 +626,8 @@ function PopoverMobileMenu() {
 /*  Main Navbar (unchanged structure)                                         */
 /* -------------------------------------------------------------------------- */
 export function Navbar() {
+  const { user } = useLocalAuth();
+
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -635,16 +635,40 @@ export function Navbar() {
           <Link to="/" className="shrink-0">
             <Logo />
           </Link>
+
           <div className="hidden lg:block">
             <DesktopNavLinks />
           </div>
         </div>
+
         <div className="flex shrink-0 items-center gap-2">
           <div className="hidden md:block">
             <NavbarSearch />
           </div>
+
           <ThemeToggle />
-          <UserMenuDesktop />
+
+          {user ? (
+            <UserMenuDesktop />
+          ) : (
+            <div className="hidden items-center gap-2 md:flex">
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+              >
+                <Link to="/login">Sign In</Link>
+              </Button>
+
+              <Button
+                asChild
+                size="sm"
+              >
+                <Link to="/signup">Get Started</Link>
+              </Button>
+            </div>
+          )}
+
           <PopoverMobileMenu />
         </div>
       </div>
