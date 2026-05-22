@@ -10,6 +10,7 @@ const studyMaterialRoutes = require('./studyMaterialRoutes');
 const syllabusRoutes = require('./syllabusRoutes');
 const subjectRoutes = require('./subjectRoutes');
 const platformFeedbackRoutes = require('./platformFeedbackRoutes');
+const notesRoutes = require('./notesRoutes');
 
 router.use('/resources', resourceRoutes);
 router.use('/auth', authRoutes);
@@ -18,6 +19,7 @@ router.use('/content', contentRoutes);
 router.use('/files', fileRoutes);
 router.use('/study-materials', studyMaterialRoutes);
 router.use('/syllabus', syllabusRoutes);
+router.use('/notes', notesRoutes);
 router.use('/', subjectRoutes);
 router.use('/feedback', platformFeedbackRoutes);
 
