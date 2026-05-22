@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ interface StudyMaterialCardProps {
   onView: (resource: StudyMaterial) => void;
 }
 
-export function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) {
+function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) {
   const colors = getResourceColor(resource.type);
 
   return (
@@ -99,3 +100,7 @@ export function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) 
     </Card>
   );
 }
+
+export default React.memo(StudyMaterialCard, (prev, next) => {
+  return prev.resource.id === next.resource.id && prev.onView === next.onView;
+});

@@ -20,7 +20,13 @@ export const NotionPage = ({
 export const NotionCover = ({ src }: { src?: string }) => (
   <div className="group relative h-48 w-full overflow-hidden bg-gradient-to-r from-muted/50 via-muted to-muted/50 sm:h-64">
     {src ? (
-      <img src={src} alt="Cover" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+      <img
+        src={src}
+        alt="Cover"
+        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+        loading="lazy"
+        decoding="async"
+      />
     ) : (
       <div className="absolute inset-0 bg-[linear-gradient(45deg,var(--tw-gradient-stops))] from-blue-100/40 via-teal-50/40 to-emerald-100/40 dark:from-slate-800/80 dark:via-slate-800/50 dark:to-slate-700/80" />
     )}

@@ -107,10 +107,10 @@ export default function ResourceCollectionPage({
 
       <div className="overflow-hidden rounded-lg border">
         <div className="overflow-x-auto">
-          <Table className="min-w-[760px]">
+          <Table className="min-w-190">
             <TableHeader className="bg-muted/30">
               <TableRow>
-                <TableHead className="w-[360px]">Title</TableHead>
+                <TableHead className="w-90">Title</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>Branch / Semester</TableHead>
                 <TableHead>Author</TableHead>

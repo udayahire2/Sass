@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { submitPlatformFeedback } from "@/services/feedback-service";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,7 +55,7 @@ export default function FeedbackPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="type">Feedback Type</Label>
-                            <Select value={type} onValueChange={setType} required>
+                            <Select value={type} onValueChange={(value) => setType(value || "")} required>
                                 <SelectTrigger id="type" className="w-full">
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>

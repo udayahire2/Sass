@@ -1,70 +1,204 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, UploadCloud, Users, HelpCircle } from "lucide-react";
+import {
+  HelpCircle,
+  Search,
+  UploadCloud,
+  Users,
+} from "lucide-react";
+
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+
+import { Badge } from "@/components/ui/badge";
+
+/* -------------------------------------------------------------------------- */
+/* Data                                                                       */
+/* -------------------------------------------------------------------------- */
+
+const sections = [
+  {
+    title: "Finding study materials",
+    description:
+      "Browse syllabus, notes, and previous papers organized by semester and branch.",
+
+    icon: Search,
+
+    iconClass:
+      "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+
+    numberClass:
+      "border-blue-500/20 bg-blue-500/5 text-blue-600 dark:text-blue-400",
+
+    steps: [
+      "Open the Resources section from the navigation bar.",
+      "Select your branch, semester, and subject.",
+      "Use global search (Ctrl + K) to quickly find topics.",
+      "Bookmark important materials for later access.",
+    ],
+  },
+
+  {
+    title: "Contributing content",
+    description:
+      "Upload notes, PDFs, and academic resources for other students.",
+
+    icon: UploadCloud,
+
+    iconClass:
+      "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+
+    numberClass:
+      "border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400",
+
+    steps: [
+      "Open your profile dashboard.",
+      "Navigate to the Add Content section.",
+      "Fill in resource details and upload your file.",
+      "Submitted resources are reviewed before publishing.",
+    ],
+  },
+
+  {
+    title: "Faculty workflows",
+    description:
+      "Dedicated tools and faster publishing flow for faculty members.",
+
+    icon: Users,
+
+    iconClass:
+      "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+
+    numberClass:
+      "border-violet-500/20 bg-violet-500/5 text-violet-600 dark:text-violet-400",
+
+    steps: [
+      "Faculty accounts include a dedicated dashboard.",
+      "Track uploaded resources and engagement.",
+      "Faculty uploads receive faster moderation review.",
+      "Manage assigned subjects and academic contributions.",
+    ],
+  },
+
+  {
+    title: "Need more help?",
+    description:
+      "Send feedback, report issues, or request platform improvements.",
+
+    icon: HelpCircle,
+
+    iconClass:
+      "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+
+    numberClass:
+      "border-amber-500/20 bg-amber-500/5 text-amber-600 dark:text-amber-400",
+
+    steps: [
+      "Use the Feedback page to report bugs.",
+      "Request new features or subjects.",
+      "Share suggestions to improve the platform experience.",
+      "All feedback submissions are actively reviewed.",
+    ],
+  },
+];
+
+/* -------------------------------------------------------------------------- */
+/* Page                                                                       */
+/* -------------------------------------------------------------------------- */
 
 export default function HowToUsePage() {
-    return (
-        <div className="mx-auto max-w-4xl py-12 px-4 sm:px-6 lg:px-8 space-y-8">
-            <div className="text-center space-y-4">
-                <h1 className="text-4xl font-bold tracking-tight lg:text-5xl">How to Use NMU Study Hub</h1>
-                <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                    A quick guide to making the most of your academic resources and platform features.
-                </p>
-            </div>
+  return (
+    <section className="py-20 sm:py-24">
+      <div className="mx-auto max-w-5xl px-4">
+        
+        {/* Header */}
+        <div className="mb-14 flex flex-col items-center text-center">
+          
+          <Badge
+            variant="secondary"
+            className="mb-5 rounded-full px-3 py-1 font-medium"
+          >
+            Help Center
+          </Badge>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                <Card className="border-border/50 bg-background/50 backdrop-blur-sm">
-                    <CardHeader>
-                        <Search className="h-8 w-8 text-violet-500 mb-2" />
-                        <CardTitle>Finding Study Materials</CardTitle>
-                        <CardDescription>Browse or search for syllabus and resources.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground space-y-2">
-                        <p>1. Navigate to <strong>Study Material</strong> from the top navigation bar.</p>
-                        <p>2. Select your branch, semester, and subject.</p>
-                        <p>3. Use the global search (Ctrl + K) to quickly find topics across the platform.</p>
-                        <p>4. Save important files by bookmarking them to your profile.</p>
-                    </CardContent>
-                </Card>
+          <div className="max-w-3xl space-y-4">
+            <h1 className="text-4xl font-semibold tracking-tight text-balance md:text-5xl">
+              Learn how to use
+              <span className="text-muted-foreground">
+                {" "}
+                NMU Study Hub.
+              </span>
+            </h1>
 
-                <Card className="border-border/50 bg-background/50 backdrop-blur-sm">
-                    <CardHeader>
-                        <UploadCloud className="h-8 w-8 text-emerald-500 mb-2" />
-                        <CardTitle>Contributing Content</CardTitle>
-                        <CardDescription>Upload your own notes and resources.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground space-y-2">
-                        <p>1. Go to your <strong>Profile Dashboard</strong>.</p>
-                        <p>2. Click on the <strong>Add Content</strong> tab.</p>
-                        <p>3. Fill in the details (title, subject, document type) and upload your file.</p>
-                        <p>4. Your upload will be reviewed by an administrator before becoming public.</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-border/50 bg-background/50 backdrop-blur-sm">
-                    <CardHeader>
-                        <Users className="h-8 w-8 text-blue-500 mb-2" />
-                        <CardTitle>Faculty Workflows</CardTitle>
-                        <CardDescription>Tools specific for faculty members.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground space-y-2">
-                        <p>1. Faculty members have a dedicated dashboard to track their contributions.</p>
-                        <p>2. Uploaded materials by faculty are fast-tracked for approval.</p>
-                        <p>3. Manage your subjects and view student engagement with your content.</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-border/50 bg-background/50 backdrop-blur-sm">
-                    <CardHeader>
-                        <HelpCircle className="h-8 w-8 text-amber-500 mb-2" />
-                        <CardTitle>Need More Help?</CardTitle>
-                        <CardDescription>Reach out to the administration.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground space-y-2">
-                        <p>If you encounter a bug, need a new feature, or have general feedback, please use the <strong>Feedback</strong> page.</p>
-                        <p>We actively review all submissions to improve the platform experience.</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <p className="mx-auto max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+              A quick guide to navigating study materials,
+              uploading resources, and using platform features
+              effectively.
+            </p>
+          </div>
         </div>
-    );
+
+        {/* Grid */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {sections.map((section) => {
+            const Icon = section.icon;
+
+            return (
+              <Card
+                key={section.title}
+                className="group border-border/60 bg-background shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/30"
+              >
+                <CardContent className="flex h-full flex-col p-6 lg:p-8">
+                  
+                  {/* Icon */}
+                  <div
+                    className={`mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-border/50 transition-transform duration-200 group-hover:scale-105 ${section.iconClass}`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-4">
+                    
+                    {/* Title */}
+                    <div className="space-y-2">
+                      <h2 className="text-xl font-medium tracking-tight">
+                        {section.title}
+                      </h2>
+
+                      <p className="text-sm leading-6 text-muted-foreground md:text-base">
+                        {section.description}
+                      </p>
+                    </div>
+
+                    {/* Steps */}
+                    <div className="space-y-3 pt-1">
+                      {section.steps.map(
+                        (step, index) => (
+                          <div
+                            key={step}
+                            className="flex items-start gap-3"
+                          >
+                            <div
+                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium ${section.numberClass}`}
+                            >
+                              {index + 1}
+                            </div>
+
+                            <p className="text-sm leading-6 text-muted-foreground">
+                              {step}
+                            </p>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }

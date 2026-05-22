@@ -53,18 +53,15 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                           */
@@ -174,6 +171,22 @@ const typeBadgeColor: Record<string, string> = {
   Notes: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
 };
 
+type LocalProfileUser = {
+  id?: string;
+  _id?: string;
+  name: string;
+  email: string;
+  avatar?: string | null;
+  role?: "student" | "faculty" | "admin";
+  branch?: string;
+  year?: string;
+  createdAt?: string;
+  isVerified?: boolean;
+};
+
+const validTabs = ["profile", "add-content", "uploads", "bookmarks", "notes"] as const;
+type TabType = typeof validTabs[number];
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                         */
 /* ------------------------------------------------------------------ */
@@ -182,13 +195,10 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const { tab } = useParams<{ tab: string }>();
 
-  const validTabs = ["profile", "add-content", "uploads", "bookmarks"] as const;
-  type TabType = typeof validTabs[number];
-
   const initialTab = validTabs.includes(tab as TabType) ? (tab as TabType) : "profile";
 
   // ── user state ──────────────────────────────────────────────────
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<LocalProfileUser | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
 
   useEffect(() => {
@@ -247,7 +257,7 @@ export default function ProfilePage() {
       return;
     }
     try {
-      const parsedUser = JSON.parse(storedUser);
+      const parsedUser = JSON.parse(storedUser) as LocalProfileUser;
 
       // Redirect admins and faculty to their respective dashboards
       if (parsedUser.role === "admin") {
@@ -261,8 +271,8 @@ export default function ProfilePage() {
 
       setUser(parsedUser);
       setName(parsedUser.name);
-      setBranch(parsedUser.branch);
-      setYear(parsedUser.year);
+      setBranch(parsedUser.branch || "");
+      setYear(parsedUser.year || "");
       if (parsedUser.avatar) {
         setAvatarPreview(parsedUser.avatar);
       }
@@ -318,10 +328,10 @@ export default function ProfilePage() {
 
       const data = await res.json();
       const updatedPayload =
-        parseApiData<Record<string, unknown> | null>(data, null) ?? data.user;
+        parseApiData<Partial<LocalProfileUser> | null>(data, null) ?? data.user;
 
       if (res.ok && data.success && updatedPayload) {
-        const updatedUser = { ...user, ...updatedPayload };
+        const updatedUser = { ...user, ...updatedPayload } as LocalProfileUser;
         localStorage.setItem("user", JSON.stringify(updatedUser));
         setUser(updatedUser);
         window.dispatchEvent(new CustomEvent("auth-change"));
@@ -414,6 +424,11 @@ export default function ProfilePage() {
       const resolvedUrl = rawAvatarPath.startsWith("http")
         ? rawAvatarPath
         : buildAvatarUrl(rawAvatarPath);
+
+      if (!user) {
+        toast.error("Please sign in before updating your avatar.");
+        return;
+      }
 
       // Update all state sources
       const updatedUser = { ...user, avatar: resolvedUrl };
@@ -574,6 +589,18 @@ export default function ProfilePage() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
+
+                {token && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => handleTabChange("notes")}
+                      isActive={activeTab === "notes"}
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>My Notes</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -684,7 +711,7 @@ export default function ProfilePage() {
                           <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-muted">
                             {avatarPreview || user.avatar ? (
                               <img
-                                src={avatarPreview || user.avatar}
+                                src={avatarPreview || user.avatar || undefined}
                                 alt={user.name}
                                 className="h-full w-full object-cover"
                               />
@@ -788,8 +815,8 @@ export default function ProfilePage() {
                               onClick={() => {
                                 setIsEditing(false);
                                 setName(user.name);
-                                setBranch(user.branch);
-                                setYear(user.year);
+                                setBranch(user.branch || "");
+                                setYear(user.year || "");
                               }}
                             >
                               Cancel
@@ -834,7 +861,7 @@ export default function ProfilePage() {
                             <dt className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                               <Clock className="h-4 w-4" /> Member Since
                             </dt>
-                            <dd className="text-sm font-semibold">{formatDate(user.createdAt)}</dd>
+                            <dd className="text-sm font-semibold">{formatDate(user.createdAt || "")}</dd>
                           </div>
                         </dl>
                       )}
@@ -1082,6 +1109,8 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
             )}
+
+           
 
           </div>
         </main>
