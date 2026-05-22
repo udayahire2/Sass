@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut, User, ChevronDown } from "lucide-react";
+import { Sun, Moon, LogOut, User, ChevronDown, FileText } from "lucide-react";
 import { gsap } from "gsap";
 import Menu from "@/svgs/menu";
 import { Logo } from "@/components/ui/logo";
@@ -404,6 +404,14 @@ function UserMenuDesktop() {
                   <User className="h-4 w-4" />
                   {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
                 </Link>
+                <Link
+                  to="/notes"
+                  onClick={close}
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                >
+                  <FileText className="h-4 w-4" />
+                  My Notes
+                </Link>
               </div>
               <div className="border-t border-border/40 mx-2" />
               <div className="p-1.5">
@@ -582,6 +590,14 @@ function PopoverMobileMenu() {
                   <User className="mr-2 h-4 w-4" />
                   {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
                 </Link>
+                <Link
+                  to="/notes"
+                  onClick={close}
+                  className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  My Notes
+                </Link>
                 <button
                   onClick={() => { close(); logout(); }}
                   className="flex w-full items-center rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
@@ -653,7 +669,6 @@ export function Navbar() {
           ) : (
             <div className="hidden items-center gap-2 md:flex">
               <Button
-                asChild
                 size="sm"
                 variant="ghost"
               >
@@ -661,7 +676,6 @@ export function Navbar() {
               </Button>
 
               <Button
-                asChild
                 size="sm"
               >
                 <Link to="/signup">Get Started</Link>

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { BookOpen, CheckCircle2, FileText, Search, Upload, Filter, Share2, Layers } from "lucide-react";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 
 const roleSteps = {
   students: [

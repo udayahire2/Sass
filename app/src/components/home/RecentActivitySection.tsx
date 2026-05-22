@@ -3,7 +3,7 @@ import {
   ArrowRight,
   BookmarkIcon,
   History,
-  Upload,
+  Upload
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -30,15 +30,16 @@ const activities = [
     description: "8 saved materials ready to revisit",
     buttonText: "View all",
     icon: BookmarkIcon,
-    path: "/profile",
+    path: "/profile/bookmarks",
   },
   {
     title: "Share materials",
     description: "Upload notes and help classmates learn faster",
     buttonText: "Upload now",
     icon: Upload,
-    path: "/add-study-content",
+    path: "/profile/",
   },
+
 ];
 
 export function RecentActivitySection({
