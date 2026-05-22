@@ -32,6 +32,8 @@ import FeedbackPage from "./pages/FeedbackPage";
 import HowToUsePage from "./pages/HowToUsePage";
 import FeedbackManagerPage from "./pages/admin/FeedbackManagerPage";
 import SearchPage from "./pages/SearchPage";
+import NotesPage from "./pages/NotesPage";
+import TopicEditorPage from "./pages/admin/TopicEditorPage";
 
 import ErrorPage from "./pages/ErrorPage";
 
@@ -96,6 +98,10 @@ export const router = createBrowserRouter([
                     {
                         path: "/add-study-content",
                         element: <AddStudyContentPage />,
+                    },
+                    {
+                        path: "/notes",
+                        element: <NotesPage />,
                     },
                     {
                         path: "/profile",
@@ -180,6 +186,10 @@ export const router = createBrowserRouter([
                     {
                         path: "feedback",
                         element: <FeedbackManagerPage />,
+                    },
+                    {
+                        path: "topics/:topicId/edit",
+                        element: <TopicEditorPage />,
                     },
                     {
                         path: "",
