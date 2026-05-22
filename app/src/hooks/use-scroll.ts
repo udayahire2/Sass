@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 /**
  * Hook to track scroll position and return whether page is scrolled past threshold
@@ -8,16 +8,16 @@ import { useState, useEffect } from "react"
 export function useScroll(threshold: number = 20): boolean {
     const [scrolled, setScrolled] = useState(false)
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > threshold)
-        }
+    const handleScroll = useCallback(() => {
+        setScrolled(window.scrollY > threshold)
+    }, [threshold])
 
+    useEffect(() => {
         handleScroll() // Check initial state
         window.addEventListener('scroll', handleScroll)
 
         return () => window.removeEventListener('scroll', handleScroll)
-    }, [threshold])
+    }, [handleScroll])
 
     return scrolled
 }

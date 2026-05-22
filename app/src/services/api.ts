@@ -200,3 +200,83 @@ export const fetchSubjectUnits = async (subjectId: string): Promise<Unit[]> => {
 export const fetchTopicById = async (topicId: string): Promise<Topic | null> => {
     return requestApiData<Topic | null>(`/topics/${topicId}`, null, 'Failed to fetch topic');
 };
+
+export const updateTopic = async (topicId: string, data: { title?: string; content_markdown?: string }): Promise<Topic> => {
+    const response = await fetch(buildApiUrl(`/topics/${topicId}`), {
+        method: 'PUT',
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to update topic'));
+    return parseApiData<Topic>(payload, {} as Topic);
+};
+
+// --- Notes API ---
+export interface Note {
+    id: string;
+    user_id: string;
+    topic_id?: string | null;
+    title: string;
+    content_markdown: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export const getNotes = async (): Promise<Note[]> => {
+    const response = await fetch(buildApiUrl('/notes'), {
+        headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to fetch notes'));
+    return parseApiData<Note[]>(payload, []);
+};
+
+export const getNoteById = async (id: string): Promise<Note | null> => {
+    const response = await fetch(buildApiUrl(`/notes/${id}`), {
+        headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to fetch note'));
+    return parseApiData<Note | null>(payload, null);
+};
+
+export const createNote = async (data: { title: string; content_markdown: string; topic_id?: string | null }): Promise<Note> => {
+    const response = await fetch(buildApiUrl('/notes'), {
+        method: 'POST',
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to create note'));
+    return parseApiData<Note>(payload, {} as Note);
+};
+
+export const updateNote = async (id: string, data: { title?: string; content_markdown?: string; topic_id?: string | null }): Promise<Note> => {
+    const response = await fetch(buildApiUrl(`/notes/${id}`), {
+        method: 'PUT',
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to update note'));
+    return parseApiData<Note>(payload, {} as Note);
+};
+
+export const deleteNote = async (id: string): Promise<void> => {
+    const response = await fetch(buildApiUrl(`/notes/${id}`), {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to delete note'));
+};

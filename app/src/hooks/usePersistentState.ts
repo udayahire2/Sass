@@ -4,37 +4,35 @@ export function usePersistentState<T>(
   key: string,
   defaultValue: T
 ): [T, (value: T | ((prev: T) => T)) => void, boolean] {
-  const [state, setState] = useState<T>(defaultValue);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
+  const [state, setState] = useState<T>(() => {
     try {
       const saved = localStorage.getItem(key);
       if (saved !== null) {
-        setState(JSON.parse(saved));
+        return JSON.parse(saved) as T;
       }
     } catch (error) {
       console.warn(`Error reading localStorage key "${key}":`, error);
     }
-    setIsHydrated(true);
-  }, [key]);
+
+    return defaultValue;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(state));
+    } catch (error) {
+      console.warn(`Error saving to localStorage key "${key}":`, error);
+    }
+  }, [key, state]);
 
   const setPersistentState = useCallback(
     (value: T | ((prev: T) => T)) => {
-      setState((prev) => {
-        const next = value instanceof Function ? value(prev) : value;
-        try {
-          localStorage.setItem(key, JSON.stringify(next));
-        } catch (error) {
-          console.warn(`Error saving to localStorage key "${key}":`, error);
-        }
-        return next;
-      });
+      setState((prev) => (value instanceof Function ? value(prev) : value));
     },
-    [key]
+    []
   );
 
-  return [state, setPersistentState, isHydrated];
+  return [state, setPersistentState, true];
 }
 
 export default usePersistentState;
