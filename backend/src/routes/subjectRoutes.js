@@ -4,9 +4,11 @@ const {
     getSubjectsByBranchSemester,
     getTopicById,
     getUnitsBySubject,
+    updateTopic,
 } = require('../services/subjectService');
 const { AppError } = require('../utils/errors');
 const { sendSuccess } = require('../utils/response');
+const { protect, authorize } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
@@ -56,6 +58,25 @@ router.get('/topics/:id', (req, res, next) => {
         return sendSuccess(res, {
             message: 'Topic fetched successfully',
             data: topic,
+        });
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.put('/topics/:id', protect, authorize('admin'), (req, res, next) => {
+    try {
+        const topic = getTopicById(req.params.id);
+
+        if (!topic) {
+            return next(new AppError('Topic not found', 404));
+        }
+
+        const updatedTopic = updateTopic(req.params.id, req.body);
+
+        return sendSuccess(res, {
+            message: 'Topic updated successfully',
+            data: updatedTopic,
         });
     } catch (error) {
         return next(error);

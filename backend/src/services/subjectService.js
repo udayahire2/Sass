@@ -178,8 +178,36 @@ function getTopicById(topicId) {
     };
 }
 
+function updateTopic(topicId, data) {
+    const { title, content_markdown } = data;
+    const updates = [];
+    const params = [];
+
+    if (title !== undefined) {
+        updates.push('title = ?');
+        params.push(title);
+    }
+    if (content_markdown !== undefined) {
+        updates.push('content_markdown = ?');
+        params.push(content_markdown);
+    }
+
+    if (updates.length === 0) {
+        return getTopicById(topicId);
+    }
+
+    const { run } = require('./dbService');
+    const sql = `UPDATE topics SET ${updates.join(', ')} WHERE id = ?`;
+    params.push(topicId);
+
+    run(sql, params);
+    
+    return getTopicById(topicId);
+}
+
 module.exports = {
     getSubjectsByBranchSemester,
     getTopicById,
     getUnitsBySubject,
+    updateTopic,
 };
