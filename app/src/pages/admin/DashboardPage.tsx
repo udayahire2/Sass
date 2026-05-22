@@ -1,4 +1,4 @@
-  import { useEffect, useState } from "react";
+  import { memo, useCallback, useEffect, useMemo, useState } from "react";
   import { Link } from "react-router-dom";
   import {
     ArrowRight,
@@ -47,6 +47,8 @@
   import { buildApiUrl, parseApiData } from "@/services/api";
   import { cn } from "@/lib/utils";
 
+  const DASHBOARD_PAGE_SIZE = 50;
+
   interface AdminStats {
     totalUsers: number;
     newUsers: number;
@@ -60,7 +62,16 @@
     const [pendingMaterials, setPendingMaterials] = useState<StudyMaterial[]>([]);
     const [approvedMaterials, setApprovedMaterials] = useState<StudyMaterial[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [pendingPage, setPendingPage] = useState(1);
+    const [approvedPage, setApprovedPage] = useState(1);
     const { theme, setTheme } = useTheme();
+
+    const loadMaterials = useCallback(async () => {
+      const pending = await fetchPendingMaterials();
+      const approved = await fetchApprovedMaterials();
+      setPendingMaterials(pending);
+      setApprovedMaterials(approved);
+    }, []);
 
     useEffect(() => {
       const loadDashboardData = async () => {
@@ -88,26 +99,48 @@
       };
 
       void loadDashboardData();
-    }, []);
+    }, [loadMaterials]);
 
-    const loadMaterials = async () => {
-      const pending = await fetchPendingMaterials();
-      const approved = await fetchApprovedMaterials();
-      setPendingMaterials(pending);
-      setApprovedMaterials(approved);
-    };
-
-    const handleStatusUpdate = async (
+    const handleStatusUpdate = useCallback(async (
       id: string,
       status: "approved" | "rejected",
     ) => {
+      const previousPending = pendingMaterials;
+      const previousApproved = approvedMaterials;
+      const target = pendingMaterials.find((material) => material._id === id);
+
+      if (target) {
+        setPendingMaterials((current) => current.filter((material) => material._id !== id));
+        if (status === "approved") {
+          setApprovedMaterials((current) => [{ ...target, status }, ...current]);
+        }
+      }
+
       const result = await updateMaterialStatus(id, status);
       if (result) {
-        await loadMaterials();
+        if (status === "approved") {
+          setApprovedMaterials((current) =>
+            current.map((material) => (material._id === id ? result : material))
+          );
+        }
+        return;
       }
-    };
 
-    const filterMaterials = (materials: StudyMaterial[]) => {
+      setPendingMaterials(previousPending);
+      setApprovedMaterials(previousApproved);
+    }, [approvedMaterials, pendingMaterials]);
+
+    const handleApproveMaterial = useCallback(
+      (id: string) => handleStatusUpdate(id, "approved"),
+      [handleStatusUpdate],
+    );
+
+    const handleRejectMaterial = useCallback(
+      (id: string) => handleStatusUpdate(id, "rejected"),
+      [handleStatusUpdate],
+    );
+
+    const filterMaterials = useCallback((materials: StudyMaterial[]) => {
       if (!searchQuery.trim()) {
         return materials;
       }
@@ -120,7 +153,35 @@
           material.subject.toLowerCase().includes(query)
         );
       });
-    };
+    }, [searchQuery]);
+
+    const pendingCount = pendingMaterials.length;
+    const approvedCount = approvedMaterials.length;
+    const totalReviewed = pendingCount + approvedCount;
+    const approvalRate = totalReviewed
+      ? Math.round((approvedCount / totalReviewed) * 100)
+      : 0;
+    const filteredPending = useMemo(
+      () => filterMaterials(pendingMaterials),
+      [filterMaterials, pendingMaterials],
+    );
+    const filteredApproved = useMemo(
+      () => filterMaterials(approvedMaterials),
+      [approvedMaterials, filterMaterials],
+    );
+    const pagedPending = useMemo(() => {
+      const start = (pendingPage - 1) * DASHBOARD_PAGE_SIZE;
+      return filteredPending.slice(start, start + DASHBOARD_PAGE_SIZE);
+    }, [filteredPending, pendingPage]);
+    const pagedApproved = useMemo(() => {
+      const start = (approvedPage - 1) * DASHBOARD_PAGE_SIZE;
+      return filteredApproved.slice(start, start + DASHBOARD_PAGE_SIZE);
+    }, [approvedPage, filteredApproved]);
+
+    useEffect(() => {
+      setPendingPage(1);
+      setApprovedPage(1);
+    }, [searchQuery]);
 
     if (loading) {
       return (
@@ -134,15 +195,6 @@
         </div>
       );
     }
-
-    const pendingCount = pendingMaterials.length;
-    const approvedCount = approvedMaterials.length;
-    const totalReviewed = pendingCount + approvedCount;
-    const approvalRate = totalReviewed
-      ? Math.round((approvedCount / totalReviewed) * 100)
-      : 0;
-    const filteredPending = filterMaterials(pendingMaterials);
-    const filteredApproved = filterMaterials(approvedMaterials);
 
     const statCards = [
       {
@@ -277,10 +329,14 @@
                   <MaterialTable
                     emptyIcon={Clock3}
                     emptyMessage="No pending submissions."
-                    materials={filteredPending}
-                    onApprove={(id) => handleStatusUpdate(id, "approved")}
-                    onReject={(id) => handleStatusUpdate(id, "rejected")}
+                    materials={pagedPending}
+                    onApprove={handleApproveMaterial}
+                    onReject={handleRejectMaterial}
+                    onPageChange={setPendingPage}
+                    page={pendingPage}
+                    pageSize={DASHBOARD_PAGE_SIZE}
                     showActions
+                    total={filteredPending.length}
                   />
                 </TabsContent>
 
@@ -288,8 +344,12 @@
                   <MaterialTable
                     emptyIcon={CheckCircle2}
                     emptyMessage="No approved content found."
-                    materials={filteredApproved}
+                    materials={pagedApproved}
+                    onPageChange={setApprovedPage}
+                    page={approvedPage}
+                    pageSize={DASHBOARD_PAGE_SIZE}
                     showActions={false}
+                    total={filteredApproved.length}
                   />
                 </TabsContent>
               </Tabs>
@@ -514,15 +574,23 @@
     showActions,
     onApprove,
     onReject,
+    onPageChange,
     emptyMessage,
     emptyIcon: EmptyIcon,
+    page,
+    pageSize,
+    total,
   }: {
     materials: StudyMaterial[];
     showActions: boolean;
     onApprove?: (id: string) => void;
     onReject?: (id: string) => void;
+    onPageChange?: (page: number) => void;
     emptyMessage: string;
     emptyIcon: typeof Clock3;
+    page: number;
+    pageSize: number;
+    total: number;
   }) {
     if (materials.length === 0) {
       return (
@@ -532,6 +600,8 @@
         </div>
       );
     }
+
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
     return (
       <div className="overflow-hidden rounded-2xl border border-border/70">
@@ -549,59 +619,107 @@
           </TableHeader>
           <TableBody>
             {materials.map((material) => (
-              <TableRow key={material._id}>
-                <TableCell>
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{material.title}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {material.type}
-                      </p>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>{material.author}</TableCell>
-                <TableCell>{material.subject}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {new Date(material.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={material.status} />
-                </TableCell>
-                {showActions ? (
-                  <TableCell className="text-right">
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <Button
-                        className="rounded-xl"
-                        onClick={() => onReject?.(material._id)}
-                        size="sm"
-                        variant="outline"
-                      >
-                        <XCircle className="h-4 w-4" />
-                        Reject
-                      </Button>
-                      <Button
-                        className="rounded-xl"
-                        onClick={() => onApprove?.(material._id)}
-                        size="sm"
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                        Approve
-                      </Button>
-                    </div>
-                  </TableCell>
-                ) : null}
-              </TableRow>
+              <MaterialTableRow
+                key={material._id}
+                material={material}
+                onApprove={onApprove}
+                onReject={onReject}
+                showActions={showActions}
+              />
             ))}
           </TableBody>
         </Table>
         </div>
+        {total > pageSize ? (
+          <div className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.max(1, page - 1))}
+                disabled={page === 1}
+              >
+                Previous
+              </Button>
+              <span className="px-2">Page {page} of {pageCount}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange?.(Math.min(pageCount, page + 1))}
+                disabled={page === pageCount}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }
+
+  const MaterialTableRow = memo(function MaterialTableRow({
+    material,
+    onApprove,
+    onReject,
+    showActions,
+  }: {
+    material: StudyMaterial;
+    onApprove?: (id: string) => void;
+    onReject?: (id: string) => void;
+    showActions: boolean;
+  }) {
+    return (
+      <TableRow>
+        <TableCell>
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-medium">{material.title}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {material.type}
+              </p>
+            </div>
+          </div>
+        </TableCell>
+        <TableCell>{material.author}</TableCell>
+        <TableCell>{material.subject}</TableCell>
+        <TableCell className="text-muted-foreground">
+          {new Date(material.createdAt).toLocaleDateString()}
+        </TableCell>
+        <TableCell>
+          <StatusBadge status={material.status} />
+        </TableCell>
+        {showActions ? (
+          <TableCell className="text-right">
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                className="rounded-xl"
+                onClick={() => onReject?.(material._id)}
+                size="sm"
+                variant="outline"
+              >
+                <XCircle className="h-4 w-4" />
+                Reject
+              </Button>
+              <Button
+                className="rounded-xl"
+                onClick={() => onApprove?.(material._id)}
+                size="sm"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Approve
+              </Button>
+            </div>
+          </TableCell>
+        ) : null}
+      </TableRow>
+    );
+  });
 
   function StatusBadge({ status }: { status: StudyMaterial["status"] }) {
     if (status === "approved") {

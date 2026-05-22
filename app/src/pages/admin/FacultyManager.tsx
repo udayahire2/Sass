@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,8 @@ import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { Check, X, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { buildApiUrl, getErrorMessage } from "@/services/api";
+
+const FACULTY_PAGE_SIZE = 50;
 
 interface Faculty {
     _id: string;
@@ -26,15 +28,29 @@ export default function FacultyManager() {
     const [allFaculty, setAllFaculty] = useState<Faculty[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [pendingPage, setPendingPage] = useState(1);
+    const [allPage, setAllPage] = useState(1);
+    const [pendingTotal, setPendingTotal] = useState(0);
+    const [allTotal, setAllTotal] = useState(0);
 
-    const fetchFaculty = async () => {
+    const fetchFaculty = useCallback(async () => {
+        setLoading(true);
+        setError(null);
         try {
             const token = localStorage.getItem("token");
+            const pendingParams = new URLSearchParams({
+                page: String(pendingPage),
+                pageSize: String(FACULTY_PAGE_SIZE),
+            });
+            const allParams = new URLSearchParams({
+                page: String(allPage),
+                pageSize: String(FACULTY_PAGE_SIZE),
+            });
             const [pendingRes, allRes] = await Promise.all([
-                fetch(buildApiUrl("/admin/faculty/pending"), {
+                fetch(buildApiUrl(`/admin/faculty/pending?${pendingParams.toString()}`), {
                     headers: { Authorization: `Bearer ${token}` },
                 }),
-                fetch(buildApiUrl("/admin/faculty/all"), {
+                fetch(buildApiUrl(`/admin/faculty/all?${allParams.toString()}`), {
                     headers: { Authorization: `Bearer ${token}` },
                 }),
             ]);
@@ -42,21 +58,58 @@ export default function FacultyManager() {
             const pendingData = await pendingRes.json();
             const allData = await allRes.json();
 
+            if (!pendingRes.ok || pendingData.success === false) {
+                throw new Error(getErrorMessage(pendingData, "Failed to load pending faculty"));
+            }
+
+            if (!allRes.ok || allData.success === false) {
+                throw new Error(getErrorMessage(allData, "Failed to load faculty"));
+            }
+
             if (pendingData.success) setPendingFaculty(pendingData.data);
             if (allData.success) setAllFaculty(allData.data);
+            setPendingTotal(pendingData.pagination?.total ?? pendingData.data.length);
+            setAllTotal(allData.pagination?.total ?? allData.data.length);
         } catch (err) {
             console.error("Error fetching faculty:", err);
             setError("Failed to load faculty data. Please try again.");
         } finally {
             setLoading(false);
         }
-    };
+    }, [allPage, pendingPage]);
 
     useEffect(() => {
         fetchFaculty();
-    }, []);
+    }, [fetchFaculty]);
 
-    const handleAction = async (id: string, action: "approve" | "reject") => {
+    const handleAction = useCallback(async (id: string, action: "approve" | "reject") => {
+        const previousPending = pendingFaculty;
+        const previousAll = allFaculty;
+        const previousPendingTotal = pendingTotal;
+        const previousAllTotal = allTotal;
+        const target = pendingFaculty.find((faculty) => faculty._id === id)
+            ?? allFaculty.find((faculty) => faculty._id === id);
+
+        if (!target) {
+            return;
+        }
+
+        const nextFaculty = { ...target, isApproved: action === "approve" };
+
+        setPendingFaculty((current) => current.filter((faculty) => faculty._id !== id));
+        setPendingTotal((current) => Math.max(0, current - (previousPending.some((faculty) => faculty._id === id) ? 1 : 0)));
+        setAllFaculty((current) => {
+            const exists = current.some((faculty) => faculty._id === id);
+            if (exists) {
+                return current.map((faculty) => (faculty._id === id ? nextFaculty : faculty));
+            }
+            return [nextFaculty, ...current];
+        });
+        setAllTotal((current) => {
+            const exists = previousAll.some((faculty) => faculty._id === id);
+            return exists ? current : current + 1;
+        });
+
         try {
             const token = localStorage.getItem("token");
             const res = await fetch(buildApiUrl(`/admin/faculty/${id}/${action}`), {
@@ -64,17 +117,30 @@ export default function FacultyManager() {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
-            if (data.success) {
-                toast.success(`Faculty ${action}d successfully`);
-                fetchFaculty(); // refresh lists
-            } else {
-                toast.error(getErrorMessage(data, "Action failed"));
+            if (!res.ok || data.success === false) {
+                throw new Error(getErrorMessage(data, "Action failed"));
             }
+
+            if (data.data) {
+                setAllFaculty((current) =>
+                    current.map((faculty) => (faculty._id === id ? data.data : faculty))
+                );
+            }
+
+            toast.success(
+                action === "approve"
+                    ? "Faculty approved successfully"
+                    : "Faculty access revoked successfully"
+            );
         } catch (err) {
             console.error(err);
-            toast.error("Error performing action");
+            setPendingFaculty(previousPending);
+            setAllFaculty(previousAll);
+            setPendingTotal(previousPendingTotal);
+            setAllTotal(previousAllTotal);
+            toast.error(err instanceof Error ? err.message : "Error performing action");
         }
-    };
+    }, [allFaculty, allTotal, pendingFaculty, pendingTotal]);
 
     if (error) {
         return (
@@ -133,6 +199,13 @@ export default function FacultyManager() {
                                     showActions={true}
                                 />
                             ))}
+                            <PaginationControls
+                                label="pending faculty"
+                                page={pendingPage}
+                                pageSize={FACULTY_PAGE_SIZE}
+                                total={pendingTotal}
+                                onPageChange={setPendingPage}
+                            />
                         </div>
                     )}
                 </TabsContent>
@@ -150,6 +223,13 @@ export default function FacultyManager() {
                                     showActions={false}
                                 />
                             ))}
+                            <PaginationControls
+                                label="faculty"
+                                page={allPage}
+                                pageSize={FACULTY_PAGE_SIZE}
+                                total={allTotal}
+                                onPageChange={setAllPage}
+                            />
                         </div>
                     )}
                 </TabsContent>
@@ -170,7 +250,7 @@ function EmptyState({ message }: { message: string }) {
     );
 }
 
-function FacultyCard({
+const FacultyCard = React.memo(function FacultyCardComponent({
     faculty,
     onAction,
     showActions,
@@ -266,13 +346,66 @@ function FacultyCard({
             </CardContent>
         </Card>
     );
-}
+}, (prev, next) => (
+    prev.faculty === next.faculty
+    && prev.onAction === next.onAction
+    && prev.showActions === next.showActions
+));
 
 function DetailRow({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex justify-between py-1 border-b border-border/40">
             <span className="text-muted-foreground">{label}</span>
             <span className="font-medium">{value}</span>
+        </div>
+    );
+}
+
+function PaginationControls({
+    label,
+    page,
+    pageSize,
+    total,
+    onPageChange,
+}: {
+    label: string;
+    page: number;
+    pageSize: number;
+    total: number;
+    onPageChange: (page: number) => void;
+}) {
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+
+    if (total <= pageSize) {
+        return null;
+    }
+
+    return (
+        <div className="col-span-full flex flex-col gap-3 rounded-lg border p-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+                Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} of {total} {label}
+            </span>
+            <div className="flex items-center gap-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPageChange(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                >
+                    Previous
+                </Button>
+                <span className="px-2">
+                    Page {page} of {pageCount}
+                </span>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPageChange(Math.min(pageCount, page + 1))}
+                    disabled={page === pageCount}
+                >
+                    Next
+                </Button>
+            </div>
         </div>
     );
 }

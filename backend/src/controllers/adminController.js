@@ -150,8 +150,16 @@ async function deleteUser(req, res, next) {
     }
 }
 
-function getPendingFaculty(_req, res, next) {
+function getPendingFaculty(req, res, next) {
     try {
+        const { page, limit, offset } = getPagination(req.query, { page: 1, limit: 50 });
+        const total = get(
+            `SELECT COUNT(*) AS count
+             FROM users
+             WHERE role = 'faculty'
+               AND is_approved = 0
+               AND deleted_at IS NULL`
+        ).count;
         const data = mapUsers(
             all(
                 `SELECT *
@@ -159,34 +167,47 @@ function getPendingFaculty(_req, res, next) {
                  WHERE role = 'faculty'
                    AND is_approved = 0
                    AND deleted_at IS NULL
-                 ORDER BY created_at DESC`
+                 ORDER BY created_at DESC
+                 LIMIT ? OFFSET ?`,
+                [limit, offset]
             )
         );
 
         return sendSuccess(res, {
             message: 'Pending faculty fetched successfully',
             data,
+            pagination: buildPagination(total, page, limit),
         });
     } catch (error) {
         return next(error);
     }
 }
 
-function getAllFaculty(_req, res, next) {
+function getAllFaculty(req, res, next) {
     try {
+        const { page, limit, offset } = getPagination(req.query, { page: 1, limit: 50 });
+        const total = get(
+            `SELECT COUNT(*) AS count
+             FROM users
+             WHERE role = 'faculty'
+               AND deleted_at IS NULL`
+        ).count;
         const data = mapUsers(
             all(
                 `SELECT *
                  FROM users
                  WHERE role = 'faculty'
                    AND deleted_at IS NULL
-                 ORDER BY created_at DESC`
+                 ORDER BY created_at DESC
+                 LIMIT ? OFFSET ?`,
+                [limit, offset]
             )
         );
 
         return sendSuccess(res, {
             message: 'Faculty list fetched successfully',
             data,
+            pagination: buildPagination(total, page, limit),
         });
     } catch (error) {
         return next(error);
