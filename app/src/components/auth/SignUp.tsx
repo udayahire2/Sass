@@ -12,14 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AuthCard,
-  AuthField,
-  AuthForm,
-  AuthGrid,
-} from "@/components/auth/auth-form";
+import { Input } from "@/components/ui/input";
 import { buildApiUrl, getErrorMessage } from "@/services/api";
-import { Input } from "../ui/input";
+import { Logo } from "../ui/logo";
 
 export const title = "Sign Up";
 
@@ -38,7 +33,9 @@ interface RegisterPayload {
   subjects?: string[];
 }
 
-const selectClassName = "h-11 w-full rounded-md border-border/40 bg-transparent";
+// Reusable styling for inputs and select triggers to match the dark VIP aesthetic
+const inputClasses = "h-10 bg-[#0a0a0a] border-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:ring-1 focus:ring-zinc-700 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:ring-offset-0 rounded-lg shadow-none";
+const labelClasses = "text-xs font-medium text-zinc-400 mb-1.5 block";
 
 const SignUp = () => {
   const [role, setRole] = useState<UserRole>("student");
@@ -97,155 +94,194 @@ const SignUp = () => {
   };
 
   return (
-    <AuthCard
-      title="Create account"
-      description="Fill the basic details to start using the platform."
-      footer={
-        <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link to="/login" className="font-medium text-foreground transition-colors hover:text-muted-foreground">
-            Sign in
-          </Link>
+    <div className="w-full max-w-sm mx-auto flex flex-col text-white font-sans">
+      
+      {/* Brand Logo Placeholder - Matched to Login */}
+      <div className="mb-8 flex items-center justify-center gap-3 text-2xl font-bold tracking-tighter">
+      <Logo/>
+      </div>
+
+      <div className="text-center mb-8">
+        <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
+          Create your account
+        </h1>
+        <p className="text-xs text-zinc-500 mt-2">
+          Fill the basic details to start using the platform.
         </p>
-      }
-    >
-      <AuthForm onSubmit={handleSubmit}>
-        <AuthField id="role" label="Role">
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        
+        {/* Role Selection */}
+        <div>
+          <label className={labelClasses}>Role</label>
           <Select onValueChange={(val) => setRole(val as UserRole)} value={role} required>
-            <SelectTrigger id="role" className={selectClassName}>
+            <SelectTrigger id="role" className={inputClasses}>
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="student">Student</SelectItem>
-              <SelectItem value="faculty">Faculty</SelectItem>
+            <SelectContent className="bg-[#111111] border-zinc-800 text-white">
+              <SelectItem value="student" className="focus:bg-zinc-800 focus:text-white">Student</SelectItem>
+              <SelectItem value="faculty" className="focus:bg-zinc-800 focus:text-white">Faculty</SelectItem>
             </SelectContent>
           </Select>
-        </AuthField>
+        </div>
 
-        <AuthField id="name" label="Full name">
+        {/* Common Fields */}
+        <div>
+          <label className={labelClasses}>Full name</label>
           <Input
             id="name"
-            placeholder="Your full name"
+            placeholder="jitu pardhi"
             required
             value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClasses}
           />
-        </AuthField>
+        </div>
 
-        <AuthField id="email" label="Email">
+        <div>
+          <label className={labelClasses}>Email</label>
           <Input
             id="email"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-            placeholder="name@example.com"
             type="email"
+            placeholder="name@example.com"
             required
             value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={inputClasses}
           />
-        </AuthField>
+        </div>
 
-        <AuthField id="password" label="Password">
+        <div>
+          <label className={labelClasses}>Password</label>
           <Input
             id="password"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             type="password"
+            placeholder="Create a secure password"
             required
             value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={inputClasses}
           />
-        </AuthField>
+        </div>
 
+        {/* Student Specific Fields */}
         {role === "student" && (
-          <AuthGrid>
-            <AuthField id="branch" label="Branch">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClasses}>Branch</label>
               <Select onValueChange={(val) => val && setBranch(val)} value={branch} required>
-                <SelectTrigger id="branch" className={selectClassName}>
+                <SelectTrigger id="branch" className={inputClasses}>
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Computer">Computer</SelectItem>
-                  <SelectItem value="IT">IT</SelectItem>
-                  <SelectItem value="Civil">Civil</SelectItem>
-                  <SelectItem value="Mechanical">Mechanical</SelectItem>
-                  <SelectItem value="Electrical">Electrical</SelectItem>
-                  <SelectItem value="ENTC">ENTC</SelectItem>
+                <SelectContent className="bg-[#111111] border-zinc-800 text-white">
+                  <SelectItem value="Computer" className="focus:bg-zinc-800 focus:text-white">Computer</SelectItem>
+                  <SelectItem value="IT" className="focus:bg-zinc-800 focus:text-white">IT</SelectItem>
+                  <SelectItem value="Civil" className="focus:bg-zinc-800 focus:text-white">Civil</SelectItem>
+                  <SelectItem value="Mechanical" className="focus:bg-zinc-800 focus:text-white">Mechanical</SelectItem>
+                  <SelectItem value="Electrical" className="focus:bg-zinc-800 focus:text-white">Electrical</SelectItem>
+                  <SelectItem value="ENTC" className="focus:bg-zinc-800 focus:text-white">ENTC</SelectItem>
                 </SelectContent>
               </Select>
-            </AuthField>
+            </div>
 
-            <AuthField id="year" label="Year">
+            <div>
+              <label className={labelClasses}>Year</label>
               <Select onValueChange={(val) => val && setYear(val)} value={year} required>
-                <SelectTrigger id="year" className={selectClassName}>
+                <SelectTrigger id="year" className={inputClasses}>
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FE">FE</SelectItem>
-                  <SelectItem value="SE">SE</SelectItem>
-                  <SelectItem value="TE">TE</SelectItem>
-                  <SelectItem value="BE">BE</SelectItem>
+                <SelectContent className="bg-[#111111] border-zinc-800 text-white">
+                  <SelectItem value="FE" className="focus:bg-zinc-800 focus:text-white">FE</SelectItem>
+                  <SelectItem value="SE" className="focus:bg-zinc-800 focus:text-white">SE</SelectItem>
+                  <SelectItem value="TE" className="focus:bg-zinc-800 focus:text-white">TE</SelectItem>
+                  <SelectItem value="BE" className="focus:bg-zinc-800 focus:text-white">BE</SelectItem>
                 </SelectContent>
               </Select>
-            </AuthField>
-          </AuthGrid>
+            </div>
+          </div>
         )}
 
+        {/* Faculty Specific Fields */}
         {role === "faculty" && (
-          <>
-            <AuthField id="designation" label="Designation">
+          <div className="space-y-4">
+            <div>
+              <label className={labelClasses}>Designation</label>
               <Input
                 id="designation"
                 placeholder="Assistant Professor"
                 required
                 value={designation}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDesignation(e.target.value)}
+                onChange={(e) => setDesignation(e.target.value)}
+                className={inputClasses}
               />
-            </AuthField>
+            </div>
 
-            <AuthField id="department" label="Department">
+            <div>
+              <label className={labelClasses}>Department</label>
               <Input
                 id="department"
                 placeholder="Computer Engineering"
                 required
                 value={department}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDepartment(e.target.value)}
+                onChange={(e) => setDepartment(e.target.value)}
+                className={inputClasses}
               />
-            </AuthField>
+            </div>
 
-            <AuthField id="collegeName" label="College">
+            <div>
+              <label className={labelClasses}>College</label>
               <Input
                 id="collegeName"
                 placeholder="College name"
                 required
                 value={collegeName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCollegeName(e.target.value)}
+                onChange={(e) => setCollegeName(e.target.value)}
+                className={inputClasses}
               />
-            </AuthField>
+            </div>
 
-            <AuthField id="subjects" label="Subjects">
+            <div>
+              <label className={labelClasses}>Subjects</label>
               <Input
                 id="subjects"
-                placeholder="DBMS, OS, TOC"
+                placeholder="DBMS, OS, TOC (Comma separated)"
                 required
                 value={subjects}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubjects(e.target.value)}
+                onChange={(e) => setSubjects(e.target.value)}
+                className={inputClasses}
               />
-            </AuthField>
-          </>
+            </div>
+          </div>
         )}
 
-        <Button className="h-11 w-full rounded-md" type="submit" disabled={loading}>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-10 mt-4 w-full bg-[#ededed] text-black hover:bg-white transition-all text-sm font-semibold rounded-lg shadow-none"
+        >
           {loading ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Creating account...
             </>
           ) : (
             <>
               Create account
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
         </Button>
-      </AuthForm>
-    </AuthCard>
+      </form>
+
+      {/* Footer */}
+      <p className="mt-8 text-center text-xs text-zinc-500">
+        Already have an account?{" "}
+        <Link to="/login" className="text-zinc-300 font-medium hover:text-white transition-colors">
+          Sign in
+        </Link>
+      </p>
+    </div>
   );
 };
 
