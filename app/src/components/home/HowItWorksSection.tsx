@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BookOpen, CheckCircle2, FileText, Search, Upload, Filter, Share2, Layers } from "lucide-react";
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import gsap from "gsap";
 
 const roleSteps = {
   students: [
     {
-      id: "01",
+      id: "01", 
       title: "Choose branch",
       description: "Select your branch and semester. See only what matters.",
       icon: Layers,
@@ -67,10 +67,46 @@ const roleSteps = {
 };
 
 export function HowItWorksSection() {
-  const [activeTab, setActiveTab] = useState("students");
+  const roles = Object.keys(roleSteps);
+  const [activeTab, setActiveTab] = useState(roles[0]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // GSAP: Entry animation whenever the active tab updates automatically or manually
+  useEffect(() => {
+    if (containerRef.current) {
+      const stepCards = containerRef.current.querySelectorAll(".gsap-step-card");
+      
+      // Reset state properties before playing clean slate entry animation
+      gsap.killTweensOf(stepCards);
+      gsap.set(stepCards, { opacity: 0, y: 15 });
+      
+      // Hardware-accelerated stagger entry
+      gsap.to(stepCards, {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.12,
+        ease: "power2.out",
+        overwrite: "auto"
+      });
+    }
+  }, [activeTab]);
+
+  // Loop Management: Infinite automated tab rotation every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTab((currentTab) => {
+        const currentIndex = roles.indexOf(currentTab);
+        const nextIndex = (currentIndex + 1) % roles.length;
+        return roles[nextIndex];
+      });
+    }, 3000); // 3-second delay threshold
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section className="py-24 bg-background">
+    <section className="py-24 bg-background overflow-hidden">
       <div className="container px-4 md:px-6 mx-auto max-w-5xl">
         
         {/* Header */}
@@ -86,51 +122,57 @@ export function HowItWorksSection() {
           </p>
         </div>
 
-        <Tabs defaultValue="students" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab} 
+          className="w-full"
+        >
           <div className="flex justify-center mb-12">
             <TabsList className="grid w-full max-w-md grid-cols-3 bg-muted/50 p-1">
-              <TabsTrigger value="students" className="rounded-md">For Students</TabsTrigger>
-              <TabsTrigger value="uploaders" className="rounded-md">For Uploaders</TabsTrigger>
-              <TabsTrigger value="searchers" className="rounded-md">For Searchers</TabsTrigger>
+              <TabsTrigger value="students" className="rounded-md transition-all duration-300">For Students</TabsTrigger>
+              <TabsTrigger value="uploaders" className="rounded-md transition-all duration-300">For Uploaders</TabsTrigger>
+              <TabsTrigger value="searchers" className="rounded-md transition-all duration-300">For Searchers</TabsTrigger>
             </TabsList>
           </div>
 
-          {Object.entries(roleSteps).map(([role, steps]) => (
-            <TabsContent key={role} value={role} className="mt-0 outline-none">
-              <div className="grid gap-10 md:grid-cols-3 md:gap-x-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {steps.map((step) => {
-                  const Icon = step.icon;
+          <div ref={containerRef}>
+            {Object.entries(roleSteps).map(([role, steps]) => (
+              <TabsContent key={role} value={role} className="mt-0 outline-none">
+                <div className="grid gap-10 md:grid-cols-3 md:gap-x-12">
+                  {steps.map((step) => {
+                    const Icon = step.icon;
 
-                  return (
-                    <div
-                      key={step.title}
-                      className="group flex flex-col"
-                    >
-                      {/* Structural Top Divider & Icon Box */}
-                      <div className="flex items-end justify-between border-b border-border/60 pb-5 mb-6 transition-colors duration-300 group-hover:border-foreground/20">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-border/80 bg-card shadow-sm text-foreground transition-all duration-300 group-hover:bg-muted/50 group-hover:shadow-md">
-                          <Icon className="h-[22px] w-[22px] text-foreground/80 transition-colors group-hover:text-foreground" />
+                    return (
+                      <div
+                        key={step.title}
+                        className="gsap-step-card group flex flex-col will-change-transform"
+                      >
+                        {/* Structural Top Divider & Icon Box */}
+                        <div className="flex items-end justify-between border-b border-border/60 pb-5 mb-6 transition-colors duration-300 group-hover:border-foreground/20">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-[10px] border border-border/80 bg-card shadow-sm text-foreground transition-all duration-300 group-hover:bg-muted/50 group-hover:shadow-md">
+                            <Icon className="h-5.5 w-5.5 text-foreground/80 transition-colors group-hover:text-foreground" />
+                          </div>
+                          <div className="text-3xl font-light tracking-tighter text-muted-foreground/30 font-mono transition-colors duration-300 group-hover:text-muted-foreground/50">
+                            {step.id}
+                          </div>
                         </div>
-                        <div className="text-3xl font-light tracking-tighter text-muted-foreground/30 font-mono transition-colors duration-300 group-hover:text-muted-foreground/50">
-                          {step.id}
+
+                        {/* Content Area */}
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold tracking-tight text-foreground mb-3">
+                            {step.title}
+                          </h3>
+                          <p className="text-sm leading-relaxed text-muted-foreground max-w-[95%]">
+                            {step.description}
+                          </p>
                         </div>
                       </div>
-
-                      {/* Content Area */}
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold tracking-tight text-foreground mb-3">
-                          {step.title}
-                        </h3>
-                        <p className="text-sm leading-relaxed text-muted-foreground max-w-[95%]">
-                          {step.description}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </TabsContent>
-          ))}
+                    );
+                  })}
+                </div>
+              </TabsContent>
+            ))}
+          </div>
         </Tabs>
       </div>
     </section>
