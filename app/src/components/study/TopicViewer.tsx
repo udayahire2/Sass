@@ -17,9 +17,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import RichTextEditor from "@/components/editor/RichTextEditor";
-import { type Subject, type Topic, type Note, getNotes, createNote, updateNote } from "@/services/api";
+import { type Subject, type Topic } from "@/services/api";
 
 interface TopicViewerProps {
   topic: Topic;
@@ -62,11 +61,6 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
 
-  // My Notes state
-  const [personalNote, setPersonalNote] = useState<Note | null>(null);
-  const [personalNoteContent, setPersonalNoteContent] = useState("");
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   // Topic completion management
   const { isCompleted, markComplete } = useTopicCompletion(topic.id);
 
@@ -77,49 +71,6 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
     // Scroll to top on topic change
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [topic.id]);
-
-  // Fetch personal note for this topic
-  useEffect(() => {
-    const fetchNote = async () => {
-      try {
-        const allNotes = await getNotes();
-        const topicNote = allNotes.find(n => n.topic_id === topic.id);
-        if (topicNote) {
-          setPersonalNote(topicNote);
-          setPersonalNoteContent(topicNote.content_markdown);
-        } else {
-          setPersonalNote(null);
-          setPersonalNoteContent("");
-        }
-      } catch (e) {
-        console.error("Failed to fetch notes:", e);
-      }
-    };
-    fetchNote();
-  }, [topic.id]);
-
-  const handleNoteChange = useCallback((markdown: string) => {
-    setPersonalNoteContent(markdown);
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        if (personalNote) {
-          const updated = await updateNote(personalNote.id, { content_markdown: markdown });
-          setPersonalNote(updated);
-        } else {
-          const newNote = await createNote({
-            title: `Notes: ${topic.title}`,
-            content_markdown: markdown,
-            topic_id: topic.id
-          });
-          setPersonalNote(newNote);
-        }
-      } catch (e) {
-        console.error("Failed to save note:", e);
-      }
-    }, 1500);
-  }, [personalNote, topic.title, topic.id]);
 
   // Show/hide sticky bottom bar based on scroll position
   useEffect(() => {
@@ -404,52 +355,32 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         </section>
       )}
 
-      {/* ── Content & Notes Tabs ── */}
+      {/* ── Topic Content Section ── */}
       <section className="mb-10">
-        <Tabs defaultValue="content" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="content" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              Topic Content
-            </TabsTrigger>
-            <TabsTrigger value="notes" className="gap-2">
-              <Lightbulb className="h-4 w-4" />
-              My Notes
-            </TabsTrigger>
-          </TabsList>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-primary/80" strokeWidth={1.8} />
+            Topic Content
+          </h2>
+        </div>
 
-          <TabsContent value="content" className="mt-0">
-            {hasNotes ? (
-              <div className="rounded-xl border border-border/40 bg-background overflow-hidden">
-                <RichTextEditor
-                  content={topic.contentMarkdown || topic.markdownContent || ""}
-                  onChange={() => {}}
-                  editable={false}
-                />
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-border/50 bg-muted/10 p-8 text-center">
-                <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/30" />
-                <p className="mt-3 text-sm font-medium text-foreground">Content is not available yet</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Continue with the video lecture for this topic.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="notes" className="mt-0">
-            <div className="rounded-xl border border-border/40 bg-background overflow-hidden">
-              <RichTextEditor
-                content={personalNoteContent}
-                onChange={handleNoteChange}
-                editable={true}
-                placeholder="Write your personal notes for this topic here..."
-                showWordCount={true}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
+        {hasNotes ? (
+          <div className="rounded-xl border border-border/40 bg-background overflow-hidden transition-shadow duration-200 hover:shadow-sm">
+            <RichTextEditor
+              content={topic.contentMarkdown || topic.markdownContent || ""}
+              onChange={() => {}}
+              editable={false}
+            />
+          </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-border/50 bg-muted/10 p-8 text-center">
+            <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/30" />
+            <p className="mt-3 text-sm font-medium text-foreground">Content is not available yet</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Continue with the video lecture for this topic.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* ── Navigation ── */}
