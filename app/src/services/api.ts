@@ -280,3 +280,17 @@ export const deleteNote = async (id: string): Promise<void> => {
     const payload = await response.json();
     if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to delete note'));
 };
+
+export const renameNote = async (id: string, title: string): Promise<Note> => {
+    const response = await fetch(buildApiUrl(`/notes/${id}/rename`), {
+        method: 'PATCH',
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to rename note'));
+    return parseApiData<Note>(payload, {} as Note);
+};
