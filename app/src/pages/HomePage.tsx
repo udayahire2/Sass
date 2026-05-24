@@ -19,7 +19,7 @@ export default function HomePage() {
       <FeatureGrid />
 
       {/* Show how-to guide only for non-authenticated users or faculty/admin */}
-      {!user && <HowItWorksSection />}
+      {user && <HowItWorksSection />}
     </main>
   );
 }
