@@ -95,7 +95,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px]">
+      <div className="mx-auto flex min-h-screen w-full max-w-400">
         {/* Mobile overlay */}
         <div
           aria-hidden="true"
@@ -109,7 +109,7 @@ export default function AdminLayout() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 w-[280px] border-r bg-background transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 w-70 border-r bg-background transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0",
             sidebarOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
