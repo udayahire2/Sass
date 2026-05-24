@@ -20,14 +20,38 @@ exports.getNotes = (req, res, next) => {
     }
 };
 
+// GET /api/v1/notes/:id
+exports.getNoteById = (req, res, next) => {
+    try {
+        const id = req.params.id;
+        const note = get(
+            `SELECT * FROM student_notes WHERE id = ? AND deleted_at IS NULL`,
+            [id]
+        );
+
+        if (!note) {
+            return next(new AppError('Note not found', 404));
+        }
+
+        if (note.user_id !== req.user.id) {
+            return next(new AppError('Unauthorized', 403));
+        }
+
+        return sendSuccess(res, {
+            message: 'Note fetched successfully',
+            data: note,
+        });
+    } catch (error) {
+        return next(error);
+    }
+};
+
 // POST /api/v1/notes
 exports.createNote = (req, res, next) => {
     try {
         const { title, content_markdown, topic_id } = req.body;
         
-        if (!title) {
-            return next(new AppError('Title is required', 400));
-        }
+        const finalTitle = title ? title : 'Untitled';
 
         const id = crypto.randomUUID();
         const timestamp = nowIso();
@@ -35,7 +59,7 @@ exports.createNote = (req, res, next) => {
         run(
             `INSERT INTO student_notes (id, user_id, topic_id, title, content_markdown, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [id, req.user.id, topic_id || null, title, content_markdown || '', timestamp, timestamp]
+            [id, req.user.id, topic_id || null, finalTitle, content_markdown || '', timestamp, timestamp]
         );
 
         const newNote = get(`SELECT * FROM student_notes WHERE id = ?`, [id]);
@@ -93,6 +117,40 @@ exports.updateNote = (req, res, next) => {
 
         return sendSuccess(res, {
             message: 'Note updated successfully',
+            data: updatedNote,
+        });
+    } catch (error) {
+        return next(error);
+    }
+};
+
+// PATCH /api/v1/notes/:id/rename
+exports.renameNote = (req, res, next) => {
+    try {
+        const { title } = req.body;
+        const id = req.params.id;
+
+        if (title === undefined || title === null) {
+            return next(new AppError('Title is required', 400));
+        }
+
+        const note = get(`SELECT * FROM student_notes WHERE id = ? AND deleted_at IS NULL`, [id]);
+
+        if (!note) {
+            return next(new AppError('Note not found', 404));
+        }
+
+        if (note.user_id !== req.user.id) {
+            return next(new AppError('Unauthorized', 403));
+        }
+
+        const timestamp = nowIso();
+        run(`UPDATE student_notes SET title = ?, updated_at = ? WHERE id = ?`, [title || 'Untitled', timestamp, id]);
+
+        const updatedNote = get(`SELECT * FROM student_notes WHERE id = ?`, [id]);
+
+        return sendSuccess(res, {
+            message: 'Note renamed successfully',
             data: updatedNote,
         });
     } catch (error) {
