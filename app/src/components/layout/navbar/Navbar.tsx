@@ -17,8 +17,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { NAV_LINKS } from "@/config/nav-config";
 import { useTheme } from "@/components/theme-provider";
-import { useLocalAuth } from "@/hooks/use-local-auth";
+import { type User as AuthUser, useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
+
+function getDashboardPath(user: AuthUser | null) {
+  if (user?.role === "admin") return "/admin/dashboard";
+  if (user?.role === "faculty") return "/dashboard/faculty";
+  if (user?.role === "student") return "/profile";
+  return "/";
+}
 
 /* -------------------------------------------------------------------------- */
 /*  GSAP-powered dropdown (replaces Radix DropdownMenuContent)                */
@@ -643,12 +650,13 @@ function PopoverMobileMenu() {
 /* -------------------------------------------------------------------------- */
 export function Navbar() {
   const { user } = useLocalAuth();
+  const dashboardPath = getDashboardPath(user);
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-6 lg:gap-8">
-          <Link to="/" className="shrink-0">
+          <Link to={dashboardPath} className="shrink-0" aria-label="Go to dashboard">
             <Logo />
           </Link>
 
