@@ -1,4 +1,5 @@
 import Login from "@/components/auth/Login";
+import { Logo } from "@/components/ui/logo";
 
 export default function LoginPage() {
     return (
@@ -25,7 +26,7 @@ export default function LoginPage() {
                 <div className="relative z-10 max-w-lg ml-8">
                     {/* Testimonial Header */}
                     <div className="mb-10 text-2xl font-bold flex items-center gap-2">
-                        <span className="text-white">📚</span> NMU Study Hub
+                        <Logo />
                     </div>
                     
                     {/* Quote */}

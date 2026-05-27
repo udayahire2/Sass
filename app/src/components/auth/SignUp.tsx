@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ const SignUp = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [branch, setBranch] = useState("");
   const [year, setYear] = useState("");
 
@@ -131,7 +132,7 @@ const SignUp = () => {
           <label className={labelClasses}>Full name</label>
           <Input
             id="name"
-            placeholder="jitu pardhi"
+            placeholder="Enter your full name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -154,15 +155,29 @@ const SignUp = () => {
 
         <div>
           <label className={labelClasses}>Password</label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Create a secure password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={inputClasses}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Create a secure password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`${inputClasses} pr-10`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors animate-none"
+              disabled={loading}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Student Specific Fields */}
@@ -275,12 +290,20 @@ const SignUp = () => {
       </form>
 
       {/* Footer */}
-      <p className="mt-8 text-center text-xs text-zinc-500">
-        Already have an account?{" "}
-        <Link to="/login" className="text-zinc-300 font-medium hover:text-white transition-colors">
-          Sign in
-        </Link>
-      </p>
+      <div className="mt-8 text-center space-y-4">
+        <p className="text-xs text-zinc-500">
+          Already have an account?{" "}
+          <Link to="/login" className="text-zinc-300 font-medium hover:text-white transition-colors">
+            Sign in
+          </Link>
+        </p>
+        
+        <p className="text-[10px] text-zinc-600 tracking-wide max-w-[280px] mx-auto leading-relaxed">
+          By continuing, you agree to NMU StudyHub's{" "}
+          <a href="#" className="underline hover:text-zinc-500 transition-colors">Terms of Service</a> and{" "}
+          <a href="#" className="underline hover:text-zinc-500 transition-colors">Privacy Policy</a>.
+        </p>
+      </div>
     </div>
   );
 };

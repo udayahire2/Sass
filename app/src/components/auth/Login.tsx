@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 
 // COSS UI Components
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<LoginForm>({
@@ -200,7 +201,7 @@ const Login = () => {
                     <Input
                       {...field}
                       type="email"
-                      placeholder="@ Enter your email address"
+                      placeholder="name@example.com"
                       disabled={loading}
                     />
                   </FormControl>
@@ -215,12 +216,27 @@ const Login = () => {
               render={({ field }) => (
                 <FormItem className="space-y-0">
                   <FormControl>
-                    <Input
-                      {...field}
-                      type="password"
-                      placeholder="Enter your password"
-                      disabled={loading}
-                    />
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        disabled={loading}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                        disabled={loading}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage className="text-red-400 text-xs mt-1" />
                 </FormItem>
@@ -235,7 +251,7 @@ const Login = () => {
 
             <Button
               type="submit"
-              className="h-10 mt-2 w-full bg-transparent border border-zinc-800 text-sm font-medium text-zinc-300 hover:bg-zinc-900 hover:text-white transition-all rounded-lg shadow-none"
+              className="h-10 mt-4 w-full bg-[#ededed] text-black hover:bg-white transition-all text-sm font-semibold rounded-lg shadow-none"
               disabled={loading}
             >
               {loading ? (
@@ -244,7 +260,7 @@ const Login = () => {
                   Processing...
                 </>
               ) : (
-                "Continue With Email"
+                "Continue with Email"
               )}
             </Button>
           </form>
@@ -252,16 +268,23 @@ const Login = () => {
       </div>
 
       {/* Footer / Privacy Policy */}
-      <p className="mt-8 text-[11px] text-zinc-500">
-        By continuing, you agree to efferd's{" "}
-        <Link
-          to="/signup"
-          className="underline underline-offset-4 hover:text-zinc-300 transition-colors"
-        >
-          Create new Account
-        </Link>
-        .
-      </p>
+      <div className="mt-8 text-center space-y-4">
+        <p className="text-xs text-zinc-500">
+          New to NMU StudyHub?{" "}
+          <Link
+            to="/signup"
+            className="text-zinc-300 font-medium hover:text-white transition-colors"
+          >
+            Create an account
+          </Link>
+        </p>
+        
+        <p className="text-[10px] text-zinc-600 tracking-wide max-w-[280px] mx-auto leading-relaxed">
+          By continuing, you agree to NMU StudyHub's{" "}
+          <a href="#" className="underline hover:text-zinc-500 transition-colors">Terms of Service</a> and{" "}
+          <a href="#" className="underline hover:text-zinc-500 transition-colors">Privacy Policy</a>.
+        </p>
+      </div>
     </div>
   );
 };
