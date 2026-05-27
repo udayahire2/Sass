@@ -49,7 +49,7 @@ exports.getNoteById = (req, res, next) => {
 // POST /api/v1/notes
 exports.createNote = (req, res, next) => {
     try {
-        const { title, content_markdown, topic_id } = req.body;
+        const { title, content_markdown, topic_id, icon, cover, is_favorite, is_trash, parent_id, font, full_width } = req.body;
         
         const finalTitle = title ? title : 'Untitled';
 
@@ -57,9 +57,24 @@ exports.createNote = (req, res, next) => {
         const timestamp = nowIso();
 
         run(
-            `INSERT INTO student_notes (id, user_id, topic_id, title, content_markdown, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [id, req.user.id, topic_id || null, finalTitle, content_markdown || '', timestamp, timestamp]
+            `INSERT INTO student_notes (id, user_id, topic_id, title, content_markdown, icon, cover, is_favorite, is_trash, parent_id, font, full_width, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                id, 
+                req.user.id, 
+                topic_id || null, 
+                finalTitle, 
+                content_markdown || '', 
+                icon || null, 
+                cover || null, 
+                is_favorite ? 1 : 0, 
+                is_trash ? 1 : 0, 
+                parent_id || null, 
+                font || 'sans', 
+                full_width ? 1 : 0, 
+                timestamp, 
+                timestamp
+            ]
         );
 
         const newNote = get(`SELECT * FROM student_notes WHERE id = ?`, [id]);
@@ -76,7 +91,7 @@ exports.createNote = (req, res, next) => {
 // PUT /api/v1/notes/:id
 exports.updateNote = (req, res, next) => {
     try {
-        const { title, content_markdown, topic_id } = req.body;
+        const { title, content_markdown, topic_id, icon, cover, is_favorite, is_trash, parent_id, font, full_width } = req.body;
         const id = req.params.id;
 
         const note = get(`SELECT * FROM student_notes WHERE id = ? AND deleted_at IS NULL`, [id]);
@@ -104,6 +119,34 @@ exports.updateNote = (req, res, next) => {
         if (topic_id !== undefined) {
             updates.push('topic_id = ?');
             params.push(topic_id);
+        }
+        if (icon !== undefined) {
+            updates.push('icon = ?');
+            params.push(icon);
+        }
+        if (cover !== undefined) {
+            updates.push('cover = ?');
+            params.push(cover);
+        }
+        if (is_favorite !== undefined) {
+            updates.push('is_favorite = ?');
+            params.push(is_favorite ? 1 : 0);
+        }
+        if (is_trash !== undefined) {
+            updates.push('is_trash = ?');
+            params.push(is_trash ? 1 : 0);
+        }
+        if (parent_id !== undefined) {
+            updates.push('parent_id = ?');
+            params.push(parent_id);
+        }
+        if (font !== undefined) {
+            updates.push('font = ?');
+            params.push(font);
+        }
+        if (full_width !== undefined) {
+            updates.push('full_width = ?');
+            params.push(full_width ? 1 : 0);
         }
 
         if (updates.length > 0) {

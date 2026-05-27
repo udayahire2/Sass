@@ -251,3 +251,55 @@
   animation: float-node 8s ease-in-out infinite;
   will-change: transform;
 }
+
+/* Notion-style thin sidebar scrollbar */
+.notion-sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.notion-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.notion-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+}
+.notion-sidebar-scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+
+/* Font family utilities for Notion page styles */
+.font-serif {
+  font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+}
+.font-mono {
+  font-family: var(--font-mono), 'SFMono-Regular', 'Menlo', monospace;
+}
+
+/* Notion-Style Editor Themes */
+.theme-light-editor {
+  background-color: #ffffff !important;
+  color: #37352f !important;
+  --background: 255 255 255;
+  --foreground: 55 53 47;
+}
+
+.theme-dark-editor {
+  background-color: #191919 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  --background: 25 25 25;
+  --foreground: 255 255 255;
+}
+
+.theme-sepia-editor {
+  background-color: #fbf6ec !important;
+  color: #433422 !important;
+  --background: 251 246 236;
+  --foreground: 67 52 34;
+}
+
+.theme-nord-editor {
+  background-color: #2e3440 !important;
+  color: #d8dee9 !important;
+  --background: 46 52 64;
+  --foreground: 216 222 233;
+}

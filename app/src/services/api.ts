@@ -222,6 +222,13 @@ export interface Note {
     topic_id?: string | null;
     title: string;
     content_markdown: string;
+    icon?: string | null;
+    cover?: string | null;
+    is_favorite?: number;
+    is_trash?: number;
+    parent_id?: string | null;
+    font?: string;
+    full_width?: number;
     created_at: string;
     updated_at: string;
 }
@@ -244,7 +251,7 @@ export const getNoteById = async (id: string): Promise<Note | null> => {
     return parseApiData<Note | null>(payload, null);
 };
 
-export const createNote = async (data: { title: string; content_markdown: string; topic_id?: string | null }): Promise<Note> => {
+export const createNote = async (data: Partial<Note>): Promise<Note> => {
     const response = await fetch(buildApiUrl('/notes'), {
         method: 'POST',
         headers: {
@@ -258,7 +265,7 @@ export const createNote = async (data: { title: string; content_markdown: string
     return parseApiData<Note>(payload, {} as Note);
 };
 
-export const updateNote = async (id: string, data: { title?: string; content_markdown?: string; topic_id?: string | null }): Promise<Note> => {
+export const updateNote = async (id: string, data: Partial<Note>): Promise<Note> => {
     const response = await fetch(buildApiUrl(`/notes/${id}`), {
         method: 'PUT',
         headers: {
@@ -293,4 +300,18 @@ export const renameNote = async (id: string, title: string): Promise<Note> => {
     const payload = await response.json();
     if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to rename note'));
     return parseApiData<Note>(payload, {} as Note);
+};
+
+export const updatePreferences = async (preferences: Record<string, unknown>): Promise<any> => {
+    const response = await fetch(buildApiUrl('/auth/preferences'), {
+        method: 'PATCH',
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ preferences }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to update preferences'));
+    return parseApiData<any>(payload, {});
 };

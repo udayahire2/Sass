@@ -1,73 +1,137 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Plus,
-  BookOpen,
-  FileText,
-  Loader2,
-  Trash,
-  MoreHorizontal,
-  ArrowLeft,
-  Menu,
-  Pencil,
-  LayoutTemplate,
-} from "lucide-react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { getNotes, createNote, updateNote, deleteNote, renameNote, type Note } from "@/services/api";
-import RichTextEditor from "@/components/editor/RichTextEditor";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  getNotes,
+  createNote,
+  updateNote,
+  deleteNote,
+  renameNote,
+} from "@/services/api";
+import {
+  DEFAULT_METADATA,
+  type NoteMetadata,
+  type PageFont,
+} from "@/lib/notesMetadata";
+import {
+  NotesPageSidebar,
+  EditorHeader,
+  CoverImage,
+  PageCanvas,
+  EmptyState,
+  SettingsModal,
+  SidebarContextMenu,
+  type NoteWithMeta,
+} from "@/components/notes";
+import { buildTree, getAncestors } from "@/components/notes/helpers";
+import { EmojiPicker } from "@/components/notes/EmojiPicker";
+import { CoverPicker } from "@/components/notes/CoverPicker";
 import { cn } from "@/lib/utils";
-
 export default function NotesPage() {
-  const navigate = useNavigate();
-  const [notes, setNotes] = useState<Note[]>([]);
+  // ── Core State ──
+  const [notes, setNotes] = useState<NoteWithMeta[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const activeNoteIdRef = useRef<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Active note states
+  // ── Active note editing state ──
   const [title, setTitle] = useState("");
-  const [contentMarkdown, setContentMarkdown] = useState("");
+  const [bodyMarkdown, setBodyMarkdown] = useState("");
+  const [metadata, setMetadata] = useState<NoteMetadata>({
+    ...DEFAULT_METADATA,
+  });
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Sidebar state ──
+  const [isSidebarPinned, setIsSidebarPinned] = useState(true);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [showTrash, setShowTrash] = useState(false);
+  const [favoritesExpanded, setFavoritesExpanded] = useState(true);
+
+  // ── Inline rename state ──
   const [renamingNoteId, setRenamingNoteId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const renameInputRef = useRef<HTMLInputElement>(null);
 
-  const startRename = (note: Note, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setRenamingNoteId(note.id);
-    setRenameValue(note.title || "");
-    setTimeout(() => renameInputRef.current?.select(), 50);
+  // ── Emoji / Cover pickers ──
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showCoverPicker, setShowCoverPicker] = useState(false);
+  const emojiTriggerRef = useRef<HTMLButtonElement>(null);
+  const coverTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // ── Settings & Theme State ──
+  const [showSettings, setShowSettings] = useState(false);
+  const [editorTheme, setEditorTheme] = useState("light");
+
+  useEffect(() => {
+    import("@/services/api").then(({ getApiOrigin }) => {
+      fetch(`${getApiOrigin()}/api/v1/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      }).then(r => r.json()).then(payload => {
+        if (payload?.data?.preferences?.editorTheme) {
+          setEditorTheme(payload.data.preferences.editorTheme);
+        } else {
+          setEditorTheme(localStorage.getItem("editor-theme") || "light");
+        }
+      }).catch(() => setEditorTheme(localStorage.getItem("editor-theme") || "light"));
+    });
+  }, []);
+
+  const handleThemeChange = (newTheme: string) => {
+    setEditorTheme(newTheme);
+    localStorage.setItem("editor-theme", newTheme);
+    import("@/services/api").then(({ updatePreferences }) => {
+      updatePreferences({ editorTheme: newTheme }).catch(console.error);
+    });
   };
 
-  const commitRename = async () => {
-    if (!renamingNoteId) return;
-    const trimmed = renameValue.trim() || "Untitled";
-    
-    // Optimistic update
-    setNotes((prev) => prev.map((n) => (n.id === renamingNoteId ? { ...n, title: trimmed } : n)));
-    if (activeNoteId === renamingNoteId) setTitle(trimmed);
-    
-    const noteId = renamingNoteId;
-    setRenamingNoteId(null);
-    
-    try {
-      const updated = await renameNote(noteId, trimmed);
-      setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
-      toast.success("Renamed successfully");
-    } catch {
-      toast.error("Failed to rename");
-    }
-  };
+  // ── Sidebar Context Menu State ──
+  const [sidebarMenu, setSidebarMenu] = useState<{
+    x: number;
+    y: number;
+    note: NoteWithMeta;
+  } | null>(null);
 
-  const cancelRename = () => {
-    setRenamingNoteId(null);
-    setRenameValue("");
-  };
+  // ── Sidebar visibility logic ──
+  const sidebarVisible = isSidebarPinned || sidebarHovered;
+
+  // ── Computed data ──
+  const activeNotes = useMemo(
+    () => notes.filter((n) => !n.meta.trash),
+    [notes]
+  );
+  const trashedNotes = useMemo(
+    () => notes.filter((n) => n.meta.trash),
+    [notes]
+  );
+  const favoriteNotes = useMemo(
+    () => activeNotes.filter((n) => n.meta.favorite),
+    [activeNotes]
+  );
+  const tree = useMemo(() => buildTree(activeNotes), [activeNotes]);
+  const activeNote = notes.find((n) => n.id === activeNoteId);
+  const ancestors = activeNoteId
+    ? getAncestors(activeNoteId, activeNotes)
+    : [];
+
+  const filteredActiveNotes = useMemo(() => {
+    if (!searchQuery.trim()) return activeNotes;
+    const q = searchQuery.toLowerCase();
+    return activeNotes.filter(
+      (n) =>
+        n.title.toLowerCase().includes(q) ||
+        n.bodyMarkdown.toLowerCase().includes(q)
+    );
+  }, [activeNotes, searchQuery]);
+
+  // ────────────────────────────────────────────────────
+  //  Data Loading
+  // ────────────────────────────────────────────────────
 
   useEffect(() => {
     fetchNotes();
@@ -76,9 +140,22 @@ export default function NotesPage() {
   const fetchNotes = async () => {
     try {
       const data = await getNotes();
-      setNotes(data);
-      if (data.length > 0 && !activeNoteId) {
-        selectNote(data[0]);
+      const enriched: NoteWithMeta[] = data.map((n) => {
+        const meta: NoteMetadata = {
+          icon: n.icon || "",
+          cover: n.cover || "",
+          favorite: !!n.is_favorite,
+          trash: !!n.is_trash,
+          parentId: n.parent_id || "",
+          font: (n.font as PageFont) || "sans",
+          fullWidth: !!n.full_width,
+        };
+        return { ...n, meta, bodyMarkdown: n.content_markdown || "" };
+      });
+      setNotes(enriched);
+      if (enriched.length > 0 && !activeNoteIdRef.current) {
+        const firstActive = enriched.find((n) => !n.meta.trash);
+        if (firstActive) selectNote(firstActive);
       }
     } catch (error) {
       console.error("Failed to fetch notes:", error);
@@ -88,286 +165,569 @@ export default function NotesPage() {
     }
   };
 
-  const selectNote = (note: Note) => {
+  // ────────────────────────────────────────────────────
+  //  Note selection
+  // ────────────────────────────────────────────────────
+
+  const selectNote = useCallback((note: NoteWithMeta) => {
     setActiveNoteId(note.id);
     activeNoteIdRef.current = note.id;
     setTitle(note.title);
-    setContentMarkdown(note.content_markdown || "");
-    setIsSidebarOpen(false);
-  };
+    setBodyMarkdown(note.bodyMarkdown);
+    setMetadata({ ...note.meta });
+    // On mobile, close sidebar
+    if (window.innerWidth < 768) {
+      setIsSidebarPinned(false);
+      setSidebarHovered(false);
+    }
+  }, []);
 
-  const handleCreateNote = async () => {
-    try {
+  // ────────────────────────────────────────────────────
+  //  Persistence helpers
+  // ────────────────────────────────────────────────────
+
+  const persistNote = useCallback(
+    (
+      noteId: string,
+      newMeta: NoteMetadata,
+      newBody: string,
+      newTitle?: string
+    ) => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
       setIsSaving(true);
-      const newNote = await createNote({
-        title: "Untitled",
-        content_markdown: "",
-      });
-      setNotes([newNote, ...notes]);
-      selectNote(newNote);
-      toast.success("New note created");
-    } catch {
-      toast.error("Could not create note");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
-  const handleDeleteNote = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm("Delete this note permanently?")) return;
-    
-    try {
-      await deleteNote(id);
-      const newNotes = notes.filter((n) => n.id !== id);
-      setNotes(newNotes);
-      if (activeNoteId === id) {
-        if (newNotes.length > 0) {
-          selectNote(newNotes[0]);
-        } else {
-          setActiveNoteId(null);
-          activeNoteIdRef.current = null;
-          setTitle("");
-          setContentMarkdown("");
+      saveTimeoutRef.current = setTimeout(async () => {
+        try {
+          const payload: Partial<import("@/services/api").Note> = {
+            content_markdown: newBody,
+            icon: newMeta.icon || null,
+            cover: newMeta.cover || null,
+            is_favorite: newMeta.favorite ? 1 : 0,
+            is_trash: newMeta.trash ? 1 : 0,
+            parent_id: newMeta.parentId || null,
+            font: newMeta.font,
+            full_width: newMeta.fullWidth ? 1 : 0,
+          };
+          if (newTitle !== undefined) payload.title = newTitle;
+
+          const updated = await updateNote(noteId, payload);
+          const savedMeta: NoteMetadata = {
+            icon: updated.icon || "",
+            cover: updated.cover || "",
+            favorite: !!updated.is_favorite,
+            trash: !!updated.is_trash,
+            parentId: updated.parent_id || "",
+            font: (updated.font as PageFont) || "sans",
+            fullWidth: !!updated.full_width,
+          };
+
+          setNotes((prev) =>
+            prev.map((n) =>
+              n.id === updated.id
+                ? { ...updated, meta: savedMeta, bodyMarkdown: updated.content_markdown || "" }
+                : n
+            )
+          );
+          setIsSaving(false);
+        } catch {
+          toast.error("Auto-save failed");
+          setIsSaving(false);
         }
-      }
-      toast.success("Note deleted");
-    } catch {
-      toast.error("Failed to delete");
-    }
-  };
+      }, 1200);
+    },
+    []
+  );
 
-  const handleNoteChange = useCallback((newMarkdown: string) => {
-    setContentMarkdown(newMarkdown);
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    
-    setIsSaving(true);
-    saveTimeoutRef.current = setTimeout(async () => {
+  // ────────────────────────────────────────────────────
+  //  Editor Handlers
+  // ────────────────────────────────────────────────────
+
+  const handleNoteChange = useCallback(
+    (newMarkdown: string) => {
+      setBodyMarkdown(newMarkdown);
+      // Optimistic local update
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === activeNoteIdRef.current
+            ? { ...n, bodyMarkdown: newMarkdown }
+            : n
+        )
+      );
       const currentId = activeNoteIdRef.current;
       if (!currentId) return;
-      try {
-        const updated = await updateNote(currentId, { content_markdown: newMarkdown });
-        setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
-        setIsSaving(false);
-      } catch {
-        toast.error("Auto‑save failed");
-        setIsSaving(false);
-      }
-    }, 1500);
-  }, []);
+      const note = notes.find((n) => n.id === currentId);
+      if (!note) return;
+      persistNote(currentId, note.meta, newMarkdown);
+    },
+    [notes, persistNote]
+  );
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-    setNotes((prev) => prev.map((n) => (n.id === activeNoteIdRef.current ? { ...n, title: newTitle } : n)));
+    setNotes((prev) =>
+      prev.map((n) =>
+        n.id === activeNoteIdRef.current ? { ...n, title: newTitle } : n
+      )
+    );
+    const currentId = activeNoteIdRef.current;
+    if (!currentId) return;
+    persistNote(currentId, metadata, bodyMarkdown, newTitle);
+  };
 
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    setIsSaving(true);
-    saveTimeoutRef.current = setTimeout(async () => {
+  // ────────────────────────────────────────────────────
+  //  Metadata Mutations
+  // ────────────────────────────────────────────────────
+
+  const updateMetadataField = useCallback(
+    <K extends keyof NoteMetadata>(key: K, value: NoteMetadata[K]) => {
       const currentId = activeNoteIdRef.current;
       if (!currentId) return;
-      try {
-        const updated = await updateNote(currentId, { title: newTitle });
-        setNotes((prev) => prev.map((n) => (n.id === updated.id ? updated : n)));
-      } catch {
-        toast.error("Failed to save title");
-      } finally {
-        setIsSaving(false);
+
+      const newMeta = { ...metadata, [key]: value };
+      setMetadata(newMeta);
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === currentId ? { ...n, meta: newMeta } : n
+        )
+      );
+      persistNote(currentId, newMeta, bodyMarkdown);
+    },
+    [metadata, bodyMarkdown, persistNote]
+  );
+
+  const handleToggleFavorite = useCallback(
+    (noteId: string) => {
+      const note = notes.find((n) => n.id === noteId);
+      if (!note) return;
+
+      const newMeta = { ...note.meta, favorite: !note.meta.favorite };
+      if (noteId === activeNoteIdRef.current) {
+        setMetadata(newMeta);
       }
-    }, 1500);
+      setNotes((prev) =>
+        prev.map((n) => (n.id === noteId ? { ...n, meta: newMeta } : n))
+      );
+      persistNote(noteId, newMeta, note.bodyMarkdown);
+      toast.success(newMeta.favorite ? "Added to favorites" : "Removed from favorites");
+    },
+    [notes, persistNote]
+  );
+
+  const setPageFont = useCallback(
+    (font: PageFont) => {
+      updateMetadataField("font", font);
+    },
+    [updateMetadataField]
+  );
+
+  const toggleFullWidth = useCallback(() => {
+    updateMetadataField("fullWidth", !metadata.fullWidth);
+  }, [metadata.fullWidth, updateMetadataField]);
+
+  // ────────────────────────────────────────────────────
+  //  CRUD
+  // ────────────────────────────────────────────────────
+
+  const handleCreateNote = async (parentId?: string) => {
+    try {
+      const newMeta: NoteMetadata = {
+        ...DEFAULT_METADATA,
+        parentId: parentId || "",
+      };
+      const newNote = await createNote({
+        title: "Untitled",
+        content_markdown: "",
+        icon: newMeta.icon || null,
+        cover: newMeta.cover || null,
+        is_favorite: newMeta.favorite ? 1 : 0,
+        is_trash: newMeta.trash ? 1 : 0,
+        parent_id: newMeta.parentId || null,
+        font: newMeta.font,
+        full_width: newMeta.fullWidth ? 1 : 0,
+      });
+      const meta: NoteMetadata = {
+        icon: newNote.icon || "",
+        cover: newNote.cover || "",
+        favorite: !!newNote.is_favorite,
+        trash: !!newNote.is_trash,
+        parentId: newNote.parent_id || "",
+        font: (newNote.font as PageFont) || "sans",
+        fullWidth: !!newNote.full_width,
+      };
+      const enriched: NoteWithMeta = {
+        ...newNote,
+        meta,
+        bodyMarkdown: newNote.content_markdown || "",
+      };
+      setNotes((prev) => [enriched, ...prev]);
+      selectNote(enriched);
+      if (parentId) {
+        setExpandedNodes((prev) => new Set(prev).add(parentId));
+      }
+      toast.success("New page created");
+    } catch {
+      toast.error("Could not create page");
+    }
   };
+
+  const handleMoveToTrash = useCallback(
+    (noteId: string) => {
+      const note = notes.find((n) => n.id === noteId);
+      if (!note) return;
+
+      const newMeta = { ...note.meta, trash: true };
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === noteId ? { ...n, meta: newMeta } : n
+        )
+      );
+
+      // If active note is trashed, select another
+      if (activeNoteId === noteId) {
+        const remaining = notes.filter(
+          (n) => n.id !== noteId && !n.meta.trash
+        );
+        if (remaining.length > 0) {
+          selectNote(remaining[0]);
+        } else {
+          setActiveNoteId(null);
+          activeNoteIdRef.current = null;
+        }
+      }
+
+      persistNote(noteId, newMeta, note.bodyMarkdown);
+      toast.success("Moved to Trash");
+    },
+    [notes, activeNoteId, selectNote, persistNote]
+  );
+
+  const handleRestoreFromTrash = useCallback(
+    (noteId: string) => {
+      const note = notes.find((n) => n.id === noteId);
+      if (!note) return;
+
+      const newMeta = { ...note.meta, trash: false };
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === noteId ? { ...n, meta: newMeta } : n
+        )
+      );
+      persistNote(noteId, newMeta, note.bodyMarkdown);
+      toast.success("Page restored");
+    },
+    [notes, persistNote]
+  );
+
+  const handleDeletePermanently = async (noteId: string) => {
+    if (!confirm("Delete this page permanently? This cannot be undone."))
+      return;
+    try {
+      await deleteNote(noteId);
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+      if (activeNoteId === noteId) {
+        const remaining = notes.filter(
+          (n) => n.id !== noteId && !n.meta.trash
+        );
+        if (remaining.length > 0) {
+          selectNote(remaining[0]);
+        } else {
+          setActiveNoteId(null);
+          activeNoteIdRef.current = null;
+        }
+      }
+      toast.success("Page deleted permanently");
+    } catch {
+      toast.error("Failed to delete page");
+    }
+  };
+
+  const handleDuplicateNote = async (noteId: string) => {
+    const note = notes.find((n) => n.id === noteId);
+    if (!note) return;
+    try {
+      const newMeta = { ...note.meta, favorite: false };
+      const dup = await createNote({
+        title: `${note.title} (copy)`,
+        content_markdown: note.bodyMarkdown,
+        icon: newMeta.icon || null,
+        cover: newMeta.cover || null,
+        is_favorite: newMeta.favorite ? 1 : 0,
+        is_trash: newMeta.trash ? 1 : 0,
+        parent_id: newMeta.parentId || null,
+        font: newMeta.font,
+        full_width: newMeta.fullWidth ? 1 : 0,
+      });
+      const meta: NoteMetadata = {
+        icon: dup.icon || "",
+        cover: dup.cover || "",
+        favorite: !!dup.is_favorite,
+        trash: !!dup.is_trash,
+        parentId: dup.parent_id || "",
+        font: (dup.font as PageFont) || "sans",
+        fullWidth: !!dup.full_width,
+      };
+      const enriched: NoteWithMeta = { ...dup, meta, bodyMarkdown: dup.content_markdown || "" };
+      setNotes((prev) => [enriched, ...prev]);
+      toast.success("Page duplicated");
+    } catch {
+      toast.error("Failed to duplicate");
+    }
+  };
+
+  // ── Rename ──
+  const startRename = (note: NoteWithMeta, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRenamingNoteId(note.id);
+    setRenameValue(note.title || "");
+    setTimeout(() => renameInputRef.current?.select(), 50);
+  };
+
+  const commitRename = async () => {
+    if (!renamingNoteId) return;
+    const trimmed = renameValue.trim() || "Untitled";
+    setNotes((prev) =>
+      prev.map((n) =>
+        n.id === renamingNoteId ? { ...n, title: trimmed } : n
+      )
+    );
+    if (activeNoteId === renamingNoteId) setTitle(trimmed);
+    const noteId = renamingNoteId;
+    setRenamingNoteId(null);
+    try {
+      const updated = await renameNote(noteId, trimmed);
+      const meta: NoteMetadata = {
+        icon: updated.icon || "",
+        cover: updated.cover || "",
+        favorite: !!updated.is_favorite,
+        trash: !!updated.is_trash,
+        parentId: updated.parent_id || "",
+        font: (updated.font as PageFont) || "sans",
+        fullWidth: !!updated.full_width,
+      };
+      setNotes((prev) =>
+        prev.map((n) =>
+          n.id === updated.id
+            ? { ...updated, meta, bodyMarkdown: updated.content_markdown || "" }
+            : n
+        )
+      );
+    } catch {
+      toast.error("Failed to rename");
+    }
+  };
+
+  // ────────────────────────────────────────────────────
+  //  Sidebar tree toggle
+  // ────────────────────────────────────────────────────
+
+  const toggleExpanded = (nodeId: string) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) next.delete(nodeId);
+      else next.add(nodeId);
+      return next;
+    });
+  };
+
+  // ────────────────────────────────────────────────────
+  //  FONT CLASS
+  // ────────────────────────────────────────────────────
+
+  const fontClass =
+    metadata.font === "serif"
+      ? "font-serif"
+      : metadata.font === "mono"
+        ? "font-mono"
+        : "font-sans";
+
+  // ────────────────────────────────────────────────────
+  //  LOADING
+  // ────────────────────────────────────────────────────
 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
+          <span className="text-xs text-muted-foreground/50">Loading…</span>
+        </div>
       </div>
     );
   }
 
-  const activeNote = notes.find((n) => n.id === activeNoteId);
-
   return (
     <div className="fixed inset-0 z-50 flex h-screen w-screen overflow-hidden bg-background">
-      {/* Mobile sidebar overlay */}
-      {isSidebarOpen && (
+      {/* ── Mobile overlay ── */}
+      {sidebarVisible && !isSidebarPinned && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 sm:hidden"
-          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-black/20 md:hidden"
+          onClick={() => {
+            setIsSidebarPinned(false);
+            setSidebarHovered(false);
+          }}
         />
       )}
 
-      {/* Sidebar – Notion style */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r bg-card transition-transform duration-300 sm:relative sm:translate-x-0",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <div className="border-b p-3">
-          <button
-            onClick={() => navigate("/profile")}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Dashboard</span>
-          </button>
-        </div>
+      {/* ── Hover zone for collapsed sidebar ── */}
+      {!sidebarVisible && (
+        <div
+          className="fixed inset-y-0 left-0 z-30 w-3 hidden md:block"
+          onMouseEnter={() => setSidebarHovered(true)}
+        />
+      )}
 
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full px-2 py-2">
-            <div className="mb-2 px-2 py-1">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Private
-              </h3>
-            </div>
-            {notes.length === 0 ? (
-              <div className="px-2 py-4 text-center text-xs text-muted-foreground">
-                <p>No pages yet</p>
-              </div>
-            ) : (
-              <div className="space-y-0.5">
-                {notes.map((note) => (
-                  <div
-                    key={note.id}
-                    onClick={() => renamingNoteId !== note.id && selectNote(note)}
-                    className={cn(
-                      "group flex cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-sm transition-all",
-                      activeNoteId === note.id
-                        ? "bg-muted/50 font-medium text-foreground"
-                        : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
-                    )}
-                  >
-                    <div className="flex min-w-0 flex-1 items-center gap-2.5 overflow-hidden">
-                      <FileText className="h-4 w-4 shrink-0 opacity-70" />
-                      {renamingNoteId === note.id ? (
-                        <input
-                          ref={renameInputRef}
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onBlur={commitRename}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") commitRename();
-                            if (e.key === "Escape") cancelRename();
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex-1 rounded border border-primary/30 bg-background px-1.5 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                      ) : (
-                        <span className="truncate">{note.title || "Untitled"}</span>
-                      )}
-                    </div>
-                    {renamingNoteId !== note.id && (
-                      <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                        <button
-                          onClick={(e) => startRename(note, e)}
-                          className="rounded p-1 text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                          title="Rename"
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={(e) => handleDeleteNote(note.id, e)}
-                          className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                          title="Delete"
-                        >
-                          <Trash className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
+      {/* ═══════════════ SIDEBAR ═══════════════ */}
+      <NotesPageSidebar
+        isSidebarPinned={isSidebarPinned}
+        sidebarHovered={sidebarHovered}
+        onSidebarHover={setSidebarHovered}
+        onTogglePin={() => {
+          setIsSidebarPinned(!isSidebarPinned);
+          if (isSidebarPinned) setSidebarHovered(false);
+        }}
+        activeNoteId={activeNoteId}
+        favorites={favoriteNotes}
+        tree={tree}
+        trashedNotes={trashedNotes}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        expandedNodes={expandedNodes}
+        onToggleExpanded={toggleExpanded}
+        showTrash={showTrash}
+        onToggleTrash={() => setShowTrash(!showTrash)}
+        favoritesExpanded={favoritesExpanded}
+        onToggleFavoritesExpanded={() => setFavoritesExpanded(!favoritesExpanded)}
+        filteredActiveNotes={filteredActiveNotes}
+        renamingNoteId={renamingNoteId}
+        renameValue={renameValue}
+        onRenameValueChange={setRenameValue}
+        renameInputRef={renameInputRef}
+        onCommitRename={commitRename}
+        onCancelRename={() => setRenamingNoteId(null)}
+        onSelectNote={selectNote}
+        onStartRename={startRename}
+        onMoveToTrash={handleMoveToTrash}
+        onRestoreFromTrash={handleRestoreFromTrash}
+        onDeletePermanently={handleDeletePermanently}
+        onDuplicateNote={handleDuplicateNote}
+        onCreateNote={handleCreateNote}
+        onToggleFavorite={handleToggleFavorite}
+        onOpenSettings={() => setShowSettings(true)}
+        onContextMenu={(note, e) => setSidebarMenu({ x: e.clientX, y: e.clientY, note })}
+      />
 
-        <div className="border-t p-3">
-          <button
-            onClick={handleCreateNote}
-            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-          >
-            <Plus className="h-4 w-4" />
-            <span>New page</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main editor area */}
-      <div className="flex flex-1 flex-col overflow-hidden bg-background">
-        {activeNote ? (
+      {/* ═══════════════ MAIN AREA ═══════════════ */}
+      <div className={cn(
+        "flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative transition-all duration-300",
+        editorTheme === "light" && "theme-light-editor",
+        editorTheme === "dark" && "theme-dark-editor",
+        editorTheme === "sepia" && "theme-sepia-editor",
+        editorTheme === "nord" && "theme-nord-editor"
+      )}>
+        {activeNote && !activeNote.meta.trash ? (
           <>
-            <header className="sticky top-0 z-10 flex h-12 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsSidebarOpen(true)}
-                  className="rounded-md p-1.5 text-foreground/80 hover:bg-muted/50 sm:hidden"
-                >
-                  <Menu className="h-4 w-4" />
-                </button>
-                <div className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted/50">
-                  <FileText className="h-4 w-4" />
-                  <span className="max-w-[150px] truncate sm:max-w-[300px]">
-                    {title || "Untitled"}
-                  </span>
-                </div>
-                {activeNote.topic_id && (
-                  <Badge variant="outline" className="h-5 border-primary/20 bg-primary/5 px-1.5 text-[10px] font-normal text-primary/80">
-                    Linked
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="hidden text-xs text-muted-foreground sm:inline">
-                  {isSaving ? "Saving…" : "Saved"}
-                </span>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </header>
+            <EditorHeader
+              title={title}
+              metadata={metadata}
+              ancestors={ancestors}
+              activeNoteId={activeNoteId}
+              isSaving={isSaving}
+              sidebarVisible={sidebarVisible}
+              onSelectAncestor={selectNote}
+              onToggleFavorite={() => handleToggleFavorite(activeNoteId!)}
+              onToggleSidebar={() => {
+                setIsSidebarPinned(true);
+              }}
+              onToggleFullWidth={toggleFullWidth}
+              onSetFont={setPageFont}
+              onDuplicate={() => handleDuplicateNote(activeNoteId!)}
+              onTrash={() => handleMoveToTrash(activeNoteId!)}
+              onOpenEmojiPicker={() => setShowEmojiPicker(true)}
+              onOpenCoverPicker={() => setShowCoverPicker(true)}
+            />
 
-            <main className="flex-1 overflow-y-auto">
-              <div className="mx-auto max-w-4xl px-6 py-8 sm:px-8 sm:py-12 lg:px-12">
-                <div className="group relative mb-6 pl-1">
-                  <div className="mb-3 flex gap-3 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground">
-                      <FileText className="h-3.5 w-3.5" /> Add icon
-                    </button>
-                    <button className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground">
-                      <LayoutTemplate className="h-3.5 w-3.5" /> Add cover
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    value={title}
-                    onChange={handleTitleChange}
-                    placeholder="Untitled"
-                    className="w-full border-none bg-transparent px-0 text-3xl font-bold tracking-tight text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 sm:text-4xl"
-                  />
-                </div>
-                <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-primary">
-                  <RichTextEditor
-                    content={contentMarkdown}
-                    onChange={handleNoteChange}
-                    editable={true}
-                    placeholder="Press '/' for commands, or start typing..."
-                    showWordCount={true}
-                  />
-                </div>
-              </div>
-            </main>
+            {metadata.cover && (
+              <CoverImage
+                cover={metadata.cover}
+                onChangeCover={(e) => {
+                  coverTriggerRef.current = e.currentTarget;
+                  setShowCoverPicker(true);
+                }}
+                onRemoveCover={() => updateMetadataField("cover", "")}
+              />
+            )}
+
+            <PageCanvas
+              title={title}
+              metadata={metadata}
+              bodyMarkdown={bodyMarkdown}
+              fontClass={fontClass}
+              onTitleChange={handleTitleChange}
+              onBodyChange={handleNoteChange}
+              onOpenEmojiPicker={(e) => {
+                emojiTriggerRef.current = e.currentTarget;
+                setShowEmojiPicker(true);
+              }}
+              onRemoveIcon={() => updateMetadataField("icon", "")}
+              onOpenCoverPicker={(e) => {
+                coverTriggerRef.current = e.currentTarget;
+                setShowCoverPicker(true);
+              }}
+            />
           </>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-4 bg-background text-center">
-            <BookOpen className="h-12 w-12 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">Select a page or create a new one</p>
-            <Button variant="outline" onClick={handleCreateNote} className="mt-2 rounded-full px-5">
-              New page
-            </Button>
-          </div>
+          <EmptyState
+            sidebarVisible={sidebarVisible}
+            notesCount={notes.length}
+            onCreateNote={() => handleCreateNote()}
+            onToggleSidebar={() => setIsSidebarPinned(true)}
+          />
         )}
       </div>
+
+      <EmojiPicker
+        isOpen={showEmojiPicker}
+        onSelect={(emoji) => {
+          updateMetadataField("icon", emoji);
+          setShowEmojiPicker(false);
+        }}
+        onClose={() => setShowEmojiPicker(false)}
+        triggerRef={emojiTriggerRef}
+      />
+
+      <CoverPicker
+        isOpen={showCoverPicker}
+        onSelect={(cover) => {
+          updateMetadataField("cover", cover);
+          setShowCoverPicker(false);
+        }}
+        onRemove={() => {
+          updateMetadataField("cover", "");
+          setShowCoverPicker(false);
+        }}
+        onClose={() => setShowCoverPicker(false)}
+        triggerRef={coverTriggerRef}
+      />
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        editorTheme={editorTheme}
+        onThemeChange={handleThemeChange}
+      />
+
+      {sidebarMenu && (
+        <SidebarContextMenu
+          note={sidebarMenu.note}
+          position={{ x: sidebarMenu.x, y: sidebarMenu.y }}
+          onClose={() => setSidebarMenu(null)}
+          onRename={startRename}
+          onDuplicate={handleDuplicateNote}
+          onToggleFavorite={handleToggleFavorite}
+          onTrash={handleMoveToTrash}
+        />
+      )}
     </div>
   );
 }

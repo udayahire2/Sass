@@ -582,15 +582,47 @@ function updateAvatar(req, res, next) {
             const user = formatUserWithRelations(getUserById(req.user.id));
 
             return sendSuccess(res, {
-                message: 'Avatar updated successfully',
-                data: user,
-                avatar_url: avatarUrl,
-                legacy: { user, avatar: avatarUrl, avatar_url: avatarUrl },
-            });
+            message: 'Avatar updated successfully',
+            data: user,
+            avatar_url: avatarUrl,
+            legacy: { user, avatar: avatarUrl, avatar_url: avatarUrl },
+        });
         } catch (error) {
             return next(error);
         }
     });
+}
+
+function updatePreferences(req, res, next) {
+    try {
+        const timestamps = createTimestamps();
+        const preferences = req.body.preferences;
+        
+        if (typeof preferences !== 'object' || preferences === null) {
+            return next(new AppError('Preferences must be an object', 400));
+        }
+
+        const userRow = getUserById(req.user.id);
+        const existingPrefs = userRow.preferences ? JSON.parse(userRow.preferences) : {};
+        const newPrefs = { ...existingPrefs, ...preferences };
+
+        run(
+            `UPDATE users
+             SET preferences = ?, updated_at = ?
+             WHERE id = ? AND deleted_at IS NULL`,
+            [JSON.stringify(newPrefs), timestamps.updatedAt, req.user.id]
+        );
+
+        const updatedUser = formatUserWithRelations(getUserById(req.user.id));
+
+        return sendSuccess(res, {
+            message: 'Preferences updated successfully',
+            data: updatedUser,
+            legacy: { user: updatedUser }
+        });
+    } catch (error) {
+        return next(error);
+    }
 }
 
 module.exports = {
@@ -602,5 +634,6 @@ module.exports = {
     register,
     updateAvatar,
     updateDetails,
+    updatePreferences,
     verifyOtp,
 };

@@ -53,6 +53,15 @@ function formatUser(row) {
         return null;
     }
 
+    let preferences = {};
+    if (row.preferences) {
+        try {
+            preferences = typeof row.preferences === 'string' ? JSON.parse(row.preferences) : row.preferences;
+        } catch (e) {
+            // ignore
+        }
+    }
+
     return {
         _id: row.id,
         id: row.id,
@@ -70,6 +79,7 @@ function formatUser(row) {
         collegeName: row.college_name,
         isVerified: Boolean(row.is_verified),
         isApproved: Boolean(row.is_approved),
+        preferences,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };
