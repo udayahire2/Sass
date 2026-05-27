@@ -283,10 +283,6 @@ export default function RichTextEditor({
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     if (!editor || !editable) return;
 
-    // Only show custom context menu if there's a selection
-    const { from, to } = editor.state.selection;
-    if (from === to) return; // No selection, let default browser context menu handle
-
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY });
   }, [editor, editable]);

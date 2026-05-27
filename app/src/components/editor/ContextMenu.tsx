@@ -19,6 +19,9 @@ import {
   Quote,
   FileCode,
   ChevronRight,
+  Undo,
+  Redo,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -34,6 +37,7 @@ type SubMenu = 'none' | 'turnInto';
 export default function ContextMenu({ editor, position, onClose }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [subMenu, setSubMenu] = useState<SubMenu>('none');
+  const hasSelection = !editor.state.selection.empty;
 
   // Position the menu within viewport bounds
   useEffect(() => {
@@ -90,6 +94,82 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
     { label: 'Quote', icon: Quote, action: () => editor.chain().focus().toggleBlockquote().run() },
     { label: 'Code Block', icon: FileCode, action: () => editor.chain().focus().toggleCodeBlock().run() },
   ];
+
+  if (!hasSelection) {
+    return (
+      <div
+        ref={menuRef}
+        className="fixed z-[9999] min-w-[200px] rounded-xl border border-border/40 bg-background/85 backdrop-blur-xl shadow-2xl py-1.5 select-none animate-in fade-in zoom-in-95 duration-100"
+        style={{ left: position.x, top: position.y }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-1.5 py-0.5">
+          <span className="px-2 text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">History</span>
+        </div>
+
+        <div className="px-1">
+          <ContextMenuItem
+            icon={Undo}
+            label="Undo"
+            shortcut="Ctrl+Z"
+            onClick={() => handleAction(() => editor.chain().focus().undo().run())}
+          />
+          <ContextMenuItem
+            icon={Redo}
+            label="Redo"
+            shortcut="Ctrl+Y"
+            onClick={() => handleAction(() => editor.chain().focus().redo().run())}
+          />
+        </div>
+
+        <div className="h-px bg-border/40 mx-2 my-1" />
+
+        {/* Turn Into / Insert Block Sub-menu */}
+        <div className="relative px-1">
+          <button
+            type="button"
+            onMouseEnter={() => setSubMenu('turnInto')}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium text-foreground/80 hover:bg-muted/70 transition-colors cursor-pointer"
+          >
+            <Plus className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="flex-1 text-left">Insert block</span>
+            <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
+          </button>
+
+          {/* Submenu */}
+          {subMenu === 'turnInto' && (
+            <div
+              className="absolute left-full top-0 ml-1 min-w-[180px] rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl shadow-2xl shadow-black/10 py-1 animate-in fade-in slide-in-from-left-1 duration-100"
+              onMouseLeave={() => setSubMenu('none')}
+            >
+              {turnIntoItems.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => handleAction(item.action)}
+                  className="flex w-full items-center gap-2.5 px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-muted/70 transition-colors cursor-pointer"
+                >
+                  <item.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="h-px bg-border/40 mx-2 my-1" />
+
+        <div className="px-1">
+          <ContextMenuItem
+            icon={Trash2}
+            label="Clear Canvas"
+            destructive
+            onClick={() => handleAction(() => editor.commands.clearContent())}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
