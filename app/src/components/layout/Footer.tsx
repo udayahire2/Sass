@@ -14,7 +14,7 @@ export function Footer() {
   return (
     <footer
       className={cn(
-        "relative mx-auto flex w-full max-w-5xl flex-col items-center justify-center rounded-t-4xl border-t px-6 md:rounded-t-6xl md:px-8",
+        "relative mx-auto flex w-full max-w-5xl flex-col items-center justify-center rounded-t-2xl border-t px-6 md:rounded-t-4xl md:px-8",
         "dark:bg-[radial-gradient(35%_128px_at_50%_0%,--theme(--color-foreground/.1),transparent)]"
       )}
     >

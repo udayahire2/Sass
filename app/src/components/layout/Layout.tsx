@@ -5,6 +5,7 @@ import { Navbar } from "./Navbar";
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
+  const isProfilePage = location.pathname.startsWith("/profile");
 
   return (
     <div className="relative flex min-h-screen flex-col bg-transparent">
@@ -15,7 +16,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
         Skip to main content
       </a>
 
-      <Navbar />
+      {!isProfilePage && <Navbar />}
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 sm:px-6 lg:px-8">
         <main id="main-content" className="relative flex-1">

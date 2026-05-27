@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Github } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 // COSS UI Components
 import { Button } from "@/components/ui/button";

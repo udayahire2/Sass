@@ -193,7 +193,7 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: "",
-                        element: <DashboardPage />, // Default redirect
+                        element: <HomePage/>, // Default redirect
                     }
                 ],
             },

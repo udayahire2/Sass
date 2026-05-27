@@ -2,7 +2,22 @@
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut, User, ChevronDown, FileText } from "lucide-react";
+import {
+  Sun,
+  Moon,
+  LogOut,
+  User,
+  ChevronDown,
+  FileText,
+  Compass,
+  Sparkles,
+  Library,
+  HelpCircle,
+  MessageSquare,
+  ArrowRight,
+  FolderOpen,
+  Home
+} from "lucide-react";
 import { gsap } from "gsap";
 import Menu from "@/svgs/menu";
 import { Logo } from "@/components/ui/logo";
@@ -34,10 +49,12 @@ function GsapDropdown({
   trigger,
   children,
   panelClassName,
+  wrapperClassName,
 }: {
   trigger: (props: { open: boolean; toggle: () => void }) => React.ReactNode;
   children: (close: () => void) => React.ReactNode;
   panelClassName?: string;
+  wrapperClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -109,13 +126,21 @@ function GsapDropdown({
     <div ref={rootRef} className="relative">
       {trigger({ open, toggle })}
       <div
-        ref={panelRef}
         className={cn(
-          "absolute top-full right-0 mt-1 z-50 min-w-48 overflow-hidden rounded-md border border-border/40 bg-background/95 p-1 shadow-lg backdrop-blur-xl",
-          panelClassName,
+          "absolute top-full z-50 mt-1",
+          open ? "visible pointer-events-auto" : "invisible pointer-events-none select-none",
+          wrapperClassName || "right-0"
         )}
       >
-        {children(close)}
+        <div
+          ref={panelRef}
+          className={cn(
+            "min-w-48 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#1f1f1f] p-1 shadow-xl shadow-black/5 dark:shadow-black/30",
+            panelClassName,
+          )}
+        >
+          {children(close)}
+        </div>
       </div>
     </div>
   );
@@ -179,12 +204,9 @@ function DesktopNavLinks() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
-  // Build two dropdown groups from NAV_LINKS
   const studyLinks = NAV_LINKS.filter((link) =>
     ["/study-stock", "/resources", "/syllabus"].includes(link.path),
   );
-  // For resources, we also want to show its sub-items inside the same Study dropdown
-  const resourcesLink = studyLinks.find((l) => l.path === "/resources");
   const supportLinks = user && user.role !== "admin"
     ? [
       { path: "/feedback", label: "Feedback" },
@@ -194,38 +216,40 @@ function DesktopNavLinks() {
 
   return (
     <nav className="flex items-center gap-1">
-      {/* Home link – always visible */}
+      {/* Home link */}
       <Link
         to="/"
         className={cn(
-          "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+          "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 border border-transparent",
           isActive("/")
-            ? "bg-muted text-foreground"
-            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+            ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
+            : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
         )}
         aria-current={isActive("/") ? "page" : undefined}
       >
         Home
       </Link>
 
-      {/* Study dropdown */}
+      {/* Study Dropdown - Notion-Themed Mega Menu Grid */}
       <GsapDropdown
+        wrapperClassName="left-0 -translate-x-[60px] mt-2"
+        panelClassName="w-[580px] p-0 grid grid-cols-3 bg-white dark:bg-[#1f1f1f]"
         trigger={({ open, toggle }) => (
           <button
             type="button"
             onClick={toggle}
             className={cn(
-              "flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none",
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
               studyLinks.some((l) => isActive(l.path)) || open
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
+                : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
             )}
           >
             Study
             <ChevronDown
               className={cn(
-                "h-3 w-3 opacity-60 transition-transform duration-200",
-                open && "rotate-180",
+                "h-3.5 w-3.5 opacity-60 transition-transform duration-200 ease-out",
+                open && "rotate-180 text-foreground opacity-100",
               )}
             />
           </button>
@@ -233,91 +257,218 @@ function DesktopNavLinks() {
       >
         {(close) => (
           <>
-            {studyLinks.map((link) => {
-              const active = isActive(link.path);
-              return (
+            {/* Left promo banner card */}
+            <div className="col-span-1 bg-neutral-50 dark:bg-neutral-900/40 p-5 flex flex-col justify-between border-r border-neutral-200 dark:border-neutral-800">
+              <div className="space-y-2">
+                <span className="inline-flex items-center rounded-md bg-neutral-200/50 dark:bg-neutral-800 px-2 py-0.5 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tracking-wide uppercase">
+                  Academic Hub
+                </span>
+                <h4 className="text-sm font-bold text-foreground tracking-tight leading-snug">Learn Smarter</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Access premium study stock, structured syllabus guides, and top-tier question banks designed for maximum performance.
+                </p>
+              </div>
+              <Link
+                to="/resources"
+                onClick={close}
+                className="group/btn inline-flex items-center gap-1 text-xs font-semibold text-neutral-600 hover:text-foreground dark:text-neutral-400 dark:hover:text-foreground transition-colors mt-4"
+              >
+                Browse catalog
+                <ArrowRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
+              </Link>
+            </div>
+
+            {/* Right side navigation items grid */}
+            <div className="col-span-2 p-3 flex flex-col gap-2 bg-white dark:bg-[#1f1f1f]">
+              <div className="grid grid-cols-2 gap-1.5">
+                {/* Study Stock */}
                 <Link
-                  key={link.path}
-                  to={link.path}
+                  to="/study-stock"
                   onClick={close}
-                  className={cn(
-                    "flex w-full items-center rounded-md px-3 py-2 text-sm",
-                    active
-                      ? "bg-muted text-foreground font-medium"
-                      : "text-muted-foreground hover:bg-muted/50",
-                  )}
+                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
                 >
-                  {link.label}
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-500/10 bg-blue-500/5 text-blue-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                    <Library className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
+                        Study Stock
+                      </span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
+                    </div>
+                    <p className="text-[10px] leading-normal text-muted-foreground">
+                      Academic books & lecture notes repository.
+                    </p>
+                  </div>
                 </Link>
-              );
-            })}
-            {/* Sub‑items of Resources (if present) */}
-            {resourcesLink?.dropdown?.map((sub) => {
-              const active = isActive(sub.path);
-              return (
+
+                {/* Syllabus */}
                 <Link
-                  key={sub.path}
-                  to={sub.path}
+                  to="/syllabus"
                   onClick={close}
-                  className={cn(
-                    "flex w-full items-center rounded-md px-6 py-2 text-sm", // indent sub-items
-                    active
-                      ? "bg-muted text-foreground font-medium"
-                      : "text-muted-foreground hover:bg-muted/50",
-                  )}
+                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
                 >
-                  {sub.label}
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/10 bg-emerald-500/5 text-emerald-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                    <Compass className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
+                        Syllabus
+                      </span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
+                    </div>
+                    <p className="text-[10px] leading-normal text-muted-foreground">
+                      Curriculum layouts & weightage details.
+                    </p>
+                  </div>
                 </Link>
-              );
-            })}
+
+                {/* Imp Questions */}
+                <Link
+                  to="/study-material/imp-questions"
+                  onClick={close}
+                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/10 bg-purple-500/5 text-purple-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                    <Sparkles className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
+                        Imp Questions
+                      </span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
+                    </div>
+                    <p className="text-[10px] leading-normal text-muted-foreground">
+                      Frequently asked exam questions.
+                    </p>
+                  </div>
+                </Link>
+
+                {/* Sample Papers */}
+                <Link
+                  to="/study-material/sample-papers"
+                  onClick={close}
+                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/10 bg-rose-500/5 text-rose-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                    <FileText className="h-4.5 w-4.5" />
+                  </div>
+                  <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
+                        Sample Papers
+                      </span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
+                    </div>
+                    <p className="text-[10px] leading-normal text-muted-foreground">
+                      Mock mockups & mock test sets.
+                    </p>
+                  </div>
+                </Link>
+              </div>
+
+              {/* View All Material row */}
+              <Link
+                to="/resources"
+                onClick={close}
+                className="group mt-1 flex items-center justify-between rounded-lg bg-neutral-50 dark:bg-neutral-900/30 border border-neutral-200/60 dark:border-neutral-800/60 p-2.5 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-amber-500/10 bg-amber-500/5 text-amber-500 shadow-3xs">
+                    <FolderOpen className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-0.5 text-left">
+                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
+                      Browse All Material
+                    </span>
+                    <p className="text-[10px] text-muted-foreground leading-none">
+                      Explore our full collection of online assets.
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
+              </Link>
+            </div>
           </>
         )}
       </GsapDropdown>
 
-      {/* Support dropdown (only for non‑admin users) */}
+      {/* Support Dropdown - Notion-Themed Compact List */}
       {supportLinks.length > 0 && (
         <GsapDropdown
+          wrapperClassName="left-1/2 -translate-x-1/2 mt-2"
+          panelClassName="w-[300px] p-1 bg-white dark:bg-[#1f1f1f]"
           trigger={({ open, toggle }) => (
             <button
               type="button"
               onClick={toggle}
               className={cn(
-                "flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors outline-none",
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
                 supportLinks.some((l) => isActive(l.path)) || open
-                  ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                  ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
+                  : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
               )}
             >
               Support
               <ChevronDown
                 className={cn(
-                  "h-3 w-3 opacity-60 transition-transform duration-200",
-                  open && "rotate-180",
+                  "h-3.5 w-3.5 opacity-60 transition-transform duration-250 ease-out",
+                  open && "rotate-180 text-foreground opacity-100",
                 )}
               />
             </button>
           )}
         >
-          {(close) =>
-            supportLinks.map((link) => {
-              const active = isActive(link.path);
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center rounded-md px-3 py-2 text-sm",
-                    active
-                      ? "bg-muted text-foreground font-medium"
-                      : "text-muted-foreground hover:bg-muted/50",
-                  )}
-                >
-                  {link.label}
-                </Link>
-              );
-            })
-          }
+          {(close) => (
+            <div className="flex flex-col gap-0.5">
+              {/* Give Feedback */}
+              <Link
+                to="/feedback"
+                onClick={close}
+                className="group flex gap-3 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-pink-500/10 bg-pink-500/5 text-pink-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                  <MessageSquare className="h-4.5 w-4.5" />
+                </div>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
+                      Give Feedback
+                    </span>
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
+                  </div>
+                  <p className="text-[10px] leading-normal text-muted-foreground">
+                    Suggest ideas or report any platform issues.
+                  </p>
+                </div>
+              </Link>
+
+              {/* How to Use */}
+              <Link
+                to="/how-to-use"
+                onClick={close}
+                className="group flex gap-3 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-cyan-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                  <HelpCircle className="h-4.5 w-4.5" />
+                </div>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
+                      How to Use
+                    </span>
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
+                  </div>
+                  <p className="text-[10px] leading-normal text-muted-foreground">
+                    Quick platform walkthrough and FAQ guides.
+                  </p>
+                </div>
+              </Link>
+            </div>
+          )}
         </GsapDropdown>
       )}
     </nav>
@@ -377,7 +528,7 @@ function UserMenuDesktop() {
             )}
           </button>
         )}
-        panelClassName="w-64 rounded-md p-0"
+        panelClassName="w-64 p-0 bg-white dark:bg-[#1f1f1f]"
       >
         {(close) =>
           user ? (
@@ -459,10 +610,6 @@ function PopoverMobileMenu() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
-  const studyLinks = NAV_LINKS.filter((link) =>
-    ["/study-stock", "/resources", "/syllabus"].includes(link.path),
-  );
-  const resourcesLink = studyLinks.find((l) => l.path === "/resources");
   const supportLinks = user && user.role !== "admin"
     ? [
       { path: "/feedback", label: "Feedback" },
@@ -477,15 +624,16 @@ function PopoverMobileMenu() {
 
   return (
     <GsapDropdown
-      panelClassName="w-64 rounded-md"
+      wrapperClassName="right-0 mt-2"
+      panelClassName="w-68 p-2 bg-white dark:bg-[#1f1f1f]"
       trigger={({ open, toggle }) => (
         <Button
           variant="ghost"
           size="icon"
           onClick={toggle}
           className={cn(
-            "h-9 w-9 rounded-md bg-transparent hover:bg-muted/50 lg:hidden",
-            open && "bg-muted text-foreground",
+            "h-9 w-9 rounded-md bg-transparent hover:bg-muted/50 lg:hidden border border-transparent cursor-pointer",
+            open && "bg-muted text-foreground border-border/40",
           )}
           aria-label="Open navigation menu"
         >
@@ -496,146 +644,212 @@ function PopoverMobileMenu() {
       {(close) => {
         closeDropdownRef.current = close;
         return (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {/* Home */}
             <Link
               to="/"
               onClick={close}
               className={cn(
-                "flex w-full items-center rounded-md px-3 py-2 text-sm",
+                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
                 isActive("/")
-                  ? "bg-muted text-foreground font-medium"
-                  : "text-muted-foreground hover:bg-muted/50",
+                  ? "bg-muted text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
               )}
             >
+              <Home className="h-4 w-4" />
               Home
             </Link>
 
             {/* Study section */}
-            <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Study
+            <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              Study Hub
             </div>
-            {studyLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={close}
-                className={cn(
-                  "flex w-full items-center rounded-md px-3 py-2 text-sm",
-                  isActive(link.path)
-                    ? "bg-muted text-foreground font-medium"
-                    : "text-muted-foreground hover:bg-muted/50",
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-            {resourcesLink?.dropdown?.map((sub) => (
-              <Link
-                key={sub.path}
-                to={sub.path}
-                onClick={close}
-                className={cn(
-                  "flex w-full items-center rounded-md pl-6 pr-3 py-2 text-sm",
-                  isActive(sub.path)
-                    ? "bg-muted text-foreground font-medium"
-                    : "text-muted-foreground hover:bg-muted/50",
-                )}
-              >
-                {sub.label}
-              </Link>
-            ))}
+            
+            {/* Study Stock */}
+            <Link
+              to="/study-stock"
+              onClick={close}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                isActive("/study-stock")
+                  ? "bg-muted text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              <Library className="h-4 w-4 text-blue-500" />
+              Study Stock
+            </Link>
+
+            {/* Syllabus */}
+            <Link
+              to="/syllabus"
+              onClick={close}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                isActive("/syllabus")
+                  ? "bg-muted text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              <Compass className="h-4 w-4 text-emerald-500" />
+              Syllabus
+            </Link>
+
+            {/* Study Material heading */}
+            <div className="pl-3 py-1 text-[10px] font-semibold text-muted-foreground/75 uppercase tracking-wider">
+              Materials
+            </div>
+
+            {/* Browse All */}
+            <Link
+              to="/resources"
+              onClick={close}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
+                isActive("/resources") && !location.pathname.includes("/study-material/")
+                  ? "bg-muted text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              <FolderOpen className="h-4 w-4 text-amber-500" />
+              Browse All
+            </Link>
+
+            {/* Imp Questions */}
+            <Link
+              to="/study-material/imp-questions"
+              onClick={close}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
+                isActive("/study-material/imp-questions")
+                  ? "bg-muted text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              <Sparkles className="h-4 w-4 text-purple-500" />
+              Imp Questions
+            </Link>
+
+            {/* Sample Papers */}
+            <Link
+              to="/study-material/sample-papers"
+              onClick={close}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
+                isActive("/study-material/sample-papers")
+                  ? "bg-muted text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+              )}
+            >
+              <FileText className="h-4 w-4 text-rose-500" />
+              Sample Papers
+            </Link>
 
             {/* Support section (only for non‑admin) */}
             {supportLinks.length > 0 && (
               <>
-                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                   Support
                 </div>
-                {supportLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={close}
-                    className={cn(
-                      "flex w-full items-center rounded-md px-3 py-2 text-sm",
-                      isActive(link.path)
-                        ? "bg-muted text-foreground font-medium"
-                        : "text-muted-foreground hover:bg-muted/50",
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                {/* Feedback */}
+                <Link
+                  to="/feedback"
+                  onClick={close}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                    isActive("/feedback")
+                      ? "bg-muted text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                  )}
+                >
+                  <MessageSquare className="h-4 w-4 text-pink-500" />
+                  Give Feedback
+                </Link>
+
+                {/* How to use */}
+                <Link
+                  to="/how-to-use"
+                  onClick={close}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                    isActive("/how-to-use")
+                      ? "bg-muted text-foreground font-semibold"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                  )}
+                >
+                  <HelpCircle className="h-4 w-4 text-cyan-500" />
+                  How to Use
+                </Link>
               </>
             )}
 
             <div className="my-2 border-t border-border/40" />
 
-            {/* User section (unchanged) */}
+            {/* User section */}
             {user ? (
               <>
-                <div className="px-3 py-2 flex items-center gap-2">
+                <div className="px-3 py-2 flex items-center gap-2 bg-muted/30 rounded-lg">
                   {user.avatar ? (
-                    <Avatar className="h-6 w-6">
+                    <Avatar className="h-7 w-7">
                       <AvatarImage src={user.avatar} alt={user.name} />
                       <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
                     </Avatar>
                   ) : (
-                    <DefaultAvatar name={user.name} size={24} />
+                    <DefaultAvatar name={user.name} size={28} />
                   )}
                   <div className="min-w-0">
-                    <p className="truncate text-xs font-medium">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                    <p className="truncate text-xs font-semibold">{user.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
                 <Link
                   to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/profile"}
                   onClick={close}
-                  className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 >
-                  <User className="mr-2 h-4 w-4" />
+                  <User className="h-4 w-4" />
                   {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
                 </Link>
                 <Link
                   to="/notes"
                   onClick={close}
-                  className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 >
-                  <FileText className="mr-2 h-4 w-4" />
+                  <FileText className="h-4 w-4" />
                   My Notes
                 </Link>
                 <button
                   onClick={() => { close(); logout(); }}
-                  className="flex w-full items-center rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="h-4 w-4" />
                   Log out
                 </button>
               </>
             ) : (
-              <>
+              <div className="grid grid-cols-2 gap-2 p-1">
                 <Link
                   to="/login"
                   onClick={close}
-                  className="flex items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                  className="flex items-center justify-center rounded-lg border border-border/40 px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/signup"
                   onClick={close}
-                  className="flex items-center rounded-md px-3 py-2 text-sm font-medium"
+                  className="flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
                 >
                   Get started
                 </Link>
-              </>
+              </div>
             )}
+            
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex w-full items-center rounded-md px-3 py-2 text-sm hover:bg-muted/50"
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
-              {theme === "dark" ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+              {theme === "dark" ? <Sun className="h-4 w-4 text-amber-500" /> : <Moon className="h-4 w-4 text-blue-500" />}
               {theme === "dark" ? "Light mode" : "Dark mode"}
             </button>
           </div>
