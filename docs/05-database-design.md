@@ -1,324 +1,291 @@
 # Database Design
 
-The active backend uses **SQLite**, not MongoDB. The schema is defined in migration files under `backend/migrations`.
-
-Key migrations:
-
-| Migration | Purpose |
-| --- | --- |
-| `001_initial.up.sql` | Core users, subjects, syllabus, resources, study materials, sessions, OTPs, jobs, and indexes. |
-| `002_study_content_uploads.up.sql` | Normalizes study-material upload metadata. |
-| `003_subjects_units_topics.up.sql` | Adds `units` and `topics` for academic content. |
-| `004_material_feedback.up.sql` | Adds faculty feedback/rating records. |
-| `005_bookmarks.up.sql` | Adds user bookmarks for study materials. |
-| `006_study_content.up.sql` | Additional study content structures. |
-| `007_syllabus_year.up.sql` | Adds academic year to syllabus records. |
-| `008_platform_feedback.up.sql` | Adds platform feedback table for bug reports and feature requests. |
-| `009_resource_file_uploads.up.sql` | Adds file upload support columns to resources table. |
+The active backend uses SQLite through Node `node:sqlite` `DatabaseSync`. The schema is managed through SQL migrations in `backend/migrations`.
 
 ## Database Location
 
-Default database file:
+Default path:
 
 ```text
 backend/data/studyhub.sqlite
 ```
 
-Override with:
+Override:
 
 ```text
-DB_PATH=./custom/path.sqlite
+DB_PATH=./data/studyhub.sqlite
 ```
 
-## Main Tables
+## SQLite Startup Settings
+
+Configured in `backend/src/config/database.js`:
+
+- `PRAGMA foreign_keys = ON`
+- `PRAGMA journal_mode = WAL`
+- `PRAGMA synchronous = NORMAL`
+- `PRAGMA busy_timeout = 5000`
+
+## Migration Inventory
+
+| Migration | Purpose |
+| --- | --- |
+| `001_initial` | Users, faculty subjects, subjects, syllabus, resources, study materials, refresh tokens, OTPs, jobs, and indexes. |
+| `002_study_content_uploads` | Rebuilds `study_materials` with upload metadata. |
+| `003_subjects_units_topics` | Adds units and topics. |
+| `004_material_feedback` | Adds faculty/admin feedback for study materials. |
+| `005_bookmarks` | Adds user bookmarks for study materials. |
+| `006_study_content` | Adds secondary study content table. |
+| `007_syllabus_year` | Adds academic year to syllabi. |
+| `008_platform_feedback` | Adds user platform feedback. |
+| `009_resource_file_uploads` | Adds upload metadata to resources. |
+| `010_student_notes` | Adds personal student notes. |
+| `011_user_preferences` | Adds JSON preferences to users. |
+| `012_student_notes_metadata` | Adds note icons, covers, favorites, trash, page layout, and parent relationships. |
+
+## Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    USERS ||--o{ FACULTY_SUBJECTS : has
+    USERS ||--o{ STUDY_MATERIALS : uploads
+    USERS ||--o{ BOOKMARKS : saves
+    USERS ||--o{ MATERIAL_FEEDBACK : writes
+    USERS ||--o{ PLATFORM_FEEDBACK : submits
+    USERS ||--o{ REFRESH_TOKENS : owns
+    USERS ||--o{ EMAIL_OTPS : receives
+    USERS ||--o{ STUDENT_NOTES : owns
+
+    SUBJECTS ||--o{ UNITS : contains
+    UNITS ||--o{ TOPICS : contains
+    SUBJECTS ||--o{ SYLLABI : maps_to
+    SUBJECTS ||--o{ RESOURCES : classifies
+    SUBJECTS ||--o{ STUDY_MATERIALS : classifies
+
+    STUDY_MATERIALS ||--o{ BOOKMARKS : bookmarked_by
+    STUDY_MATERIALS ||--o{ MATERIAL_FEEDBACK : reviewed_by
+    TOPICS ||--o{ STUDENT_NOTES : linked_to
+    STUDENT_NOTES ||--o{ STUDENT_NOTES : parent_child
+```
+
+## Core Tables
 
 ### `users`
 
-Stores student, faculty, and admin accounts.
+Stores all accounts.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `first_name`, `last_name` | User display name parts. |
-| `email` | Unique login email. |
-| `password_hash` | bcrypt password hash. |
-| `avatar_url` | External avatar URL or local `/uploads/avatars/...` path. |
-| `role` | `student`, `faculty`, or `admin`. |
-| `is_verified` | Email OTP verification flag. |
-| `is_approved` | Faculty approval flag; students/admins are approved by default. |
-| `branch`, `academic_year` | Student academic metadata. |
-| `designation`, `department`, `college_name` | Faculty metadata. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Important columns:
 
-### `faculty_subjects`
+- `id`
+- `first_name`
+- `last_name`
+- `email`
+- `password_hash`
+- `avatar_url`
+- `role`
+- `is_verified`
+- `is_approved`
+- `branch`
+- `academic_year`
+- `designation`
+- `department`
+- `college_name`
+- `preferences`
+- lifecycle timestamps
 
-Stores one subject row per faculty subject.
+Concerns:
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `faculty_user_id` | References `users.id`. |
-| `subject_name` | Subject taught by the faculty member. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+- `preferences` stores JSON text without schema validation.
+- Email is globally unique, which is correct for login.
+- Admin accounts are seeded, not registered publicly.
 
-### `subjects`
+### `subjects`, `units`, `topics`
 
-Stores academic subject metadata used by syllabus and study browsing.
+These tables power academic browsing:
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `code` | Subject code. |
-| `title` | Subject title. |
-| `branch` | Academic branch. |
-| `semester` | Semester number. |
-| `credits` | Credit count. |
-| `description` | Optional description. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+- `subjects`: branch, semester, subject code, title.
+- `units`: ordered unit records per subject.
+- `topics`: Markdown topic content under a unit.
 
-Constraint:
+Concerns:
 
-- `code`, `branch`, and `semester` are unique together.
-
-Current sources:
-
-- `backend/src/seeds/seedSubjects.js` seeds this table from `app/src/data/study-data.ts`.
-- `createSyllabus()` also calls `ensureSubject()` to create or reuse a matching subject row.
-
-### `units`
-
-Stores unit-level subject structure.
-
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `subject_id` | References `subjects.id`. |
-| `unit_number` | Unit order. |
-| `title` | Unit title. |
-| `description` | Optional unit description. |
-| `created_at`, `deleted_at` | Lifecycle timestamps. |
-
-Constraint:
-
-- `subject_id` and `unit_number` are unique together.
-
-### `topics`
-
-Stores individual topic content under units.
-
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `unit_id` | References `units.id`. |
-| `title` | Topic title. |
-| `content_markdown` | Topic Markdown rendered in the frontend. |
-| `video_url` | Optional video URL. |
-| `created_at`, `deleted_at` | Lifecycle timestamps. |
+- Subject/unit/topic management is seed-script driven plus topic edit route.
+- Full admin CRUD is missing.
+- No full-text index exists for topic content.
 
 ### `syllabi`
 
-Stores syllabus records and their content references.
+Stores syllabus records.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `subject_id` | Optional reference to `subjects.id`. |
-| `title` | Course title. |
-| `code` | Course/subject code. |
-| `branch` | Branch name. |
-| `semester` | Semester as text, including `all`. |
-| `type` | `pdf` or `markdown`. |
-| `credits` | Currently stored as `0` for newly created records. |
-| `content_url` | PDF path or Markdown content. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Important columns:
 
-Behavior:
+- `subject_id`
+- `title`
+- `code`
+- `branch`
+- `semester`
+- `academic_year`
+- `type`
+- `credits`
+- `content_url`
 
-- PDF uploads store paths such as `/uploads/syllabus/file.pdf`.
-- Markdown/text uploads store the file text directly in `content_url`.
+Concerns:
+
+- `credits` exists but create flow stores `0`.
+- `content_url` is overloaded: it may be a local PDF path or raw Markdown content.
 
 ### `resources`
 
-Stores admin-managed URL resources or uploaded files.
+Stores admin-managed resources, links, and uploaded resource files.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `subject_id` | Optional reference to `subjects.id`. |
-| `title`, `subject` | Resource title and subject label. |
-| `semester`, `branch`, `academic_year` | Academic classification. |
-| `type` | `pdf`, `video`, `doc`, or `markdown`. |
-| `description` | Resource description. |
-| `category` | `Notes`, `PYQ`, `Syllabus`, `Lab Manual`, `Reference Book`, or `Other`. |
-| `pattern`, `unit` | Optional tags/metadata. |
-| `author` | Author/source label. |
-| `url` | External resource URL (if not using file upload). |
-| `file_path` | Local upload path such as `/uploads/resources/file.pdf` (if uploaded). |
-| `original_filename` | Original uploaded filename. |
-| `mime_type` | Uploaded file MIME type. |
-| `file_size` | File size in bytes. |
-| `status` | `pending`, `approved`, or `rejected`. Admin-created records default to `approved`. |
-| `created_by_user_id`, `approved_by_user_id` | User/admin references. |
-| `approved_at`, `rejection_reason` | Moderation metadata. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Important columns:
+
+- `title`
+- `subject`
+- `semester`
+- `branch`
+- `type`
+- `description`
+- `category`
+- `pattern`
+- `unit`
+- `academic_year`
+- `author`
+- `url`
+- `file_path`
+- `original_filename`
+- `mime_type`
+- `file_size`
+- `status`
+
+Concerns:
+
+- API can update resources, but UI edit workflow is incomplete.
+- Resource list validation accepts pagination, but controller returns all matching records.
+- Resource files are also served statically from `/uploads/resources`.
 
 ### `study_materials`
 
-Stores user-submitted study uploads and links.
+Stores user-submitted materials.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `subject_id` | Optional reference to `subjects.id`. |
-| `title`, `subject` | Material title and subject label. |
-| `type` | `PDF`, `PPT`, `DOCX`, `Markdown`, `Video`, or `Notes`. |
-| `url` | Optional external URL. |
-| `file_path` | Local upload path such as `/uploads/file.pdf`. |
-| `original_filename` | Original uploaded filename. |
-| `mime_type` | Uploaded file MIME type. |
-| `file_size` | File size in bytes. |
-| `status` | `pending`, `approved`, or `rejected`. |
-| `author` | Credit name shown in the UI. |
-| `uploader_user_id` | Uploading user. |
-| `approved_by_user_id`, `approved_at`, `rejection_reason` | Review metadata. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Important columns:
 
-This table powers public approved uploads, admin approval queues, profile upload history, bookmarks, and faculty stats.
+- `title`
+- `subject`
+- `type`
+- `url`
+- `file_path`
+- `original_filename`
+- `mime_type`
+- `file_size`
+- `status`
+- `author`
+- `uploader_user_id`
+- `approved_by_user_id`
+- `approved_at`
+- `rejection_reason`
+
+Concerns:
+
+- No pagination for public approved, pending, or rejected lists.
+- File type is inferred by extension, but MIME/content scanning is not implemented.
+- No duplicate detection.
+
+### `student_notes`
+
+Stores user notes and page metadata.
+
+Important columns:
+
+- `user_id`
+- `topic_id`
+- `title`
+- `content_markdown`
+- `icon`
+- `cover`
+- `is_favorite`
+- `is_trash`
+- `parent_id`
+- `font`
+- `full_width`
+
+Concerns:
+
+- `parent_id` can point to another note, but there is no cycle prevention.
+- Note metadata updates are unvalidated beyond controller logic.
+- No conflict resolution for concurrent edits.
 
 ### `bookmarks`
 
-Stores saved study materials for users.
+Stores a user/material pair.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `user_id` | References `users.id`. |
-| `study_material_id` | References `study_materials.id`. |
-| `created_at` | Bookmark timestamp. |
+Concern:
 
-Constraint:
-
-- One bookmark per user/material pair.
+- Bookmark delete is physical, unlike most other app records.
 
 ### `material_feedback`
 
-Stores faculty/admin feedback on approved study materials.
+Stores one review per reviewer and study material.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `study_material_id` | References `study_materials.id`. |
-| `reviewer_user_id` | References `users.id`. |
-| `feedback_text` | Review text. |
-| `rating` | Integer from 1 to 5. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Important:
 
-Constraint:
+- `UNIQUE (study_material_id, reviewer_user_id)` prevents duplicate active rows.
 
-- One feedback row per reviewer/material pair.
+Concern:
 
-### `platform_feedback`
-
-Stores user-submitted platform feedback (bug reports, feature requests, general feedback).
-
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `user_id` | References `users.id`. |
-| `type` | Feedback type: `bug`, `feature`, `general`, or `other`. |
-| `message` | Feedback text/description. |
-| `status` | `pending`, `reviewed`, or `resolved`. Defaults to `pending`. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+- The unique constraint does not account for soft-deleted rows, so re-creating after soft delete may need special handling.
 
 ### `refresh_tokens`
 
 Stores rotating refresh-token sessions.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `user_id` | References `users.id`. |
-| `family_id` | Groups rotated tokens. |
-| `token_hash` | Hash of raw refresh token. |
-| `user_agent`, `ip_address` | Request metadata. |
-| `expires_at`, `revoked_at` | Session validity timestamps. |
-| `replaced_by_token_id` | Links old token to replacement token. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Important:
+
+- Raw refresh tokens are not stored.
+- `family_id` supports family revocation.
+- `replaced_by_token_id` links rotations.
 
 ### `email_otps`
 
-Stores hashed OTPs for email verification.
+Stores hashed OTPs.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `user_id` | References `users.id`. |
-| `email` | Target email. |
-| `purpose` | Currently `account_verification`. |
-| `otp_hash` | Hash of the 6-digit OTP. |
-| `expires_at` | OTP expiry. |
-| `used_at` | Verification timestamp. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Important:
+
+- OTP expiry is 10 minutes.
+- Old unused OTPs are soft-deleted when a new OTP is generated.
 
 ### `jobs`
 
-Stores background job records.
+Stores background jobs such as `email.send`.
 
-| Column | Meaning |
-| --- | --- |
-| `id` | UUID primary key. |
-| `type` | Job type, such as `email.send`. |
-| `payload_json` | Serialized payload. |
-| `status` | `pending`, `processing`, `completed`, or `failed`. |
-| `attempts`, `max_attempts` | Retry tracking. |
-| `available_at`, `processed_at` | Scheduling/completion timestamps. |
-| `error_message` | Last failure message. |
-| `created_at`, `updated_at`, `deleted_at` | Lifecycle timestamps. |
+Current behavior:
 
-Implementation caveat:
+- Long-running server starts the worker loop.
+- Serverless entry point does not run a long-lived worker.
 
-- Job rows are created, but the local server currently does not start the worker loop.
-
-## Indexes
+## Index Coverage
 
 The schema includes indexes for:
 
 - Users by role and email.
 - Faculty subjects by faculty user.
 - Subjects by branch and semester.
-- Syllabus by branch and semester.
-- Resources by branch, semester, year, status, and creation time.
-- Study materials by status and creation time.
+- Syllabi by branch, semester, and year.
+- Resources by filters and status.
+- Study materials by status and created date.
 - Refresh tokens by user and family.
 - OTPs by email and purpose.
 - Jobs by status and availability.
 - Feedback by material and reviewer.
+- Notes by user/topic/deleted state.
 
-## Entity Relationships
+## Database Concerns For Launch
 
-| Relationship | Type |
-| --- | --- |
-| User to faculty subjects | One-to-many |
-| Subject to syllabus | One-to-many, optional |
-| Subject to units | One-to-many |
-| Unit to topics | One-to-many |
-| Subject to resources | One-to-many, optional |
-| Subject to study materials | One-to-many, optional |
-| User to uploaded study materials | One-to-many |
-| User to bookmarks | One-to-many |
-| Study material to bookmarks | One-to-many |
-| Study material to feedback | One-to-many |
-| User to material feedback | One-to-many |
-| User to platform feedback | One-to-many |
-| User to refresh tokens | One-to-many |
-| User to OTPs | One-to-many |
-
-## Soft Delete Strategy
-
-Most primary tables use `deleted_at` rather than physical deletion. Queries commonly include:
-
-```sql
-WHERE deleted_at IS NULL
-```
-
-The `bookmarks` table is an exception: bookmark toggling physically deletes the bookmark row.
+| Concern | Risk | Recommendation |
+| --- | --- | --- |
+| SQLite file durability | Loss of data if filesystem is ephemeral. | Use durable volume or move to managed Postgres. |
+| Automatic migrations on startup | Risky if migration fails during deploy. | Use explicit migration step in CI/CD. |
+| No backup runbook | Data loss risk. | Define backup frequency, retention, restore drills. |
+| No full-text indexes | Search slows as content grows. | Add SQLite FTS or external search. |
+| Synchronous DB API | Blocks Node event loop during heavy queries. | Add pagination and consider async DB/Postgres for scale. |
+| JSON preferences | No server-side schema. | Validate allowed preference keys. |
+| Note tree cycles | Potential UI recursion issues. | Add cycle prevention before updating `parent_id`. |

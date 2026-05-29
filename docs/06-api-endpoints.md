@@ -6,11 +6,15 @@ Base URL:
 /api/v1
 ```
 
-The frontend builds this from `VITE_API_URL` or defaults to `/api/v1`.
+Frontend default:
 
-## Standard Response Shape
+```text
+VITE_API_URL=/api/v1
+```
 
-Most successful responses use:
+## Response Shape
+
+Most API responses follow:
 
 ```json
 {
@@ -20,27 +24,38 @@ Most successful responses use:
 }
 ```
 
-Some endpoints also return legacy top-level fields for compatibility with existing frontend code.
+Some endpoints still return legacy fields for compatibility. New code should prefer `data`.
+
+## Authentication Headers
+
+Protected endpoints expect:
+
+```text
+Authorization: Bearer <access-token>
+```
+
+Refresh-token endpoints read the HTTP-only refresh cookie.
 
 ## Health
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/health` | Public | Returns server health, message, and timestamp. |
+| `GET` | `/health` | Public | Server health response. |
 
-## Authentication: `/auth`
+## Auth: `/auth`
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `POST` | `/auth/register` | Public | Register student/faculty and create OTP. |
-| `POST` | `/auth/login` | Public | Login with email and password. |
-| `POST` | `/auth/verify-otp` | Public | Verify 6-digit OTP and create session. |
-| `POST` | `/auth/refresh` | Refresh cookie | Rotate refresh token and create a new access token. |
+| `POST` | `/auth/register` | Public, rate limited | Register student/faculty and enqueue OTP email. |
+| `POST` | `/auth/login` | Public, rate limited | Login with email/password. |
+| `POST` | `/auth/verify-otp` | Public, rate limited | Verify OTP and create session. |
+| `POST` | `/auth/refresh` | Refresh cookie, rate limited | Rotate refresh token and return new session. |
 | `POST` | `/auth/logout` | Optional refresh cookie | Revoke refresh-token family and clear cookie. |
 | `GET` | `/auth/me` | User | Return current authenticated user. |
-| `GET` | `/auth/faculty/profile` | Faculty user | Return current faculty profile. |
 | `PUT` | `/auth/updatedetails` | User | Update name, branch, or year. |
 | `PUT` | `/auth/updateavatar` | User | Upload avatar image. |
+| `PATCH` | `/auth/preferences` | User | Merge user preference JSON. |
+| `GET` | `/auth/faculty/profile` | Faculty | Return current faculty profile. |
 
 Student registration:
 
@@ -70,121 +85,56 @@ Faculty registration:
 }
 ```
 
-OTP verification:
+Preferences update:
 
 ```json
 {
-  "email": "student@example.com",
-  "otp": "123456"
+  "preferences": {
+    "editorTheme": "dark"
+  }
 }
 ```
 
-Profile update:
-
-```json
-{
-  "name": "Updated Name",
-  "branch": "Computer",
-  "year": "TE"
-}
-```
-
-Avatar upload uses `multipart/form-data` with field name `avatar`.
+Launch note: `preferences` currently accepts arbitrary keys. Add server-side schema before production.
 
 ## Admin: `/admin`
 
-All admin endpoints require:
-
-```text
-Authorization: Bearer <access-token>
-```
-
-The authenticated user must have `role = admin`.
+All endpoints require admin role.
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | `GET` | `/admin/stats` | Dashboard totals and 7-day activity counts. |
 | `GET` | `/admin/profile` | Current admin profile. |
-| `PATCH` | `/admin/profile` | Update admin first name, last name, or email. |
-| `GET` | `/admin/users` | List student users with optional pagination/search. |
-| `DELETE` | `/admin/users/:id` | Soft-delete a non-admin user. |
+| `PATCH` | `/admin/profile` | Update first name, last name, or email. |
+| `GET` | `/admin/users` | List student users with pagination/search. |
+| `DELETE` | `/admin/users/:id` | Soft-delete non-admin user. |
 | `GET` | `/admin/faculty/pending` | List faculty waiting for approval. |
 | `GET` | `/admin/faculty/all` | List all faculty users. |
 | `PATCH` | `/admin/faculty/:id/approve` | Approve faculty access. |
 | `PATCH` | `/admin/faculty/:id/reject` | Revoke faculty approval. |
 
-`GET /admin/users` accepts:
+`GET /admin/users` supports:
 
 | Query | Purpose |
 | --- | --- |
-| `page` | Page number. Defaults to 1. |
-| `limit` | Page size. Maximum 100. |
-| `search` | Search by student name or email. |
+| `page` | Page number. |
+| `limit` | Page size, max 100. |
+| `search` | Search by student name/email. |
 
 ## Resources: `/resources`
 
-Resources are admin-managed URL records or uploaded files. Public callers see approved records only. Admin callers can filter by status.
+Resources are admin-managed records. Public callers see approved records only. Admin callers can request status filters.
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/resources` | Optional | List resources. |
-| `POST` | `/resources` | Admin | Create an approved resource record (URL or file upload). |
-| `GET` | `/resources/:id` | Optional | Get one resource. Public cannot view non-approved resources. |
-| `PATCH` | `/resources/:id` | Admin | Update a resource. |
-| `DELETE` | `/resources/:id` | Admin | Soft-delete a resource. |
+| `POST` | `/resources` | Admin | Create approved resource with URL or file. |
+| `GET` | `/resources/:id` | Optional | Fetch one resource. |
+| `PATCH` | `/resources/:id` | Admin | Update resource. |
+| `DELETE` | `/resources/:id` | Admin | Soft-delete resource. |
+| `GET` | `/resources/:id/file` | Public | Stream uploaded resource file. |
 
-Resource query parameters:
-
-| Query | Purpose |
-| --- | --- |
-| `branch` | Filter by branch. |
-| `semester` | Filter by semester. |
-| `search` | Search title, subject, or author. |
-| `status` | Admin-only status filter. |
-| `page`, `limit` | Accepted by validation, but current controller returns all matching rows. |
-
-Create resource with URL:
-
-```json
-{
-  "title": "Unit 1 DBMS Notes",
-  "subject": "DBMS",
-  "semester": "Sem 4",
-  "branch": "Computer",
-  "type": "pdf",
-  "description": "Complete unit 1 notes with examples.",
-  "category": "Notes",
-  "pattern": "2019",
-  "unit": "All",
-  "year": "SE",
-  "author": "Admin",
-  "url": "https://example.com/dbms-unit-1.pdf"
-}
-```
-
-Create resource with file upload uses `multipart/form-data`:
-
-| Field | Required | Meaning |
-| --- | --- | --- |
-| `title` | Yes | Resource title. |
-| `subject` | Yes | Subject name. |
-| `semester` | Yes | Semester identifier. |
-| `branch` | Yes | Branch enum. |
-| `type` | Optional | `pdf`, `video`, `doc`, or `markdown`. |
-| `description` | Optional | Resource description. |
-| `category` | Optional | `Notes`, `PYQ`, `Syllabus`, `Lab Manual`, `Reference Book`, or `Other`. |
-| `author` | Optional | Author/source label. |
-| `file` | Yes (if no URL) | Uploaded resource file. |
-| `url` | Yes (if no file) | External resource URL. |
-
-File uploads store metadata:
-
-| Column | Meaning |
-| --- | --- |
-| `file_path` | Local upload path such as `/uploads/resources/file.pdf`. |
-| `original_filename` | Original uploaded filename. |
-| `mime_type` | Uploaded file MIME type. |
-| `file_size` | File size in bytes. |
+Known gap: query validation accepts `page` and `limit`, but the controller currently returns all matching resources.
 
 ## Study Materials: `/study-materials`
 
@@ -192,32 +142,30 @@ Study materials are user submissions that go through admin moderation.
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/study-materials/approved` | Public | List approved materials visible to students. |
+| `GET` | `/study-materials/approved` | Public | List approved materials. |
 | `GET` | `/study-materials/pending` | Admin | List pending submissions. |
 | `GET` | `/study-materials/rejected` | Admin | List rejected submissions. |
-| `GET` | `/study-materials/my` | User | List uploads created by the logged-in user. |
-| `GET` | `/study-materials/bookmarks` | User | List materials bookmarked by the logged-in user. |
-| `POST` | `/study-materials/:id/bookmark` | User | Toggle bookmark for one material. |
-| `POST` | `/study-materials` | User plus approved-faculty check | Upload or submit a study material. |
-| `PATCH` | `/study-materials/:id/status` | Admin | Approve or reject a material. |
-| `GET` | `/study-materials/faculty/stats` | Faculty/Admin | Return contribution and feedback counts for current user. |
-| `GET` | `/study-materials/:id/feedback` | User | Fetch feedback for one material. |
-| `POST` | `/study-materials/:id/feedback` | Approved faculty/Admin | Create or update feedback for one material. |
+| `GET` | `/study-materials/my` | User | List current user's uploads. |
+| `GET` | `/study-materials/bookmarks` | User | List bookmarked materials. |
+| `POST` | `/study-materials/:id/bookmark` | User | Toggle bookmark. |
+| `POST` | `/study-materials` | User, approved-faculty check | Upload material file or URL. |
+| `PATCH` | `/study-materials/:id/status` | Admin | Approve or reject material. |
+| `GET` | `/study-materials/faculty/stats` | Faculty/Admin | Contribution stats. |
+| `POST` | `/study-materials/:id/feedback` | Approved faculty/Admin | Create or update material feedback. |
+| `GET` | `/study-materials/:id/feedback` | User | Fetch material feedback. |
 
-Upload study material uses `multipart/form-data`.
-
-Fields:
+Upload fields:
 
 | Field | Required | Meaning |
 | --- | --- | --- |
 | `title` | Yes | Material title. |
 | `subject` | Yes | Subject name. |
-| `type` | Optional | `PDF`, `PPT`, `DOCX`, `Markdown`, `Video`, or `Notes`. If a file is uploaded, type is inferred and must match if supplied. |
-| `author` | Optional | Credit name. Defaults to logged-in user name or `Student`. |
-| `url` | Required only if no file | External material URL. |
-| `file` | Required only if no URL | Uploaded file. |
+| `type` | Optional | Inferred from file when present. |
+| `author` | Optional | Credit name. |
+| `url` | Required if no file | External material URL. |
+| `file` | Required if no URL | Uploaded file. |
 
-Allowed uploaded extensions:
+Allowed file extensions:
 
 - `.pdf`
 - `.ppt`
@@ -231,34 +179,18 @@ Maximum file size:
 50 MB
 ```
 
-Update material status:
-
-```json
-{
-  "status": "approved",
-  "reason": "Optional reason when rejected"
-}
-```
-
-Feedback request:
-
-```json
-{
-  "feedback_text": "Clear and useful material for revision.",
-  "rating": 5
-}
-```
+Known gap: list endpoints are not paginated.
 
 ## Syllabus: `/syllabus`
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/syllabus` | Public | List all non-deleted syllabus records. |
-| `GET` | `/syllabus/:id/file` | Public | Stream an uploaded syllabus PDF file. |
-| `POST` | `/syllabus` | Admin | Create syllabus record from uploaded file or supplied content. |
-| `DELETE` | `/syllabus/:id` | Admin | Soft-delete syllabus record. |
+| `GET` | `/syllabus` | Public | List syllabus records. |
+| `POST` | `/syllabus` | Admin | Create syllabus from upload or content. |
+| `DELETE` | `/syllabus/:id` | Admin | Soft-delete syllabus. |
+| `GET` | `/syllabus/:id/file` | Public | Stream syllabus PDF file. |
 
-Create syllabus with JSON:
+Create JSON example:
 
 ```json
 {
@@ -271,92 +203,71 @@ Create syllabus with JSON:
 }
 ```
 
-Create syllabus with upload uses `multipart/form-data`.
+Known gap: `credits` exists in the database but is not accepted by the create schema.
 
-Fields:
+## Notes: `/notes`
 
-| Field | Required | Meaning |
+All notes endpoints require authentication.
+
+| Method | Endpoint | Purpose |
 | --- | --- | --- |
-| `title` | Yes | Course title. |
-| `code` | Yes | Subject code. |
-| `branch` | Yes | Branch enum. Supports `Both` in validation. |
-| `semester` | Yes | `1` to `8`, or `all`. |
-| `type` | Yes | `pdf` or `markdown`. Overwritten from uploaded file extension when file is supplied. |
-| `contentUrl` | Required after upload preparation | PDF path or Markdown content. |
-| `file` | Optional | PDF, Markdown, or text file. |
+| `GET` | `/notes` | Fetch current user's notes. |
+| `GET` | `/notes/:id` | Fetch one current-user note. |
+| `POST` | `/notes` | Create note. |
+| `PUT` | `/notes/:id` | Update content and metadata. |
+| `PATCH` | `/notes/:id/rename` | Rename note. |
+| `DELETE` | `/notes/:id` | Soft-delete note. |
 
-Allowed file extensions:
+Supported note metadata:
 
-- `.pdf`
-- `.md`
-- `.markdown`
-- `.txt`
+- `icon`
+- `cover`
+- `is_favorite`
+- `is_trash`
+- `parent_id`
+- `font`
+- `full_width`
 
-Maximum file size:
+Known gaps:
 
-```text
-20 MB
-```
-
-Current note:
-
-- Credits are not accepted by the current create syllabus schema. New rows store `credits = 0`.
+- No request schema for note payloads.
+- No parent-cycle prevention.
+- No conflict resolution for concurrent edits.
 
 ## Platform Feedback: `/feedback`
 
-Users can submit platform feedback (bug reports, feature requests, general feedback). Admins can review and manage feedback.
-
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `POST` | `/feedback` | User | Submit platform feedback. |
-| `GET` | `/feedback` | Admin | List all platform feedback with user details. |
+| `POST` | `/feedback` | User | Submit bug/feature/general feedback. |
+| `GET` | `/feedback` | Admin | List platform feedback. |
 | `PUT` | `/feedback/:id/status` | Admin | Update feedback status. |
 | `DELETE` | `/feedback/:id` | Admin | Soft-delete feedback. |
 
-Submit feedback:
-
-```json
-{
-  "type": "bug",
-  "message": "Upload button not working on Firefox"
-}
-```
-
-Feedback types:
-
-```text
-bug, feature, general, other
-```
-
-Feedback statuses:
-
-```text
-pending, reviewed, resolved
-```
-
-Update feedback status:
-
-```json
-{
-  "status": "reviewed"
-}
-```
-
-## Academic Content: `/subjects` and `/topics`
-
-These endpoints serve seeded academic content.
+## Academic Content: `/subjects` And `/topics`
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/subjects?branch=Computer&semester=4` | Public | Fetch subjects for a branch/semester. |
-| `GET` | `/subjects/:id/units` | Public | Fetch units and nested topics for a subject. |
-| `GET` | `/topics/:id` | Public | Fetch a topic with Markdown content, video info, unit, and subject metadata. |
+| `GET` | `/subjects?branch=Computer&semester=4` | Public | Fetch subjects. |
+| `GET` | `/subjects/:id/units` | Public | Fetch units and nested topics. |
+| `GET` | `/topics/:id` | Public | Fetch one topic. |
+| `PUT` | `/topics/:id` | Admin | Update topic. |
+
+## Content: `/content`
+
+This is a secondary content module and should be reviewed for product overlap with study materials/resources before launch.
+
+| Method | Endpoint | Auth | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/content` | Public | List study content by type/role/sort. |
+| `POST` | `/content` | User, approved-faculty check | Upload content. |
+| `GET` | `/content/:id/file` | Public | Stream or redirect content file. |
+| `DELETE` | `/content/:id` | Owner/Admin | Soft-delete content. |
 
 ## File Proxy: `/files`
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/files/:studyMaterialId` | Optional | Stream a local file for a study material. Non-approved material files are restricted to admins. |
+| `GET` | `/files/:studyMaterialId` | Optional | Stream study-material file. Public only when material is approved; admins can preview non-approved files. |
 
 ## Validation Enums
 
@@ -366,7 +277,7 @@ Branch:
 Computer, IT, Civil, Mechanical, Electrical, ENTC, Both
 ```
 
-Academic year:
+Year:
 
 ```text
 FE, SE, TE, BE
@@ -378,14 +289,16 @@ Resource types:
 pdf, video, doc, markdown
 ```
 
-Resource categories:
-
-```text
-Notes, PYQ, Syllabus, Lab Manual, Reference Book, Other
-```
-
 Study material types:
 
 ```text
 PDF, PPT, DOCX, Markdown, Video, Notes
 ```
+
+## API Improvement Priorities
+
+1. Add schemas to notes and preferences endpoints.
+2. Add pagination to resources, study materials, syllabus, notes, feedback, and content.
+3. Standardize error handling in frontend service clients.
+4. Add OpenAPI documentation.
+5. Add integration tests for all protected routes.

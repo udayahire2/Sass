@@ -1,117 +1,115 @@
-# Introduction
+# Product Introduction
 
 ## Product Name
 
-**NMU Study Hub** is a web application for students, faculty, and administrators to find, submit, review, and manage academic study content.
+**NMU Study Hub** is a full-stack academic resource platform for students, faculty, and administrators. Its goal is to centralize syllabus, study material, topic notes, community uploads, bookmarks, feedback, and personal notes for NMU students.
 
-The product addresses a common college workflow problem: syllabus files, unit notes, reference links, and peer-contributed material are usually scattered across chat groups, drives, classrooms, and personal devices. NMU Study Hub centralizes that material into a structured web experience with authentication, search, upload review, and role-based administration.
+## Launch Goal
 
-## Product Purpose
+The working launch goal is:
 
-The current implementation helps users:
+> NMU Study Hub ko real users tak successfully launch karna.
 
-- Browse curriculum content by branch, semester, subject, unit, and topic.
-- Search syllabus entries by title, code, branch, and semester.
-- View approved study-material uploads and save bookmarks.
-- Submit PDF, PPT, DOCX, or Markdown material for review.
-- Let admins approve or reject uploaded content before it appears publicly.
-- Let admins manage students, faculty access, syllabus records, and resource links.
-- Let faculty track their uploads and leave feedback on approved materials.
+This means the product must move beyond a local/demo build and become reliable enough for students and faculty to use every day.
 
-## Main Problems Solved
+## Problem Statement
 
-1. **Scattered academic resources**
-   Students can browse a single place for subjects, topics, syllabus, and approved shared content.
+Students usually find academic content across scattered sources:
 
-2. **Unverified shared files**
-   User-uploaded files are stored as `pending` until an admin approves them.
+- WhatsApp and Telegram groups.
+- Google Drive links.
+- Old PDFs passed between seniors.
+- Faculty shared classroom files.
+- Personal notes and local devices.
 
-3. **Slow syllabus discovery**
-   The syllabus screen supports search, branch filters, semester filters, and in-app Markdown or file viewing.
+This creates repeated problems:
 
-4. **Unclear contribution ownership**
-   Study materials store an author or credit name and show it in student, admin, and profile views.
+- Students do not know which resource is latest or trusted.
+- Faculty contribution is hard to review and organize.
+- Admins cannot easily moderate uploaded content.
+- Syllabus and topic content are disconnected from notes and uploads.
+- Search and discovery are weak.
 
-5. **Uncontrolled faculty access**
-   Faculty can register and verify email, but admin approval controls access to faculty contribution features.
+NMU Study Hub solves this by putting academic content into one structured and role-aware web application.
 
-## Current Product Modules
+## Current Product Scope
 
-| Module | Current implementation |
-| --- | --- |
-| Home | Public landing screen with product navigation. Authenticated admins and faculty are redirected from `/` to their dashboards. |
-| Authentication | Student/faculty signup, OTP verification, login, refresh sessions, logout, profile update, and avatar upload. |
-| Study Materials | Branch/semester selection, API-driven subjects, units, topics, approved uploads, search, type filters, and bookmarks. |
-| Syllabus | Public syllabus search with branch/semester filters and Markdown/PDF viewing. |
-| Global Search | Searches loaded syllabus records and approved study materials from `/search`. |
-| Upload Content | Signed-in users upload study files for admin review from `/add-study-content` or the profile page. |
-| Profile | User details, avatar crop/upload, profile edits, personal uploads, upload form, and bookmarked materials. |
-| Admin Dashboard | Stats, approval summary, material tables, quick links, and theme switching. |
-| Content Approval | Admin moderation workflow with file preview through backend file proxy endpoints. |
-| Resource Manager | Admin-created URL records for PDFs, videos, docs, Markdown, PYQs, lab manuals, and books. |
-| Syllabus Manager | Admin upload and deletion of PDF or Markdown syllabus records. |
-| Student Manager | Admin search/list/delete for student accounts. |
-| Faculty Manager | Admin approval, revocation, and all-faculty visibility. |
-| Faculty Dashboard | Faculty profile status, contribution stats, upload history, and feedback/rating tools. |
+The current implementation supports these major modules:
 
-## Important Implementation Notes
+| Module | Current status | Primary users |
+| --- | --- | --- |
+| Home | Implemented public landing/home route with role redirects. | All users |
+| Authentication | Implemented signup, login, OTP verification, refresh-token backend, profile update, avatar upload. | Students, faculty, admin |
+| Academic browser | Implemented branch, semester, subject, unit, and topic browsing from SQLite seed data. | Students, faculty |
+| Study Stock | Implemented approved upload discovery and bookmarking. | Students, faculty |
+| Syllabus | Implemented public syllabus search/viewing and admin syllabus management. | Students, admin |
+| Resource management | Implemented admin resource create/update/delete APIs and create/delete UI. | Admin |
+| Study uploads | Implemented user upload flow with admin approval/rejection. | Students, faculty, admin |
+| Admin dashboard | Implemented stats, moderation, users, faculty, syllabus, resources, and feedback screens. | Admin |
+| Faculty dashboard | Implemented faculty profile/status, upload history, stats, and feedback on materials. | Faculty |
+| Profile | Implemented profile editing, avatar crop/upload, uploads, bookmarks, and upload form. | Students, faculty |
+| Notes | Implemented Notion-style notes workspace with metadata, sidebar, trash, favorites, covers, and editor themes. | Students |
+| Platform feedback | Implemented feedback submission and admin management. | All users, admin |
 
-The active frontend is `app/src`. The active backend is the top-level `backend/src` Express app.
+## Current Product Architecture Summary
 
-Academic subject content is now API-driven:
+NMU Study Hub is a client-server application:
 
-- Source data lives in `app/src/data/study-data.ts`.
-- `backend/src/seeds/seedSubjects.js` imports that data into SQLite.
-- Frontend pages call `/api/v1/subjects`, `/api/v1/subjects/:id/units`, and `/api/v1/topics/:id`.
+- Frontend: React 19, TypeScript, Vite, React Router, Tailwind CSS 4.
+- Backend: Node.js, Express 5, Zod, JWT, Multer, Helmet, CORS.
+- Database: SQLite through Node `node:sqlite` `DatabaseSync`.
+- Cache: Redis when configured, in-memory fallback otherwise.
+- Storage: local filesystem uploads under `backend/uploads`.
+- Email: table-backed jobs plus Nodemailer delivery when SMTP is configured.
 
-This means the student subject browser is no longer purely frontend mock data. It depends on seeded rows in the backend `subjects`, `units`, and `topics` tables.
-
-Some older code remains in the repository:
-
-- `app/backend/` is an older MongoDB/Express backend.
-- `backend/src/models/*.js` are Mongoose-style legacy model files.
-
-The current runtime path uses SQLite helpers in `backend/src/services/dbService.js`, not those legacy model files.
-
-## Technology Summary
-
-| Area | Technology |
-| --- | --- |
-| Frontend | React 19, TypeScript, Vite |
-| Routing | React Router |
-| Styling | Tailwind CSS 4, Radix/shadcn-style components, lucide-react |
-| Backend | Node.js, Express 5 |
-| Database | SQLite through Node `node:sqlite` `DatabaseSync` |
-| Authentication | JWT access tokens, refresh-token cookie, bcrypt password hashing |
-| Validation | Zod |
-| File Uploads | Multer local filesystem storage plus file proxy streaming |
-| Cache | Redis when configured, in-memory fallback otherwise |
-| Email | Nodemailer fallback logging plus database-backed job records |
-
-## High-Level User Journeys
+## Current User Journeys
 
 ### Student Journey
 
 1. Student signs up with name, email, password, branch, and year.
-2. Backend creates a 6-digit OTP and stores only its hash.
-3. Student verifies OTP and receives a session.
-4. Student browses `/resources`, chooses branch and semester, opens subjects, units, and topics.
-5. Student views approved uploads, opens files, and bookmarks useful material.
-6. Student can submit study content for admin review.
-7. Student can manage profile details, avatar, personal uploads, and bookmarks from `/profile`.
+2. Backend creates a hashed 6-digit OTP and queues an email job.
+3. Student verifies OTP and receives an authenticated session.
+4. Student opens `/resources`, selects branch and semester, and browses subjects.
+5. Student opens units and topics with Markdown content.
+6. Student opens `/study-stock` or `/resources` to find approved uploads.
+7. Student bookmarks useful material.
+8. Student can upload study content for admin review.
+9. Student can manage profile, avatar, uploads, bookmarks, and notes.
 
 ### Faculty Journey
 
-1. Faculty signs up with designation, department, college, and subjects.
-2. Faculty verifies OTP and can log in.
-3. Faculty lands on `/dashboard/faculty`.
-4. Until admin approval, backend contribution routes block faculty upload actions.
-5. Once approved, faculty can upload material and review approved materials with ratings/feedback.
+1. Faculty signs up with designation, department, college name, and subjects.
+2. Faculty verifies OTP.
+3. Faculty can log in and view `/dashboard/faculty`.
+4. Until admin approval, contribution endpoints block upload actions.
+5. Once approved, faculty can upload material and review approved material with ratings and feedback.
 
 ### Admin Journey
 
-1. Admin account is seeded from environment variables or scripts.
-2. Admin logs in and lands on `/admin/dashboard`.
+1. Admin account is seeded from environment variables or script.
+2. Admin logs in and opens `/admin/dashboard`.
 3. Admin reviews pending study material submissions.
-4. Admin manages students, syllabus, resource links, and faculty approval.
-5. Approved study materials become visible in public student-facing screens.
+4. Admin approves or rejects material.
+5. Admin manages syllabus records, resources, students, faculty approval, and platform feedback.
+
+## Product Strengths
+
+- Clear separation between public content and admin moderation.
+- Role-aware product shape for student, faculty, and admin needs.
+- Useful academic information architecture: branch -> semester -> subject -> unit -> topic.
+- Real database migrations exist.
+- Upload and file metadata are captured.
+- Notes module gives users a retention tool, not only a browsing tool.
+- Refresh-token backend is more advanced than many early-stage student apps.
+
+## Product Weaknesses Before Launch
+
+- Production deployment design is not settled.
+- Local uploads are not durable in serverless or multi-instance hosting.
+- Access tokens are stored in `localStorage`.
+- Critical flows lack automated tests.
+- Search and pagination are not ready for large datasets.
+- Some UI surfaces are incomplete or inconsistent.
+- Legacy code remains in the repository and should be cleaned before launch.
+
+See [09-improvement-plan.md](./09-improvement-plan.md) and [10-production-readiness-launch-plan.md](./10-production-readiness-launch-plan.md) for the complete audit and launch checklist.
