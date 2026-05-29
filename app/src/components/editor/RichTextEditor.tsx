@@ -7,13 +7,12 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { Table } from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
-import { createLowlight, common } from 'lowlight';
-import { codeToHtml } from 'shiki';
+import { ShikiCodeBlock } from './ShikiCodeBlock';
+import { NotionTableNode } from './NotionTableNode';
 
 import { markdownToHtml, htmlToMarkdown } from './markdownUtils';
 import BubbleToolbar from './BubbleToolbar';
@@ -22,49 +21,7 @@ import SlashMenu, { ALL_SLASH_ITEMS } from './SlashMenu';
 import { cn } from '@/lib/utils';
 import './editor.css';
 
-const lowlight = createLowlight(common);
-
-// Shiki-powered highlighting — runs after each editor update
-const SHIKI_DARK_THEME = 'github-dark';
-const SHIKI_LIGHT_THEME = 'github-light';
-
-async function highlightCodeBlocks(editorEl: HTMLElement | null) {
-  if (!editorEl) return;
-  const codeBlocks = editorEl.querySelectorAll('pre code');
-  for (const codeEl of codeBlocks) {
-    const pre = codeEl.parentElement;
-    if (!pre || pre.getAttribute('data-shiki-highlighted') === 'true') continue;
-
-    const rawText = codeEl.textContent || '';
-    if (!rawText.trim()) continue;
-
-    const langAttr = pre.getAttribute('data-language') || codeEl.className.match(/language-(\w+)/)?.[1] || 'text';
-
-    try {
-      const isDark = document.documentElement.classList.contains('dark');
-      const html = await codeToHtml(rawText, {
-        lang: langAttr,
-        theme: isDark ? SHIKI_DARK_THEME : SHIKI_LIGHT_THEME,
-      });
-
-      // Shiki wraps in <pre><code>…</code></pre>. Extract just the inner <code>.
-      const tmp = document.createElement('div');
-      tmp.innerHTML = html;
-      const shikiCode = tmp.querySelector('code');
-      if (shikiCode) {
-        codeEl.innerHTML = shikiCode.innerHTML;
-        pre.setAttribute('data-shiki-highlighted', 'true');
-        // Apply shiki's pre styles (background etc) but keep our border-radius
-        const shikiPre = tmp.querySelector('pre');
-        if (shikiPre?.style.backgroundColor) {
-          pre.style.backgroundColor = shikiPre.style.backgroundColor;
-        }
-      }
-    } catch {
-      // Silently fall back to lowlight highlighting
-    }
-  }
-}
+// Shiki highlighting is handled natively via ShikiCodeBlock Prosemirror plugin.
 
 export interface RichTextEditorProps {
   content: string;
@@ -173,12 +130,12 @@ export default function RichTextEditor({
           class: 'editor-youtube',
         },
       }),
-      CodeBlockLowlight.configure({
-        lowlight,
+      ShikiCodeBlock.configure({
         HTMLAttributes: {
           class: 'editor-code-block',
         },
       }),
+      NotionTableNode,
       Table.configure({
         resizable: true,
         HTMLAttributes: {
@@ -270,14 +227,7 @@ export default function RichTextEditor({
     },
   });
 
-  // Run Shiki highlighting on code blocks after editor renders
-  useEffect(() => {
-    if (!editor) return;
-    const el = editorWrapperRef.current;
-    // Delay to let TipTap render the DOM first
-    const timer = setTimeout(() => highlightCodeBlocks(el), 100);
-    return () => clearTimeout(timer);
-  });
+  // Shiki code block rendering is managed natively by ShikiCodeBlock extension NodeView.
 
   // Handle right-click context menu
   const handleContextMenu = useCallback((e: React.MouseEvent) => {

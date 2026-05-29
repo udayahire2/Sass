@@ -17,6 +17,7 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export interface SlashItem {
   id: string;
@@ -137,7 +138,6 @@ export const ALL_SLASH_ITEMS: SlashItem[] = [
     icon: FileCode,
     category: 'advanced',
     action: (editor: Editor) => {
-      // Clear slash text first, then convert paragraph to code block in one go
       const { $from } = editor.state.selection;
       const start = $from.start();
       const end = $from.end();
@@ -157,7 +157,6 @@ export const ALL_SLASH_ITEMS: SlashItem[] = [
     icon: Code,
     category: 'advanced',
     action: (editor: Editor) => {
-      // Clear slash text
       const { $from } = editor.state.selection;
       const start = $from.start();
       const end = $from.end();
@@ -168,8 +167,6 @@ export const ALL_SLASH_ITEMS: SlashItem[] = [
         .deleteRange({ from: start, to: end })
         .run();
 
-      // Insert a space with code mark so the cursor is inside inline code
-      // Using setTimeout to ensure the deletion transaction completes first
       requestAnimationFrame(() => {
         editor
           .chain()
@@ -188,7 +185,7 @@ export const ALL_SLASH_ITEMS: SlashItem[] = [
     category: 'advanced',
     action: (editor: Editor) => {
       clearSlashAndRun(editor, (chain) =>
-        chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+        chain.insertNotionTable().run()
       );
     }
   },
@@ -212,7 +209,6 @@ export const ALL_SLASH_ITEMS: SlashItem[] = [
   },
 ];
 
-// ─── Component ────────────────────────────────────────────────
 interface SlashMenuProps {
   editor: Editor;
   isOpen: boolean;
@@ -231,7 +227,6 @@ export default function SlashMenu({
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [visible, setVisible] = useState(false);
 
-  // Compute position from caret whenever menu opens or items change
   useLayoutEffect(() => {
     if (!isOpen || !editor) {
       setVisible(false);
@@ -242,30 +237,23 @@ export default function SlashMenu({
       const { view } = editor;
       const coords = view.coordsAtPos(view.state.selection.from);
 
-      // coordsAtPos returns VIEWPORT-relative coords
-      // position:fixed is also viewport-relative → no scroll offset needed
       let top = coords.bottom + 8;
       let left = coords.left;
 
-      // Adjust if menu would overflow viewport
       const menuEl = menuRef.current;
       if (menuEl) {
         const menuRect = menuEl.getBoundingClientRect();
         const vw = window.innerWidth;
         const vh = window.innerHeight;
 
-        // Right overflow
         if (left + menuRect.width + 12 > vw) {
           left = vw - menuRect.width - 12;
         }
-        // Left overflow
         if (left < 12) left = 12;
 
-        // Bottom overflow → flip above cursor
         if (top + menuRect.height + 12 > vh) {
           top = coords.top - menuRect.height - 8;
         }
-        // Top overflow after flip
         if (top < 12) top = 12;
       }
 
@@ -276,7 +264,6 @@ export default function SlashMenu({
     }
   }, [isOpen, editor, filteredItems, selectedIndex]);
 
-  // Auto-scroll selected item into view
   useEffect(() => {
     if (selectedRef.current && menuRef.current) {
       selectedRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -285,7 +272,6 @@ export default function SlashMenu({
 
   if (!editor || !isOpen) return null;
 
-  // Group items by category
   const basicItems = filteredItems.filter(i => i.category === 'basic');
   const advancedItems = filteredItems.filter(i => i.category === 'advanced');
   const mediaItems = filteredItems.filter(i => i.category === 'media');
@@ -296,50 +282,49 @@ export default function SlashMenu({
     if (items.length === 0) return null;
     return (
       <div key={label}>
-        <div className="px-3 py-1.5 mt-1 first:mt-0">
-          <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">{label}</span>
+        <div className="px-3 py-1.5 mt-1 first:mt-0 select-none">
+          <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">{label}</span>
         </div>
-        {items.map((item) => {
-          const currentIndex = globalIndex++;
-          return (
-            <button
-              key={item.id}
-              ref={currentIndex === selectedIndex ? selectedRef : undefined}
-              type="button"
-              onMouseDown={(e) => {
-                // preventDefault keeps editor focused; mouseDown fires before blur
-                e.preventDefault();
-                e.stopPropagation();
-                item.action(editor);
-              }}
-              className={cn(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-all cursor-pointer focus:outline-none mx-1",
-                currentIndex === selectedIndex
-                  ? "bg-primary/10 text-foreground"
-                  : "text-foreground/80 hover:bg-muted/70"
-              )}
-              style={{ width: 'calc(100% - 0.5rem)' }}
-            >
-              <div className={cn(
-                "flex items-center justify-center h-8 w-8 rounded-lg border shrink-0 transition-colors",
-                currentIndex === selectedIndex
-                  ? "border-primary/30 bg-primary/10 text-primary"
-                  : "border-border/60 bg-muted/40 text-muted-foreground"
-              )}>
-                <item.icon className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-semibold leading-tight">{item.label}</div>
-                <div className="text-[11px] text-muted-foreground/70 leading-normal truncate">{item.description}</div>
-              </div>
-              {item.shortcut && (
-                <span className="text-[10px] text-muted-foreground/40 font-mono shrink-0 select-none">
-                  {item.shortcut}
-                </span>
-              )}
-            </button>
-          );
-        })}
+        <div className="space-y-0.5">
+          {items.map((item) => {
+            const currentIndex = globalIndex++;
+            return (
+              <button
+                key={item.id}
+                ref={currentIndex === selectedIndex ? selectedRef : undefined}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  item.action(editor);
+                }}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-all cursor-pointer focus:outline-none select-none",
+                  currentIndex === selectedIndex
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-foreground/80 hover:bg-muted/70"
+                )}
+              >
+                <div className={cn(
+                  "flex items-center justify-center h-6 w-6 rounded-md border shrink-0 transition-colors",
+                  currentIndex === selectedIndex
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border/60 bg-muted/40 text-muted-foreground"
+                )}>
+                  <item.icon className="h-3.5 w-3.5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs truncate">{item.label}</div>
+                </div>
+                {item.shortcut && (
+                  <span className="text-[10px] text-muted-foreground/40 font-mono shrink-0 select-none">
+                    {item.shortcut}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -349,7 +334,7 @@ export default function SlashMenu({
       ref={menuRef}
       data-slash-menu
       className={cn(
-        "fixed rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl text-popover-foreground py-1 shadow-2xl shadow-black/10 max-h-[340px] w-72 overflow-y-auto z-[9999] flex flex-col select-none",
+        "fixed rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl text-popover-foreground py-1.5 shadow-2xl shadow-black/10 h-[320px] w-64 overflow-hidden z-[9999] flex flex-col select-none",
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
       )}
       style={{
@@ -358,15 +343,19 @@ export default function SlashMenu({
         transition: 'opacity 0.15s ease, transform 0.15s ease',
       }}
     >
-      {renderGroup('Basic blocks', basicItems)}
-      {renderGroup('Code & Tables', advancedItems)}
-      {renderGroup('Media', mediaItems)}
-      {filteredItems.length === 0 && (
-        <div className="p-6 text-center text-xs text-muted-foreground/60">
-          <p className="font-medium">No results</p>
-          <p className="mt-1 text-[10px]">Try a different search term</p>
+      <ScrollArea className="flex-1 max-h-[305px]">
+        <div className="py-1 px-1">
+          {renderGroup('Basic blocks', basicItems)}
+          {renderGroup('Code & Tables', advancedItems)}
+          {renderGroup('Media', mediaItems)}
+          {filteredItems.length === 0 && (
+            <div className="p-6 text-center text-xs text-muted-foreground/60 select-none">
+              <p className="font-medium">No results</p>
+              <p className="mt-1 text-[10px]">Try a different search term</p>
+            </div>
+          )}
         </div>
-      )}
+      </ScrollArea>
     </div>
   );
 
