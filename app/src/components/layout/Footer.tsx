@@ -7,7 +7,7 @@ import { Logo } from "@/components/ui/logo";
 const studyLinks = [
   { label: "Study Materials", to: "/resources", icon: BookOpen },
   { label: "Syllabus", to: "/syllabus", icon: FileText },
-  { label: "Profile", to: "/profile", icon: UserCircle },
+  { label: "Dashboard", to: "/dashboard/student", icon: UserCircle },
 ];
 
 export function Footer() {

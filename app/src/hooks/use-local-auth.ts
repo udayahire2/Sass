@@ -8,6 +8,8 @@ export interface User {
     avatar?: string
     avatarUrl?: string
     role?: 'student' | 'faculty' | 'admin'
+    branch?: string
+    year?: string
 }
 
 function getStoredUser() {

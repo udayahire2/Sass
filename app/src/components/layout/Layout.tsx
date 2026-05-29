@@ -5,7 +5,7 @@ import { Navbar } from "./Navbar";
 
 export default function Layout({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
-  const isProfilePage = location.pathname.startsWith("/profile");
+  const isProfilePage = location.pathname.startsWith("/dashboard/student");
 
   return (
     <div className="relative flex min-h-screen flex-col bg-transparent">

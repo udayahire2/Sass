@@ -30,14 +30,14 @@ const activities = [
     description: "8 saved materials ready to revisit",
     buttonText: "View all",
     icon: BookmarkIcon,
-    path: "/profile/bookmarks",
+    path: "/dashboard/student/bookmarks",
   },
   {
     title: "Share materials",
     description: "Upload notes and help classmates learn faster",
     buttonText: "Upload now",
     icon: Upload,
-    path: "/profile/",
+    path: "/dashboard/student",
   },
 
 ];

@@ -116,7 +116,6 @@ const Login = () => {
         <Button
           type="button"
           variant="outline"
-          className="w-full h-10 bg-transparent border-zinc-800 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-white transition-all rounded-lg"
         >
           <span className="mr-2 text-base font-bold flex items-center">
             <svg

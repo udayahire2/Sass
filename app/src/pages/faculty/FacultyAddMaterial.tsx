@@ -196,7 +196,7 @@ export default function FacultyAddMaterial() {
                       </p>
                     </div>
                   </button>
-                  <input
+                  <Input
                     ref={fileInputRef}
                     id="study-file"
                     type="file"

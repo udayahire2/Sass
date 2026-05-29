@@ -59,7 +59,7 @@ export function Hero() {
       <div ref={leftAvatarsRef} className="absolute left-0 top-0 hidden h-full w-1/3 lg:block">
         <Avatar className="floating-avatar absolute top-[20%] left-[15%] h-16 w-16 border border-border/50">
           <AvatarImage 
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop" 
+            src="https://images.rawpixel.com/image_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTAzL2ZyZWVpbWFnZXNjb21wYW55X3Bob3RvX29mX3lvdW5nX2luZGlhbl9naXJsX2hvbGRpbmdfc3R1ZGVudF9iYV8zN2QyNjU4Yi0yOWIwLTQyZmQtODhmYy04OGU3ZTcxYmVlNDdfMS5qcGc.jpg" 
             alt="Student avatar" 
           />
           <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
@@ -68,7 +68,7 @@ export function Hero() {
         </Avatar>
         <Avatar className="floating-avatar absolute top-[50%] left-[5%] h-12 w-12 border border-border/50">
           <AvatarImage 
-            src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop" 
+            src="https://img.freepik.com/premium-photo/smiling-confident-indian-student-looking-camera-standing-university-campus-education_695242-1229.jpg" 
             alt="Student avatar" 
           />
           <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
@@ -77,7 +77,7 @@ export function Hero() {
         </Avatar>
         <Avatar className="floating-avatar absolute bottom-[25%] left-[25%] h-14 w-14 border border-border/50">
           <AvatarImage 
-            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop" 
+            src="" 
             alt="Student avatar" 
           />
           <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
@@ -90,7 +90,7 @@ export function Hero() {
       <div ref={rightAvatarsRef} className="absolute right-0 top-0 hidden h-full w-1/3 lg:block">
         <Avatar className="floating-avatar absolute top-[25%] right-[20%] h-14 w-14 border border-border/50">
           <AvatarImage 
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop" 
+            src="" 
             alt="Student avatar" 
           />
           <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
@@ -99,7 +99,7 @@ export function Hero() {
         </Avatar>
         <Avatar className="floating-avatar absolute top-[60%] right-[10%] h-16 w-16 border border-border/50">
           <AvatarImage 
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop" 
+            src="" 
             alt="Student avatar" 
           />
           <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">

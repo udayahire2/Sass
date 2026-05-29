@@ -2,13 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Bell,
+Bookmark,
   ChevronRight,
+  Edit2,
   LayoutDashboard,
   LogOut,
   Menu,
   Search,
   Upload,
   User,
+  Files,
 } from "lucide-react";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { NavbarThemeToggle } from "@/components/layout/navbar/navbar-theme-toggle";
@@ -39,27 +42,38 @@ const navSections = [
   {
     label: "Workspace",
     items: [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard/faculty" },
-      { icon: Upload, label: "Upload Material", path: "/dashboard/faculty/upload" },
+      { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard/student" },
+      { icon: Upload, label: "Upload Material", path: "/dashboard/student/add-content" },
+      { icon: Files, label: "My Uploads", path: "/dashboard/student/uploads" },
+    ],
+  },
+  {
+    label: "Library",
+    items: [
+      { icon: Bookmark, label: "Bookmarks", path: "/dashboard/student/bookmarks" },
+      { icon: Edit2, label: "Notes", path: "/dashboard/student/notes" },
     ],
   },
   {
     label: "Account",
     items: [
-      { icon: User, label: "Profile", path: "/dashboard/faculty/profile" },
+      { icon: User, label: "Profile", path: "/dashboard/student/profile" },
     ],
   },
 ];
 
-export default function FacultyLayout() {
+export default function StudentLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, getInitials } = useLocalAuth();
 
   useEffect(() => {
-    if (user && user.role !== "faculty" && user.role !== "admin") {
-      navigate("/dashboard");
+    // Redirect if not student
+    if (user && user.role !== "student") {
+      if (user.role === "admin") navigate("/admin/dashboard");
+      else if (user.role === "faculty") navigate("/dashboard/faculty");
+      else navigate("/");
     } else if (!user && !localStorage.getItem("token")) {
       navigate("/login");
     }
@@ -77,12 +91,12 @@ export default function FacultyLayout() {
     );
   }, [location.pathname]);
 
-  const displayName = user?.name || "Faculty User";
-  const displayEmail = user?.email || "faculty@studyhub.com";
+  const displayName = user?.name || "Student User";
+  const displayEmail = user?.email || "student@studyhub.com";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen w-full max-w-400">
+      <div className="mx-auto flex min-h-screen w-full ">
         {/* Mobile overlay */}
         <div
           aria-hidden="true"
@@ -103,10 +117,10 @@ export default function FacultyLayout() {
           <div className="flex h-full flex-col">
             {/* Sidebar header */}
             <div className="flex h-16 items-center justify-between px-4">
-              <Link className="min-w-0" to="/dashboard/faculty">
+              <Link className="min-w-0" to="/dashboard/student">
                 <Logo />
               </Link>
-              <Badge variant="outline">Faculty</Badge>
+              <Badge variant="outline">Student</Badge>
             </div>
 
             <Separator />
@@ -201,7 +215,7 @@ export default function FacultyLayout() {
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem>
-                      <span className="text-muted-foreground">Faculty</span>
+                      <span className="text-muted-foreground">Student</span>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
@@ -211,7 +225,7 @@ export default function FacultyLayout() {
                 </Breadcrumb>
               </div>
 
-              {/* Search input – using standard Input */}
+              {/* Search input */}
               <div className="relative hidden w-full max-w-xs lg:block">
                <InputGroup >
                 <InputGroupAddon>

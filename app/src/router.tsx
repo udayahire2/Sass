@@ -6,13 +6,21 @@ import { RoleGuard } from "./components/auth/RoleGuard";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import VerifyOtpPage from "./pages/VerifyOtpPage";
-import ProfilePage from "./pages/ProfilePage";
 import StudyMaterialsPage from "./pages/StudyMaterialsPage";
 import StudyStockPage from "./pages/StudyStockPage";
 import ImpQuestionsPage from "./pages/ImpQuestionsPage";
 import SamplePapersPage from "./pages/SamplePapersPage";
 import AddStudyContentPage from "./pages/AddStudyContentPage";
 import SyllabusPage from "./pages/SyllabusPage";
+
+import StudentLayout from "./layouts/StudentLayout";
+import StudentDashboard from "./pages/student/StudentDashboard";
+import StudentProfilePage from "./pages/student/StudentProfilePage";
+import StudentUploadsPage from "./pages/student/StudentUploadsPage";
+import StudentAddContentPage from "./pages/student/StudentAddContentPage";
+import StudentBookmarksPage from "./pages/student/StudentBookmarksPage";
+import StudentNotesPage from "./pages/student/StudentNotesPage";
+
 import AdminLayout from "./layouts/AdminLayout";
 import DashboardPage from "./pages/admin/DashboardPage";
 import StudentsPage from "./pages/admin/StudentsPage";
@@ -105,14 +113,11 @@ export const router = createBrowserRouter([
                     },
                     {
                         path: "/profile",
+                        element: <StudentLayout />, // We can redirect or just keep it as an alias for now, but let's redirect
                         children: [
                             {
                                 index: true,
-                                element: <ProfilePage />,
-                            },
-                            {
-                                path: ":tab",
-                                element: <ProfilePage />,
+                                element: <StudentDashboard />,
                             }
                         ]
                     },
@@ -214,6 +219,37 @@ export const router = createBrowserRouter([
                         path: "profile",
                         element: <FacultyProfile />,
                     }
+                ]
+            },
+            {
+                path: "/dashboard/student",
+                element: <StudentLayout />,
+                errorElement: <ErrorPage />,
+                children: [
+                    {
+                        index: true,
+                        element: <StudentDashboard />,
+                    },
+                    {
+                        path: "profile",
+                        element: <StudentProfilePage />,
+                    },
+                    {
+                        path: "uploads",
+                        element: <StudentUploadsPage />,
+                    },
+                    {
+                        path: "add-content",
+                        element: <StudentAddContentPage />,
+                    },
+                    {
+                        path: "bookmarks",
+                        element: <StudentBookmarksPage />,
+                    },
+                    {
+                        path: "notes",
+                        element: <StudentNotesPage />,
+                    },
                 ]
             },
         ]

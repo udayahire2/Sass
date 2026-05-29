@@ -106,7 +106,7 @@ export function NotesPageSidebar({
       {/* Sidebar Header */}
       <div className="flex items-center justify-between px-3 py-2.5 min-h-[46px]">
         <button
-          onClick={() => navigate("/profile")}
+          onClick={() => navigate("/dashboard/student")}
           className="flex items-center gap-2 rounded-[4px] px-2 py-1 text-sm font-medium text-[color:var(--sidebar-foreground)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors truncate max-w-[180px]"
         >
           <div className="h-5 w-5 rounded-[4px] bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shrink-0">

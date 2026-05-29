@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 function getDashboardPath(user: AuthUser | null) {
   if (user?.role === "admin") return "/admin/dashboard";
   if (user?.role === "faculty") return "/dashboard/faculty";
-  if (user?.role === "student") return "/profile";
+  if (user?.role === "student") return "/dashboard/student";
   return "/";
 }
 
@@ -555,7 +555,7 @@ function UserMenuDesktop() {
               </div>
               <div className="p-1.5">
                 <Link
-                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/profile"}
+                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"}
                   onClick={close}
                   className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
                 >
@@ -803,7 +803,7 @@ function PopoverMobileMenu() {
                   </div>
                 </div>
                 <Link
-                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/profile"}
+                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"}
                   onClick={close}
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 >
