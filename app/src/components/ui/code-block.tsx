@@ -22,6 +22,14 @@ const getHighlighter = () => {
     return highlighterPromise;
 };
 
+const escapeHtml = (value: string) =>
+    value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
 export function CodeBlock({ language, value, className }: CodeBlockProps) {
     const [html, setHtml] = useState<string>("");
     const [isCopied, setIsCopied] = useState(false);
@@ -47,7 +55,7 @@ export function CodeBlock({ language, value, className }: CodeBlockProps) {
                 setIsLoading(false);
             } catch (error) {
                 console.error("Shiki highlighting failed:", error);
-                setHtml(`<pre><code>${value}</code></pre>`);
+                setHtml(`<pre><code>${escapeHtml(value)}</code></pre>`);
                 setIsLoading(false);
             }
         };

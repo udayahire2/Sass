@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Editor } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Bold as BoldIcon,
   Italic as ItalicIcon,
@@ -144,109 +145,115 @@ export default function BubbleToolbar({ editor }: BubbleToolbarProps) {
       }}
       className="flex flex-col rounded-md border border-border bg-popover shadow-sm overflow-hidden z-50"
     >
-      {/* Main Toolbar Row */}
-      <div className="flex items-center gap-0.5 px-1 py-1">
-        {/* Turn Into Dropdown */}
-        <button
-          type="button"
-          onClick={handleTurnIntoClick}
-          className={cn(
-            "flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-all",
-            activePanel === 'turnInto' && "bg-muted text-foreground"
-          )}
-        >
-          <span className="truncate max-w-[80px]">{getActiveBlockLabel()}</span>
-          <ChevronDown className={cn("h-3 w-3 opacity-50 transition-transform", activePanel === 'turnInto' && "rotate-180")} />
-        </button>
+      {/* Main Toolbar Row with horizontal ScrollArea */}
+      <ScrollArea orientation="horizontal" className="w-full">
+        <div className="flex flex-nowrap items-center gap-0.5 px-1 py-1 min-w-max">
+          {/* Turn Into Dropdown */}
+          <button
+            type="button"
+            onClick={handleTurnIntoClick}
+            className={cn(
+              "flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-foreground hover:bg-muted transition-all",
+              activePanel === 'turnInto' && "bg-muted text-foreground"
+            )}
+          >
+            <span className="truncate max-w-[80px]">{getActiveBlockLabel()}</span>
+            <ChevronDown className={cn("h-3 w-3 opacity-50 transition-transform", activePanel === 'turnInto' && "rotate-180")} />
+          </button>
 
-        <div className="h-4 w-px bg-border mx-0.5" />
+          <div className="h-4 w-px bg-border mx-0.5" />
 
-        {/* Text Formatting */}
-        <ToolbarButton
-          icon={BoldIcon}
-          isActive={editor.isActive('bold')}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          title="Bold (Ctrl+B)"
-        />
-        <ToolbarButton
-          icon={ItalicIcon}
-          isActive={editor.isActive('italic')}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          title="Italic (Ctrl+I)"
-        />
-        <ToolbarButton
-          icon={UnderlineIcon}
-          isActive={editor.isActive('underline')}
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          title="Underline (Ctrl+U)"
-        />
-        <ToolbarButton
-          icon={StrikeIcon}
-          isActive={editor.isActive('strike')}
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          title="Strikethrough (Ctrl+Shift+S)"
-        />
-        <ToolbarButton
-          icon={CodeIcon}
-          isActive={editor.isActive('code')}
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          title="Inline Code (Ctrl+E)"
-        />
+          {/* Text Formatting */}
+          <ToolbarButton
+            icon={BoldIcon}
+            isActive={editor.isActive('bold')}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            title="Bold (Ctrl+B)"
+          />
+          <ToolbarButton
+            icon={ItalicIcon}
+            isActive={editor.isActive('italic')}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            title="Italic (Ctrl+I)"
+          />
+          <ToolbarButton
+            icon={UnderlineIcon}
+            isActive={editor.isActive('underline')}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            title="Underline (Ctrl+U)"
+          />
+          <ToolbarButton
+            icon={StrikeIcon}
+            isActive={editor.isActive('strike')}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            title="Strikethrough (Ctrl+Shift+S)"
+          />
+          <ToolbarButton
+            icon={CodeIcon}
+            isActive={editor.isActive('code')}
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            title="Inline Code (Ctrl+E)"
+          />
 
-        <div className="h-4 w-px bg-border mx-0.5" />
+          <div className="h-4 w-px bg-border mx-0.5" />
 
-        {/* Link */}
-        <ToolbarButton
-          icon={LinkIcon}
-          isActive={editor.isActive('link') || activePanel === 'link'}
-          onClick={handleLinkClick}
-          title="Add Link (Ctrl+K)"
-        />
+          {/* Link */}
+          <ToolbarButton
+            icon={LinkIcon}
+            isActive={editor.isActive('link') || activePanel === 'link'}
+            onClick={handleLinkClick}
+            title="Add Link (Ctrl+K)"
+          />
 
-        <div className="h-4 w-px bg-border mx-0.5" />
+          <div className="h-4 w-px bg-border mx-0.5" />
 
-        {/* Actions */}
-        <ToolbarButton
-          icon={Copy}
-          isActive={false}
-          onClick={handleCopy}
-          title="Copy"
-        />
-        <ToolbarButton
-          icon={Trash2}
-          isActive={false}
-          onClick={handleDelete}
-          title="Delete"
-          destructive
-        />
-      </div>
+          {/* Actions */}
+          <ToolbarButton
+            icon={Copy}
+            isActive={false}
+            onClick={handleCopy}
+            title="Copy"
+          />
+          <ToolbarButton
+            icon={Trash2}
+            isActive={false}
+            onClick={handleDelete}
+            title="Delete"
+            destructive
+          />
+        </div>
+      </ScrollArea>
 
       {/* Turn Into Panel */}
       {activePanel === 'turnInto' && (
-        <div className="border-t border-border p-1 max-h-64 overflow-y-auto">
-          <div className="px-2 py-1">
+        <div className="border-t border-border p-1 max-h-80 overflow-hidden flex flex-col">
+          <div className="px-2 py-1 select-none">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Turn into</span>
           </div>
-          {turnIntoOptions.map((opt) => (
-            <button
-              key={opt.label}
-              type="button"
-              onClick={opt.action}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-xs text-left font-medium hover:bg-muted transition-all",
-                opt.active && "bg-primary/10 text-primary"
-              )}
-            >
-              <div className={cn(
-                "flex items-center justify-center h-7 w-7 rounded-md border border-border bg-muted shrink-0",
-                opt.active && "border-primary/30 bg-primary/10"
-              )}>
-                <opt.icon className={cn("h-3.5 w-3.5", opt.active ? "text-primary" : "text-muted-foreground")} />
-              </div>
-              <span className={cn("text-foreground/90", opt.active && "text-primary font-semibold")}>{opt.label}</span>
-              {opt.active && <Check className="h-3 w-3 text-primary ml-auto" />}
-            </button>
-          ))}
+          <ScrollArea className="flex-1 max-h-[280px]">
+            <div className="p-0.5 space-y-0.5">
+              {turnIntoOptions.map((opt) => (
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={opt.action}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-xs text-left font-medium hover:bg-muted transition-all cursor-pointer",
+                    opt.active && "bg-primary/10 text-primary font-semibold"
+                  )}
+                >
+                  <div className={cn(
+                    "flex items-center justify-center h-7 w-7 rounded-md border border-border bg-muted shrink-0 transition-colors",
+                    opt.active && "border-primary/30 bg-primary/10 text-primary"
+                  )}>
+                    <opt.icon className={cn("h-3.5 w-3.5", opt.active ? "text-primary" : "text-muted-foreground")} />
+                  </div>
+                  <span className={cn("text-foreground/90", opt.active && "text-primary")}>{opt.label}</span>
+                  {opt.active && <Check className="h-3 w-3 text-primary ml-auto" />}
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       )}
 

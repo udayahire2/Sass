@@ -490,3 +490,16 @@
 }
 
 /* Dark mode horizontal rule — inherits var(--border) from base */
+
+/* ── Custom Code Block Specificity Resets ─────────────────── */
+.custom-code-block pre,
+.custom-code-block code {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  box-shadow: none !important;
+}

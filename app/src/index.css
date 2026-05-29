@@ -223,6 +223,13 @@
 
   body {
     @apply bg-background text-foreground;
+    overflow: hidden !important;
+    height: 100% !important;
+  }
+
+  html {
+    overflow: hidden !important;
+    height: 100% !important;
   }
 
   code,
