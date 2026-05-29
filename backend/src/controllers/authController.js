@@ -94,10 +94,9 @@ function ensureStudentAvatar(user) {
 
 function persistOtp(user) {
     const otp = generateOtp();
-    console.log(`\n╔══════════════════════════════════════════════╗`);
-    console.log(`║  📧 OTP for ${user.email}`);
-    console.log(`║  🔑 Code: ${otp}`);
-    console.log(`╚══════════════════════════════════════════════╝\n`);
+    if (env.nodeEnv !== 'production') {
+        console.log(`\nOTP for ${user.email}: ${otp}\n`);
+    }
     const timestamps = createTimestamps();
     const otpId = crypto.randomUUID();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();

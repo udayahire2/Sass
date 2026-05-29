@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const { env } = require('./config/env');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
+const { sanitizeRequest } = require('./utils/sanitize');
 
 const app = express();
 
@@ -13,6 +14,7 @@ const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: env.requestJsonLimit }));
 app.use(express.urlencoded({ extended: true, limit: env.requestFormLimit }));
+app.use(sanitizeRequest);
 app.use(cors({
     origin(origin, callback) {
         if (!origin || env.corsOrigins.includes(origin)) {

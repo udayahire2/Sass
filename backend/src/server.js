@@ -7,6 +7,7 @@ const { cache } = require('./config/cache');
 const { env } = require('./config/env');
 const app = require('./app');
 const { ensureDefaultAdmin, runMigrations } = require('./services/bootstrapService');
+const { startJobWorker } = require('./services/jobQueue');
 
 let server;
 
@@ -14,6 +15,7 @@ async function startServer() {
     await runMigrations();
     await ensureDefaultAdmin();
     await cache.connect();
+    startJobWorker();
 
     server = app.listen(env.port, () => {
         console.log(`Server running in ${env.nodeEnv} mode on port ${env.port}`);
