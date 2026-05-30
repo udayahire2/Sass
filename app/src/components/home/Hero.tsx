@@ -3,7 +3,33 @@ import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BookOpen, Code, FileText, GraduationCap, Sparkles, Trophy } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface FloatingIconProps {
+  className?: string;
+  icon: React.ReactNode;
+  gradient: string;
+  glowColor: string;
+}
+
+function FloatingIcon({ className, icon, gradient, glowColor }: FloatingIconProps) {
+  return (
+    <div
+      className={cn(
+        "floating-avatar absolute flex items-center justify-center rounded-2xl border border-neutral-200/40 dark:border-neutral-800/40 bg-white/70 dark:bg-neutral-950/60 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-115 hover:rotate-3 hover:shadow-2xl cursor-pointer group select-none z-10",
+        className
+      )}
+      style={{
+        boxShadow: `0 10px 30px -10px ${glowColor}, inset 0 1px 0 0 rgba(255,255,255,0.15)`,
+      }}
+    >
+      <div className={cn("flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br p-3 text-white transition-transform duration-300 group-hover:scale-105 shadow-inner", gradient)}>
+        {icon}
+      </div>
+    </div>
+  );
+}
 
 export function Hero() {
   const navigate = useNavigate();
@@ -55,66 +81,46 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-20 lg:pt-20 lg:pb-20">
       
-      {/* Left Floating Avatars - Hidden on Mobile */}
+      {/* Left Floating Icons - Hidden on Mobile */}
       <div ref={leftAvatarsRef} className="absolute left-0 top-0 hidden h-full w-1/3 lg:block">
-        <Avatar className="floating-avatar absolute top-[20%] left-[15%] h-16 w-16 border border-border/50">
-          <AvatarImage 
-            src="https://images.rawpixel.com/image_social_square/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI0LTAzL2ZyZWVpbWFnZXNjb21wYW55X3Bob3RvX29mX3lvdW5nX2luZGlhbl9naXJsX2hvbGRpbmdfc3R1ZGVudF9iYV8zN2QyNjU4Yi0yOWIwLTQyZmQtODhmYy04OGU3ZTcxYmVlNDdfMS5qcGc.jpg" 
-            alt="Student avatar" 
-          />
-          <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            M
-          </AvatarFallback>
-        </Avatar>
-        <Avatar className="floating-avatar absolute top-[50%] left-[5%] h-12 w-12 border border-border/50">
-          <AvatarImage 
-            src="https://img.freepik.com/premium-photo/smiling-confident-indian-student-looking-camera-standing-university-campus-education_695242-1229.jpg" 
-            alt="Student avatar" 
-          />
-          <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            A
-          </AvatarFallback>
-        </Avatar>
-        <Avatar className="floating-avatar absolute bottom-[25%] left-[25%] h-14 w-14 border border-border/50">
-          <AvatarImage 
-            src="" 
-            alt="Student avatar" 
-          />
-          <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            C
-          </AvatarFallback>
-        </Avatar>
+        <FloatingIcon 
+          className="top-[20%] left-[15%] h-16 w-16"
+          icon={<GraduationCap className="h-7 w-7" />}
+        />
+        <FloatingIcon 
+          className="top-[50%] left-[5%] h-12 w-12"
+          icon={<Code className="h-5 w-5" />}
+          gradient="from-purple-500 to-pink-500"
+          glowColor="rgba(168, 85, 247, 0.35)"
+        />
+        <FloatingIcon 
+          className="bottom-[25%] left-[25%] h-14 w-14"
+          icon={<BookOpen className="h-6 w-6" />}
+          gradient="from-emerald-500 to-teal-600"
+          glowColor="rgba(16, 185, 129, 0.35)"
+        />
       </div>
 
-      {/* Right Floating Avatars - Hidden on Mobile */}
+      {/* Right Floating Icons - Hidden on Mobile */}
       <div ref={rightAvatarsRef} className="absolute right-0 top-0 hidden h-full w-1/3 lg:block">
-        <Avatar className="floating-avatar absolute top-[25%] right-[20%] h-14 w-14 border border-border/50">
-          <AvatarImage 
-            src="" 
-            alt="Student avatar" 
-          />
-          <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            N
-          </AvatarFallback>
-        </Avatar>
-        <Avatar className="floating-avatar absolute top-[60%] right-[10%] h-16 w-16 border border-border/50">
-          <AvatarImage 
-            src="" 
-            alt="Student avatar" 
-          />
-          <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            B
-          </AvatarFallback>
-        </Avatar>
-        <Avatar className="floating-avatar absolute bottom-[15%] right-[25%] h-12 w-12 border border-border/50">
-          <AvatarImage 
-            src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop" 
-            alt="Student avatar" 
-          />
-          <AvatarFallback className="bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-            D
-          </AvatarFallback>
-        </Avatar>
+        <FloatingIcon 
+          className="top-[25%] right-[20%] h-14 w-14"
+          icon={<Sparkles className="h-6 w-6" />}
+          gradient="from-amber-500 to-orange-600"
+          glowColor="rgba(245, 158, 11, 0.35)"
+        />
+        <FloatingIcon 
+          className="top-[60%] right-[10%] h-16 w-16"
+          icon={<FileText className="h-7 w-7" />}
+          gradient="from-rose-500 to-red-600"
+          glowColor="rgba(244, 63, 94, 0.35)"
+        />
+        <FloatingIcon 
+          className="bottom-[15%] right-[25%] h-12 w-12"
+          icon={<Trophy className="h-5 w-5" />}
+          gradient="from-cyan-500 to-blue-600"
+          glowColor="rgba(6, 182, 212, 0.35)"
+        />
       </div>
 
       {/* Main Content Container */}
