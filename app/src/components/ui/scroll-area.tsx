@@ -1,7 +1,6 @@
-"use client";
-
 import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
-import type React from "react";
+import React, { useEffect, useRef } from "react";
+import Lenis from "lenis";
 import { cn } from "@/lib/utils";
 
 export function ScrollArea({
@@ -9,17 +8,66 @@ export function ScrollArea({
   children,
   scrollFade = false,
   scrollbarGutter = false,
+  disableLenis = false,
   ...props
 }: ScrollAreaPrimitive.Root.Props & {
   scrollFade?: boolean;
   scrollbarGutter?: boolean;
+  disableLenis?: boolean;
 }): React.ReactElement {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
+
+  useEffect(() => {
+    if (disableLenis) return;
+
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const content = viewport.firstElementChild as HTMLElement;
+    if (!content) return;
+
+    const lenis = new Lenis({
+      wrapper: viewport,
+      content: content,
+      duration: 0.8,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 1.2,
+      touchMultiplier: 1.5,
+    });
+
+    lenisRef.current = lenis;
+
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+    rafId = requestAnimationFrame(raf);
+
+    // Sync scroll layout sizes automatically when content changes
+    const resizeObserver = new ResizeObserver(() => {
+      lenis.resize();
+    });
+    resizeObserver.observe(content);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+      lenis.destroy();
+      lenisRef.current = null;
+    };
+  }, [disableLenis]);
+
   return (
     <ScrollAreaPrimitive.Root
       className={cn("size-full min-h-0", className)}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
+        ref={viewportRef}
         className={cn(
           "h-full rounded-[inherit] outline-none transition-shadows focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background data-has-overflow-y:overscroll-y-contain data-has-overflow-x:overscroll-x-contain",
           scrollFade &&
@@ -29,7 +77,7 @@ export function ScrollArea({
         )}
         data-slot="scroll-area-viewport"
       >
-        {children}
+        <div className="min-h-full w-full">{children}</div>
       </ScrollAreaPrimitive.Viewport>
       <ScrollBar orientation="vertical" />
       <ScrollBar orientation="horizontal" />

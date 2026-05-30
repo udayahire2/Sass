@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -502,46 +503,44 @@ export default function FacultyDashboard() {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-md border">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow>
-                      <TableHead className="w-70">Content</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Submitted</TableHead>
-                      <TableHead className="text-right">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {myUploads.map((m) => (
-                      <TableRow key={m._id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="rounded-md border p-2">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="font-medium">{m.title}</p>
-                              <Badge variant="outline" className="text-xs">
-                                {m.type}
-                              </Badge>
-                            </div>
+            <ScrollArea className="h-[400px] w-full rounded-md border">
+              <Table>
+                <TableHeader className="bg-muted/30 sticky top-0 z-10">
+                  <TableRow>
+                    <TableHead className="w-70">Content</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Submitted</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {myUploads.map((m) => (
+                    <TableRow key={m._id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-md border p-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
                           </div>
-                        </TableCell>
-                        <TableCell>{m.subject}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(m.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <StatusBadge status={m.status} />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
+                          <div>
+                            <p className="font-medium">{m.title}</p>
+                            <Badge variant="outline" className="text-xs">
+                              {m.type}
+                            </Badge>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{m.subject}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(m.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <StatusBadge status={m.status} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
@@ -563,20 +562,22 @@ export default function FacultyDashboard() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {approvedMaterials.slice(0, 20).map((m) => (
-                <FeedbackPanel
-                  key={m._id}
-                  material={m}
-                  userId={user.id ?? user._id ?? ""}
-                />
-              ))}
-              {approvedMaterials.length > 20 && (
-                <p className="pt-1 text-center text-xs text-muted-foreground">
-                  Showing 20 of {approvedMaterials.length} approved materials.
-                </p>
-              )}
-            </div>
+            <ScrollArea className="h-[500px] w-full rounded-md border pr-4">
+              <div className="space-y-3 pr-4">
+                {approvedMaterials.slice(0, 20).map((m) => (
+                  <FeedbackPanel
+                    key={m._id}
+                    material={m}
+                    userId={user.id ?? user._id ?? ""}
+                  />
+                ))}
+                {approvedMaterials.length > 20 && (
+                  <p className="pt-1 text-center text-xs text-muted-foreground">
+                    Showing 20 of {approvedMaterials.length} approved materials.
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
           )}
         </CardContent>
       </Card>

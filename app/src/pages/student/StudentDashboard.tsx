@@ -4,6 +4,7 @@ import { ArrowRight, Bookmark, FileText, Upload } from "lucide-react";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchUserMaterials, fetchBookmarkedMaterials } from "@/services/study-service";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -108,27 +109,31 @@ export default function StudentDashboard() {
             <CardTitle className="text-base">Quick Actions</CardTitle>
             <CardDescription>Access your study tools</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <Link
-              to="/dashboard/student/profile"
-              className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted/50"
-            >
-              <div>
-                <p className="text-sm font-medium">Edit Profile</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">Update your details</p>
+          <CardContent>
+            <ScrollArea className="h-[200px]">
+              <div className="space-y-3 pr-4">
+                <Link
+                  to="/dashboard/student/profile"
+                  className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted/50"
+                >
+                  <div>
+                    <p className="text-sm font-medium">Edit Profile</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">Update your details</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
+                <Link
+                  to="/dashboard/student/bookmarks"
+                  className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted/50"
+                >
+                  <div>
+                    <p className="text-sm font-medium">My Bookmarks</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">View saved materials</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
               </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
-            <Link
-              to="/dashboard/student/bookmarks"
-              className="flex items-center justify-between rounded-md border p-3 transition-colors hover:bg-muted/50"
-            >
-              <div>
-                <p className="text-sm font-medium">My Bookmarks</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">View saved materials</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>

@@ -201,7 +201,7 @@ export default function AdminLayout() {
         </aside>
 
         {/* Main content */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
           {/* Header */}
           <header className="sticky top-0 z-30 border-b bg-background">
             <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
@@ -278,11 +278,13 @@ export default function AdminLayout() {
           </header>
 
           {/* Main page content */}
-          <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-            <div className="mx-auto w-full max-w-6xl">
-              <Outlet />
-            </div>
-          </main>
+          <ScrollArea className="flex-1">
+            <main className="px-4 py-6 sm:px-6 lg:px-8">
+              <div className="mx-auto w-full max-w-6xl">
+                <Outlet />
+              </div>
+            </main>
+          </ScrollArea>
         </div>
       </div>
     </div>

@@ -30,6 +30,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -616,10 +617,10 @@ function MaterialTable({
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border/70">
-      <div className="overflow-x-auto">
+    <div className="rounded-2xl border border-border/70 overflow-hidden">
+      <ScrollArea className="h-[500px] w-full">
         <Table className="min-w-[840px]">
-          <TableHeader className="bg-secondary/60">
+          <TableHeader className="bg-secondary/60 sticky top-0 z-10">
             <TableRow>
               <TableHead className="w-[320px]">Content</TableHead>
               <TableHead>Author</TableHead>
@@ -643,7 +644,7 @@ function MaterialTable({
             ))}
           </TableBody>
         </Table>
-      </div>
+      </ScrollArea>
       {total > pageSize ? (
         <div className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <span>
