@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { NoteMetadata } from "@/lib/notesMetadata";
+import { CoverImage } from "./CoverImage";
 
 interface PageCanvasProps {
   title: string;
@@ -15,6 +16,7 @@ interface PageCanvasProps {
   onOpenEmojiPicker: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onRemoveIcon: () => void;
   onOpenCoverPicker: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  onRemoveCover: () => void;
 }
 
 export function PageCanvas({
@@ -27,6 +29,7 @@ export function PageCanvas({
   onOpenEmojiPicker,
   onRemoveIcon,
   onOpenCoverPicker,
+  onRemoveCover,
 }: PageCanvasProps) {
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
@@ -93,18 +96,25 @@ export function PageCanvas({
       {/* Main Editor Area */}
       <div className="flex-1 min-w-0 flex flex-col">
         <ScrollArea className="flex-1">
+          {metadata.cover && (
+            <CoverImage
+              cover={metadata.cover}
+              onChangeCover={onOpenCoverPicker}
+              onRemoveCover={onRemoveCover}
+            />
+          )}
           <div className={cn(
             "mx-auto px-12 md:px-24 transition-all duration-200",
             metadata.fullWidth ? "max-w-[1400px]" : "max-w-[900px]"
           )}>
             {/* Icon + Title (same as before) */}
-            <div className={cn("relative group/title", metadata.cover ? "-mt-20 pt-4" : "mt-16")}>
+            <div className={cn("relative group/title", metadata.cover ? (metadata.icon ? "mt-0" : "mt-8") : "mt-16")}>
               {metadata.icon && (
-                <div className="relative mb-2">
+                <div className={cn("relative", metadata.cover ? "-mt-10 mb-2 z-10" : "mb-2")}>
                   <button onClick={onOpenEmojiPicker} className="group/emoji relative text-[78px] leading-[86px] cursor-pointer hover:opacity-80">
                     {metadata.icon}
                     <div className="absolute -top-1 -right-1 opacity-0 group-hover/emoji:opacity-100">
-                      <span className="bg-background border rounded-full p-0.5 shadow-sm">
+                      <span className="bg-background border rounded-full p-0.5">
                         <X className="h-3 w-3" onClick={(e) => { e.stopPropagation(); onRemoveIcon(); }} />
                       </span>
                     </div>
@@ -128,7 +138,7 @@ export function PageCanvas({
                 value={title}
                 onChange={onTitleChange}
                 placeholder="Untitled"
-                className={cn("w-full bg-transparent px-0 font-bold tracking-[-0.03em] text-foreground placeholder:text-muted-foreground/25 focus:outline-none", fontClass, "text-[40px] leading-[1.2]")}
+                className={cn("w-full bg-transparent px-0 font-bold tracking-normal text-foreground placeholder:text-muted-foreground/25 focus:outline-none", fontClass, "text-[40px] leading-[1.2]")}
               />
             </div>
             <div className={cn("mt-1 pb-32", fontClass)}>
@@ -148,7 +158,7 @@ export function PageCanvas({
       {headings.length > 0 && (
         <div
           className={cn(
-            "h-full transition-all duration-300 ease-in-out border-l border-border/40 bg-background/90 backdrop-blur-sm",
+            "h-full transition-all duration-300 ease-in-out border-l border-border bg-background",
             isOutlineOpen ? "w-72" : "w-10 cursor-pointer hover:bg-muted/20"
           )}
           onClick={() => !isOutlineOpen && setIsOutlineOpen(true)}

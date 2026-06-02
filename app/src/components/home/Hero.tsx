@@ -9,22 +9,19 @@ import { cn } from "@/lib/utils";
 interface FloatingIconProps {
   className?: string;
   icon: React.ReactNode;
-  gradient: string;
-  glowColor: string;
+  bgClass: string;
+  iconClass: string;
 }
 
-function FloatingIcon({ className, icon, gradient, glowColor }: FloatingIconProps) {
+function FloatingIcon({ className, icon, bgClass, iconClass }: FloatingIconProps) {
   return (
     <div
       className={cn(
-        "floating-avatar absolute flex items-center justify-center rounded-2xl border border-neutral-200/40 dark:border-neutral-800/40 bg-white/70 dark:bg-neutral-950/60 backdrop-blur-md shadow-xl transition-all duration-300 hover:scale-115 hover:rotate-3 hover:shadow-2xl cursor-pointer group select-none z-10",
+        "floating-avatar absolute flex items-center justify-center rounded-2xl border border-neutral-200/50 dark:border-neutral-800 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-md shadow-neutral-100/5 dark:shadow-black/20 transition-all duration-300 hover:scale-108 hover:shadow-lg cursor-pointer group select-none z-10 p-2.5",
         className
       )}
-      style={{
-        boxShadow: `0 10px 30px -10px ${glowColor}, inset 0 1px 0 0 rgba(255,255,255,0.15)`,
-      }}
     >
-      <div className={cn("flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br p-3 text-white transition-transform duration-300 group-hover:scale-105 shadow-inner", gradient)}>
+      <div className={cn("flex h-full w-full items-center justify-center rounded-xl p-2 transition-colors duration-300", bgClass, iconClass)}>
         {icon}
       </div>
     </div>
@@ -86,18 +83,20 @@ export function Hero() {
         <FloatingIcon 
           className="top-[20%] left-[15%] h-16 w-16"
           icon={<GraduationCap className="h-7 w-7" />}
+          bgClass="bg-blue-500/8 dark:bg-blue-500/12 group-hover:bg-blue-500/12 dark:group-hover:bg-blue-500/16"
+          iconClass="text-blue-600 dark:text-blue-400"
         />
         <FloatingIcon 
           className="top-[50%] left-[5%] h-12 w-12"
           icon={<Code className="h-5 w-5" />}
-          gradient="from-purple-500 to-pink-500"
-          glowColor="rgba(168, 85, 247, 0.35)"
+          bgClass="bg-purple-500/8 dark:bg-purple-500/12 group-hover:bg-purple-500/12 dark:group-hover:bg-purple-500/16"
+          iconClass="text-purple-600 dark:text-purple-400"
         />
         <FloatingIcon 
           className="bottom-[25%] left-[25%] h-14 w-14"
           icon={<BookOpen className="h-6 w-6" />}
-          gradient="from-emerald-500 to-teal-600"
-          glowColor="rgba(16, 185, 129, 0.35)"
+          bgClass="bg-emerald-500/8 dark:bg-emerald-500/12 group-hover:bg-emerald-500/12 dark:group-hover:bg-emerald-500/16"
+          iconClass="text-emerald-600 dark:text-emerald-400"
         />
       </div>
 
@@ -106,20 +105,20 @@ export function Hero() {
         <FloatingIcon 
           className="top-[25%] right-[20%] h-14 w-14"
           icon={<Sparkles className="h-6 w-6" />}
-          gradient="from-amber-500 to-orange-600"
-          glowColor="rgba(245, 158, 11, 0.35)"
+          bgClass="bg-amber-500/8 dark:bg-amber-500/12 group-hover:bg-amber-500/12 dark:group-hover:bg-amber-500/16"
+          iconClass="text-amber-600 dark:text-amber-400"
         />
         <FloatingIcon 
           className="top-[60%] right-[10%] h-16 w-16"
           icon={<FileText className="h-7 w-7" />}
-          gradient="from-rose-500 to-red-600"
-          glowColor="rgba(244, 63, 94, 0.35)"
+          bgClass="bg-rose-500/8 dark:bg-rose-500/12 group-hover:bg-rose-500/12 dark:group-hover:bg-rose-500/16"
+          iconClass="text-rose-600 dark:text-rose-400"
         />
         <FloatingIcon 
           className="bottom-[15%] right-[25%] h-12 w-12"
           icon={<Trophy className="h-5 w-5" />}
-          gradient="from-cyan-500 to-blue-600"
-          glowColor="rgba(6, 182, 212, 0.35)"
+          bgClass="bg-cyan-500/8 dark:bg-cyan-500/12 group-hover:bg-cyan-500/12 dark:group-hover:bg-cyan-500/16"
+          iconClass="text-cyan-600 dark:text-cyan-400"
         />
       </div>
 

@@ -66,6 +66,10 @@ export default function NotesPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [editorTheme, setEditorTheme] = useState("light");
 
+  const normalizeEditorTheme = useCallback((theme: string | null | undefined) => {
+    return theme === "dark" ? "dark" : "light";
+  }, []);
+
   useEffect(() => {
     import("@/services/api").then(({ getApiOrigin }) => {
       fetch(`${getApiOrigin()}/api/v1/auth/me`, {
@@ -74,19 +78,20 @@ export default function NotesPage() {
         }
       }).then(r => r.json()).then(payload => {
         if (payload?.data?.preferences?.editorTheme) {
-          setEditorTheme(payload.data.preferences.editorTheme);
+          setEditorTheme(normalizeEditorTheme(payload.data.preferences.editorTheme));
         } else {
-          setEditorTheme(localStorage.getItem("editor-theme") || "light");
+          setEditorTheme(normalizeEditorTheme(localStorage.getItem("editor-theme")));
         }
-      }).catch(() => setEditorTheme(localStorage.getItem("editor-theme") || "light"));
+      }).catch(() => setEditorTheme(normalizeEditorTheme(localStorage.getItem("editor-theme"))));
     });
-  }, []);
+  }, [normalizeEditorTheme]);
 
   const handleThemeChange = (newTheme: string) => {
-    setEditorTheme(newTheme);
-    localStorage.setItem("editor-theme", newTheme);
+    const normalizedTheme = normalizeEditorTheme(newTheme);
+    setEditorTheme(normalizedTheme);
+    localStorage.setItem("editor-theme", normalizedTheme);
     import("@/services/api").then(({ updatePreferences }) => {
-      updatePreferences({ editorTheme: newTheme }).catch(console.error);
+      updatePreferences({ editorTheme: normalizedTheme }).catch(console.error);
     });
   };
 
@@ -550,7 +555,7 @@ export default function NotesPage() {
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
-          <span className="text-xs text-muted-foreground/50">Loading…</span>
+          <span className="text-xs text-muted-foreground/50">Loading...</span>
         </div>
       </div>
     );
@@ -621,9 +626,7 @@ export default function NotesPage() {
       <div className={cn(
         "flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative transition-all duration-300",
         editorTheme === "light" && "theme-light-editor",
-        editorTheme === "dark" && "theme-dark-editor",
-        editorTheme === "sepia" && "theme-sepia-editor",
-        editorTheme === "nord" && "theme-nord-editor"
+        editorTheme === "dark" && "theme-dark-editor"
       )}>
         {activeNote && !activeNote.meta.trash ? (
           <>
@@ -647,17 +650,6 @@ export default function NotesPage() {
               onOpenCoverPicker={() => setShowCoverPicker(true)}
             />
 
-            {metadata.cover && (
-              <CoverImage
-                cover={metadata.cover}
-                onChangeCover={(e) => {
-                  coverTriggerRef.current = e.currentTarget;
-                  setShowCoverPicker(true);
-                }}
-                onRemoveCover={() => updateMetadataField("cover", "")}
-              />
-            )}
-
             <PageCanvas
               title={title}
               metadata={metadata}
@@ -674,6 +666,7 @@ export default function NotesPage() {
                 coverTriggerRef.current = e.currentTarget;
                 setShowCoverPicker(true);
               }}
+              onRemoveCover={() => updateMetadataField("cover", "")}
             />
           </>
         ) : (
