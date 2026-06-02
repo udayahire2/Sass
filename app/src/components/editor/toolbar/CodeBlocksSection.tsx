@@ -4,7 +4,7 @@ import {
   FileCode as FileCodeIcon,
   Quote as QuoteIcon,
 } from 'lucide-react';
-import { ToolbarButton } from './ToolbarButton';
+import { Toggle } from '@/components/ui/toggle';
 
 interface CodeBlocksSectionProps {
   editor: Editor;
@@ -13,29 +13,32 @@ interface CodeBlocksSectionProps {
 export const CodeBlocksSection = ({ editor }: CodeBlocksSectionProps) => {
   return (
     <>
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleCode().run()}
-        isActive={editor.isActive('code')}
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('code')}
+        onPressedChange={() => editor.chain().focus().toggleCode().run()}
         title="Inline Code"
       >
         <CodeIcon className="h-4 w-4" />
-      </ToolbarButton>
+      </Toggle>
 
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        isActive={editor.isActive('codeBlock')}
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('codeBlock')}
+        onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
         title="Code Block"
       >
         <FileCodeIcon className="h-4 w-4" />
-      </ToolbarButton>
+      </Toggle>
 
-      <ToolbarButton
-        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        isActive={editor.isActive('blockquote')}
+      <Toggle
+        size="sm"
+        pressed={editor.isActive('blockquote')}
+        onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
         title="Blockquote"
       >
         <QuoteIcon className="h-4 w-4" />
-      </ToolbarButton>
+      </Toggle>
     </>
   );
 };
