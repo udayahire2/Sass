@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
 import { Copy, Check, ChevronDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 
 interface CodeBlockProps {
   node: {
@@ -12,6 +10,7 @@ interface CodeBlockProps {
     textContent: string;
   };
   updateAttributes: (attrs: { language: string }) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extension: any;
 }
 
@@ -56,74 +55,61 @@ export default function CodeBlockComponent({
   };
 
   const lineCount = (node?.textContent || '').split('\n').length || 1;
-  const currentLangLabel = LANGUAGES.find(l => l.value === currentLang)?.label || currentLang;
+  const lines = Array.from({ length: lineCount }, (_, i) => i + 1);
 
   return (
-    <NodeViewWrapper className="custom-code-block relative group/code-block my-6 rounded-md border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-900 font-mono">
-      {/* Minimal Notion-style header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/40 select-none">
-        {/* Language selector - minimal */}
-        <div className="relative flex items-center">
-          <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400 mr-1">
-            {currentLangLabel}
-          </span>
-          <ChevronDown className="w-3 h-3 text-zinc-500 dark:text-zinc-500" />
+    <NodeViewWrapper className="custom-code-block relative my-4 rounded-xl border border-zinc-700 dark:border-zinc-700/50 overflow-hidden bg-zinc-950 dark:bg-[#0d0d0d] font-mono shadow-lg dark:shadow-xl hover:border-zinc-600 dark:hover:border-zinc-600 transition-colors">
+      
+      {/* 1. Header Area: Selector & Copy Button */}
+      <div 
+        className="flex items-center justify-between px-4 py-2 bg-zinc-900/40 border-b border-zinc-800/50" 
+        contentEditable={false}
+      >
+        <div className="relative flex items-center group/select">
           <select
             value={currentLang}
             onChange={(e) => updateAttributes({ language: e.target.value })}
-            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-            contentEditable={false}
+            className="appearance-none bg-transparent text-xs font-sans text-zinc-400 hover:text-zinc-200 cursor-pointer outline-none pr-5 z-10"
           >
             {LANGUAGES.map((lang) => (
-              <option key={lang.value} value={lang.value}>
+              <option key={lang.value} value={lang.value} className="bg-zinc-900 text-zinc-300">
                 {lang.label}
               </option>
             ))}
           </select>
+          <ChevronDown className="w-3 h-3 text-zinc-500 absolute right-0 transition-colors group-hover/select:text-zinc-300 pointer-events-none" />
         </div>
 
-        {/* Copy button */}
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
           onClick={handleCopy}
-          className="flex h-6 items-center gap-1 px-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors rounded-sm"
-          contentEditable={false}
+          className="p-1 text-zinc-400 hover:text-zinc-200 bg-zinc-800/40 hover:bg-zinc-700/60 rounded-md transition-all"
+          title={isCopied ? 'Copied!' : 'Copy code'}
         >
-          {isCopied ? (
-            <>
-              <Check className="w-3 h-3" />
-              <span>Copied</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3 h-3" />
-              <span>Copy</span>
-            </>
-          )}
-        </Button>
+          {isCopied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+        </button>
       </div>
 
-      {/* Code area with line numbers */}
-      <div className="flex text-sm leading-6 relative">
-        {/* Line numbers column */}
-        <div
-          className="select-none text-right pr-3 pl-2 text-zinc-400 dark:text-zinc-600 font-mono text-[11px] min-w-[2.5rem] py-3 bg-zinc-100/50 dark:bg-zinc-800/20 border-r border-zinc-200 dark:border-zinc-800"
+      {/* 2. Code Area: Line Numbers + TextContent */}
+      <div className="flex relative">
+        {/* Line Gutter - Removed border, reduced right padding */}
+        <div 
+          className="flex flex-col text-[13px] leading-6 py-4 pl-4 pr-2 text-zinc-500 select-none text-right bg-zinc-950/30"
           contentEditable={false}
         >
-          {Array.from({ length: lineCount }).map((_, i) => (
-            <div key={i}>{i + 1}</div>
+          {lines.map((num) => (
+            <span key={num}>{num}</span>
           ))}
         </div>
 
-        {/* Editable code content */}
-        <pre className="flex-1 py-3 px-3 m-0 bg-transparent overflow-x-auto">
+        {/* Tiptap Code Editor - Adjusted left padding to close the gap */}
+        <pre className="py-4 pl-2 pr-4 m-0 bg-transparent overflow-x-auto text-sm leading-6 flex-1">
           <NodeViewContent
             as="code"
-            className="font-mono text-[13px] leading-6 block outline-none text-zinc-800 dark:text-zinc-200 whitespace-pre"
+            className="font-mono text-[13px] leading-6 block outline-none text-zinc-300 whitespace-pre"
           />
         </pre>
       </div>
+
     </NodeViewWrapper>
   );
 }
