@@ -118,6 +118,7 @@ function formatStudyMaterial(row) {
         id: row.id,
         title: row.title,
         subject: row.subject,
+        branch: row.branch,
         type: row.type,
         url: row.url,
         filePath: row.file_path,

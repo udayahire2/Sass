@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback, FormEvent, ChangeEvent } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import type { FormEvent, ChangeEvent } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
 import { Camera, ZoomIn, Edit2, Save, Mail, BookOpen, CalendarDays, Clock } from "lucide-react";
@@ -251,7 +252,7 @@ export default function StudentProfilePage() {
                 {/* Branch */}
                 <div className="space-y-2">
                   <Label htmlFor="branch">Branch</Label>
-                  <Select value={branch} onValueChange={(val) => setBranch(val)} required>
+                  <Select value={branch} onValueChange={(val) => setBranch(val ?? "")} required>
                     <SelectTrigger id="branch">
                       <SelectValue placeholder="Select branch" />
                     </SelectTrigger>
@@ -265,7 +266,7 @@ export default function StudentProfilePage() {
                 {/* Year */}
                 <div className="space-y-2">
                   <Label htmlFor="year">Year</Label>
-                  <Select value={year} onValueChange={(val) => setYear(val)} required>
+                  <Select value={year} onValueChange={(val) => setYear(val ?? "")} required>
                     <SelectTrigger id="year">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>

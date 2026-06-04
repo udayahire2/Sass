@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { uploadMaterial, type StudyMaterial } from "@/services/study-service";
+import { BRANCHES } from "@/services/api";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ACCEPTED_FILE_TYPES = ".pdf,.ppt,.pptx,.docx,.md";
 const FILE_TYPE_BY_EXTENSION: Record<string, StudyMaterial["type"]> = {
@@ -35,6 +37,7 @@ export default function StudentAddContentPage() {
   
   const [title, setTitle] = useState("");
   const [subject, setSubject] = useState("");
+  const [branch, setBranch] = useState("");
   const [creditName, setCreditName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -61,12 +64,13 @@ export default function StudentAddContentPage() {
     event.preventDefault();
     if (!token) return toast.error("Authentication required.");
     if (!file || !detectedType) return toast.error("Select a supported file.");
-    if (!title.trim() || !subject.trim()) return toast.error("Title and subject are required.");
+    if (!title.trim() || !subject.trim() || !branch) return toast.error("Title, subject, and branch are required.");
     
     setSubmitting(true);
     const formData = new FormData();
     formData.append("title", title.trim());
     formData.append("subject", subject.trim());
+    formData.append("branch", branch);
     formData.append("type", detectedType);
     formData.append("author", effectiveCreditName || "Student");
     formData.append("file", file);
@@ -76,7 +80,7 @@ export default function StudentAddContentPage() {
     
     if (!result) return toast.error("Submission rejected.");
     toast.success("Content submitted for review.");
-    setTitle(""); setSubject(""); setCreditName(""); setFile(null);
+    setTitle(""); setSubject(""); setBranch(""); setCreditName(""); setFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     
     navigate("/dashboard/student/uploads");
@@ -114,6 +118,19 @@ export default function StudentAddContentPage() {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="branch">Branch</Label>
+                <Select value={branch} onValueChange={setBranch} required>
+                  <SelectTrigger id="branch">
+                    <SelectValue placeholder="Select Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BRANCHES.map((b) => (
+                      <SelectItem key={b} value={b}>{b}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="subject">Subject</Label>
                 <Input
                   id="subject"

@@ -7,6 +7,8 @@ import { buildAssetUrl } from "@/services/api";
 import { fetchApprovedMaterials, fetchBookmarkedMaterials, toggleBookmark, type StudyMaterial } from "@/services/study-service";
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
+import { BRANCHES } from "@/services/api";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function StudyStockPage() {
   const [approvedUploads, setApprovedUploads] = useState<StudyMaterial[]>([]);
@@ -47,6 +49,7 @@ function ApprovedUploadsSection({ materials, loading }: { materials: StudyMateri
   const { user } = useLocalAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTypeFilter, setActiveTypeFilter] = useState<string | null>(null);
+  const [activeBranchFilter, setActiveBranchFilter] = useState<string>("All Branches");
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -86,9 +89,16 @@ function ApprovedUploadsSection({ materials, loading }: { materials: StudyMateri
         m.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
         m.author.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesType = !activeTypeFilter || m.type === activeTypeFilter;
-      return matchesSearch && matchesType;
+      
+      const isMissingBranch = m.branch === null || m.branch === undefined;
+      const matchesBranch = 
+        activeBranchFilter === "All Branches" || 
+        m.branch === activeBranchFilter ||
+        (isMissingBranch && activeBranchFilter === "All Branches");
+        
+      return matchesSearch && matchesType && matchesBranch;
     });
-  }, [materials, searchQuery, activeTypeFilter]);
+  }, [materials, searchQuery, activeTypeFilter, activeBranchFilter]);
 
   return (
     <section className="space-y-5">
@@ -105,9 +115,9 @@ function ApprovedUploadsSection({ materials, loading }: { materials: StudyMateri
           </div>
         </div>
         {user && (
-          <Button asChild variant="outline" className="w-full rounded-xl sm:w-auto">
+          <Button  variant="outline" className="w-full rounded-xl sm:w-auto">
+            <UploadCloud className="h-4 w-4 mr-2" />
             <Link to="/add-study-content">
-              <UploadCloud className="h-4 w-4 mr-2" />
               Add Content
             </Link>
           </Button>
@@ -131,6 +141,21 @@ function ApprovedUploadsSection({ materials, loading }: { materials: StudyMateri
               </Button>
             )}
           </div>
+          
+          <div className="w-full sm:w-44 shrink-0">
+            <Select value={activeBranchFilter} onValueChange={setActiveBranchFilter}>
+              <SelectTrigger className="h-10 rounded-xl bg-background/80 text-sm">
+                <SelectValue placeholder="Branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All Branches">All Branches</SelectItem>
+                {BRANCHES.map((b) => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           {types.length > 1 && (
             <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
               <button

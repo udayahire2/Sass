@@ -221,7 +221,7 @@ router.post('/', protect, requireApprovedFaculty, upload.single('file'), async (
             });
         }
 
-        const { title, subject, url, author } = parsed.data;
+        const { title, subject, branch, url, author } = parsed.data;
 
         if (!req.file && !url) {
             return res.status(400).json({
@@ -257,14 +257,15 @@ router.post('/', protect, requireApprovedFaculty, upload.single('file'), async (
 
         run(
             `INSERT INTO study_materials (
-                id, subject_id, title, subject, type, url, file_path, original_filename, mime_type, file_size,
+                id, subject_id, title, subject, branch, type, url, file_path, original_filename, mime_type, file_size,
                 status, author, uploader_user_id,
                 approved_by_user_id, approved_at, rejection_reason, created_at, updated_at, deleted_at
-            ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, NULL, NULL, NULL, ?, ?, NULL)`,
+            ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, NULL, NULL, NULL, ?, ?, NULL)`,
             [
                 materialId,
                 title,
                 subject,
+                branch || null,
                 inferredType,
                 url || null,
                 filePath,

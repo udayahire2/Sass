@@ -7,6 +7,7 @@ export interface StudyMaterial {
     id?: string;
     title: string;
     subject: string;
+    branch?: string;
     type: 'PDF' | 'PPT' | 'DOCX' | 'Markdown' | 'Video' | 'Notes';
     url?: string;
     filePath?: string;

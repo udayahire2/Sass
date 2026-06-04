@@ -127,6 +127,7 @@ const paginationQuerySchema = z.object({
 const materialUploadBodySchema = z.object({
     title: trimmedString(2, 'Title'),
     subject: trimmedString(2, 'Subject'),
+    branch: branchEnum.optional(),
     type: materialTypeEnum.optional(),
     author: trimmedString(2, 'Author').optional(),
     url: z.string().trim().url().optional(),
