@@ -1,6 +1,14 @@
-import { useState } from 'react';
-import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
-import { Copy, Check, ChevronDown } from 'lucide-react';
+import { useState } from "react";
+import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
+import { Check, Copy } from "lucide-react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/selectEditor";
 
 interface CodeBlockProps {
   node: {
@@ -10,106 +18,224 @@ interface CodeBlockProps {
     textContent: string;
   };
   updateAttributes: (attrs: { language: string }) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extension: any;
+  extension: unknown;
 }
 
 const LANGUAGES = [
-  { value: 'text', label: 'Plain Text' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'typescript', label: 'TypeScript' },
-  { value: 'tsx', label: 'TSX' },
-  { value: 'jsx', label: 'JSX' },
-  { value: 'json', label: 'JSON' },
-  { value: 'css', label: 'CSS' },
-  { value: 'html', label: 'HTML' },
-  { value: 'bash', label: 'Bash' },
-  { value: 'python', label: 'Python' },
-  { value: 'java', label: 'Java' },
-  { value: 'sql', label: 'SQL' },
-  { value: 'markdown', label: 'Markdown' },
-  { value: 'rust', label: 'Rust' },
-  { value: 'go', label: 'Go' },
-  { value: 'yaml', label: 'YAML' },
-  { value: 'cpp', label: 'C++' },
-  { value: 'c', label: 'C' },
+  { value: "text", label: "Plain Text" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
+  { value: "tsx", label: "TSX" },
+  { value: "jsx", label: "JSX" },
+  { value: "json", label: "JSON" },
+  { value: "css", label: "CSS" },
+  { value: "html", label: "HTML" },
+  { value: "bash", label: "Bash" },
+  { value: "python", label: "Python" },
+  { value: "java", label: "Java" },
+  { value: "sql", label: "SQL" },
+  { value: "markdown", label: "Markdown" },
+  { value: "rust", label: "Rust" },
+  { value: "go", label: "Go" },
+  { value: "yaml", label: "YAML" },
+  { value: "cpp", label: "C++" },
+  { value: "c", label: "C" },
 ];
 
 export default function CodeBlockComponent({
-  node: { attrs: { language } },
-  updateAttributes,
   node,
+  updateAttributes,
 }: CodeBlockProps) {
   const [isCopied, setIsCopied] = useState(false);
-  const currentLang = language || 'text';
+
+  const currentLang = node.attrs.language || "text";
 
   const handleCopy = async () => {
-    const code = node?.textContent || '';
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(node.textContent || "");
+
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy: ', err);
+
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy code:", error);
     }
   };
 
-  const lineCount = (node?.textContent || '').split('\n').length || 1;
-  const lines = Array.from({ length: lineCount }, (_, i) => i + 1);
+  const lineCount = Math.max(
+    (node.textContent || "").split("\n").length,
+    1
+  );
+
+  const lines = Array.from(
+    { length: lineCount },
+    (_, index) => index + 1
+  );
 
   return (
-    <NodeViewWrapper className="custom-code-block relative my-4 rounded-xl border border-zinc-700 dark:border-zinc-700/50 overflow-hidden bg-zinc-950 dark:bg-[#0d0d0d] font-mono shadow-lg dark:shadow-xl hover:border-zinc-600 dark:hover:border-zinc-600 transition-colors">
-      
-      {/* 1. Header Area: Selector & Copy Button */}
-      <div 
-        className="flex items-center justify-between px-4 py-2 bg-zinc-900/40 border-b border-zinc-800/50" 
+    <NodeViewWrapper
+      className="
+        custom-code-block
+        relative
+        my-4
+        overflow-hidden
+        rounded-xl
+        border
+        border-border
+        bg-neutral-900
+        font-mono
+        shadow-sm
+        transition-colors
+        hover:border-border/80
+      "
+    >
+      {/* Header */}
+      <div
         contentEditable={false}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+        className="
+          flex
+          items-center
+          justify-between
+          px-1.5
+          py-1.5
+        "
       >
-        <div className="relative flex items-center group/select">
-          <select
+        <div
+          className="relative flex items-center"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <Select
             value={currentLang}
-            onChange={(e) => updateAttributes({ language: e.target.value })}
-            className="appearance-none bg-transparent text-xs font-sans text-zinc-400 hover:text-zinc-200 cursor-pointer outline-none pr-5 z-10"
+            onValueChange={(value) =>
+              updateAttributes({ language: value })
+            }
           >
-            {LANGUAGES.map((lang) => (
-              <option key={lang.value} value={lang.value} className="bg-zinc-900 text-zinc-300">
-                {lang.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="w-3 h-3 text-zinc-500 absolute right-0 transition-colors group-hover/select:text-zinc-300 pointer-events-none" />
+            <SelectTrigger
+              className="
+                h-7
+                w-fit
+                border-none
+                bg-transparent
+                px-2
+                text-xs
+                font-medium
+                text-muted-foreground
+                shadow-none
+                transition-colors
+                hover:bg-muted
+                hover:text-foreground
+                focus:ring-0
+                focus:ring-offset-0
+                data-[state=open]:bg-muted
+              "
+            >
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+
+            <SelectContent
+              className="
+                z-[9999]
+                min-w-[180px]
+                border-border
+                bg-popover
+                text-popover-foreground
+              "
+            >
+              {LANGUAGES.map((lang) => (
+                <SelectItem
+                  key={lang.value}
+                  value={lang.value}
+                  className="
+                    cursor-pointer
+                    text-sm
+                    focus:bg-accent
+                    focus:text-accent-foreground
+                  "
+                >
+                  {lang.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <button
           onClick={handleCopy}
-          className="p-1 text-zinc-400 hover:text-zinc-200 bg-zinc-800/40 hover:bg-zinc-700/60 rounded-md transition-all"
-          title={isCopied ? 'Copied!' : 'Copy code'}
+          title={isCopied ? "Copied!" : "Copy code"}
+          className="
+            flex
+            items-center
+            justify-center
+            rounded-md
+            p-1.5
+            text-muted-foreground
+            opacity-60
+            transition-all
+            hover:bg-accent
+            hover:text-accent-foreground
+            hover:opacity-100
+          "
         >
-          {isCopied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+          {isCopied ? (
+            <Check className="h-4 w-4 text-green-500" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
         </button>
       </div>
 
-      {/* 2. Code Area: Line Numbers + TextContent */}
-      <div className="flex relative">
-        {/* Line Gutter - Removed border, reduced right padding */}
-        <div 
-          className="flex flex-col text-[13px] leading-6 py-4 pl-4 pr-2 text-zinc-500 select-none text-right bg-zinc-950/30"
+      {/* Code Area */}
+      <div className="flex">
+        {/* Line Numbers */}
+        <div
           contentEditable={false}
+          className="
+            flex
+            flex-col
+            py-4
+            pl-4
+            text-right
+            text-[12px]
+            leading-6
+            text-muted-foreground
+            select-none
+          "
         >
-          {lines.map((num) => (
-            <span key={num}>{num}</span>
+          {lines.map((line) => (
+            <span key={line}>{line}</span>
           ))}
         </div>
 
-        {/* Tiptap Code Editor - Adjusted left padding to close the gap */}
-        <pre className="py-4 pl-2 pr-4 m-0 bg-transparent overflow-x-auto text-sm leading-6 flex-1">
+        {/* Code Content */}
+        <pre
+          className="
+            m-0
+            flex-1
+            overflow-x-auto
+            px-4
+            py-4
+            text-[13px]
+            leading-6
+          "
+        >
           <NodeViewContent
             as="code"
-            className="font-mono text-[13px] leading-6 block outline-none text-zinc-300 whitespace-pre"
+            className="
+              block
+              whitespace-pre
+              font-mono
+              text-[13px]
+              leading-6
+              text-foreground
+              outline-none
+            "
           />
         </pre>
       </div>
-
     </NodeViewWrapper>
   );
 }
