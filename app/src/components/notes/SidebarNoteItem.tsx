@@ -111,7 +111,14 @@ export function SidebarNoteItem({
           onChange={(e) => setRenameValue(e.target.value)}
           onBlur={commitRename}
           onKeyDown={(e) => {
-            if (e.key === "Enter") commitRename();
+            if (e.key === "Enter") {
+              onSelect();
+              commitRename();
+              setTimeout(() => {
+                const editorEl = document.querySelector('.ProseMirror') as HTMLElement | null;
+                editorEl?.focus();
+              }, 50);
+            }
             if (e.key === "Escape") cancelRename();
           }}
           onClick={(e) => e.stopPropagation()}

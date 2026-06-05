@@ -12,7 +12,6 @@ import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import { ShikiCodeBlock } from './ShikiCodeBlock';
-import { NotionTableNode } from './NotionTableNode';
 
 import { markdownToHtml, htmlToMarkdown } from './markdownUtils';
 import BubbleToolbar from './BubbleToolbar';
@@ -135,7 +134,6 @@ export default function RichTextEditor({
           class: 'editor-code-block',
         },
       }),
-      NotionTableNode,
       Table.configure({
         resizable: true,
         HTMLAttributes: {
@@ -152,6 +150,7 @@ export default function RichTextEditor({
     editorProps: {
       attributes: {
         class: 'focus:outline-none min-h-[200px]',
+        spellcheck: 'false',
       },
       handleKeyDown: (view, event) => {
         const { isOpen, selectedIndex: selIdx, filteredItems } = slashStateRef.current;
@@ -314,6 +313,11 @@ export default function RichTextEditor({
             isOpen={slashMenuOpen}
             selectedIndex={selectedIndex}
             filteredItems={filteredSlashItems}
+            onClose={() => {
+              setSlashMenuOpen(false);
+              setSlashQuery('');
+              setSelectedIndex(0);
+            }}
           />
         )}
 

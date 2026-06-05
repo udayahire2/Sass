@@ -138,6 +138,7 @@ export function PageCanvas({
                 value={title}
                 onChange={onTitleChange}
                 placeholder="Untitled"
+                spellCheck={false}
                 className={cn("w-full bg-transparent px-0 font-bold tracking-normal text-foreground placeholder:text-muted-foreground/25 focus:outline-none", fontClass, "text-[40px] leading-[1.2]")}
               />
             </div>
