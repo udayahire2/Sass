@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { buildApiUrl, getErrorMessage } from "@/services/api";
-import { Logo } from "../ui/logo";
 
 export const title = "Sign Up";
 
@@ -32,10 +31,6 @@ interface RegisterPayload {
   collegeName?: string;
   subjects?: string[];
 }
-
-// Reusable styling for inputs and select triggers to match the dark VIP aesthetic
-const inputClasses = "h-10 bg-[#0a0a0a] border-zinc-800 text-sm text-white placeholder:text-zinc-500 focus:ring-1 focus:ring-zinc-700 focus-visible:ring-1 focus-visible:ring-zinc-700 focus-visible:ring-offset-0 rounded-lg shadow-none";
-const labelClasses = "text-xs font-medium text-zinc-400 mb-1.5 block";
 
 const SignUp = () => {
   const [role, setRole] = useState<UserRole>("student");
@@ -95,15 +90,9 @@ const SignUp = () => {
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto flex flex-col text-white font-sans">
-      
-      {/* Brand Logo Placeholder - Matched to Login */}
-      <div className="mb-8 flex items-center justify-center gap-3 text-2xl font-bold tracking-tighter">
-      <Logo/>
-      </div>
-
-      <div className="text-center mb-8">
-        <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
+    <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-1 font-sans">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-medium tracking-tight text-foreground">
           Create your account
         </h1>
         <p className="text-xs text-zinc-500 mt-2">
@@ -111,64 +100,58 @@ const SignUp = () => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        
+      <form onSubmit={handleSubmit} className="w-full space-y-3">
         {/* Role Selection */}
         <div>
-          <label className={labelClasses}>Role</label>
+          <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Role</label>
           <Select onValueChange={(val) => setRole(val as UserRole)} value={role} required>
-            <SelectTrigger id="role" className={inputClasses}>
+            <SelectTrigger className="h-9 w-full rounded-lg border border-input bg-background text-foreground shadow-xs/5">
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
-            <SelectContent className="bg-[#111111] border-zinc-800 text-white">
-              <SelectItem value="student" className="focus:bg-zinc-800 focus:text-white">Student</SelectItem>
-              <SelectItem value="faculty" className="focus:bg-zinc-800 focus:text-white">Faculty</SelectItem>
+            <SelectContent className="border-input bg-popover text-foreground">
+              <SelectItem value="student">Student</SelectItem>
+              <SelectItem value="faculty">Faculty</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* Common Fields */}
         <div>
-          <label className={labelClasses}>Full name</label>
+          <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Full name</label>
           <Input
-            id="name"
             placeholder="Enter your full name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={inputClasses}
           />
         </div>
 
         <div>
-          <label className={labelClasses}>Email</label>
+          <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Email</label>
           <Input
-            id="email"
             type="email"
             placeholder="name@example.com"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={inputClasses}
           />
         </div>
 
         <div>
-          <label className={labelClasses}>Password</label>
+          <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Password</label>
           <div className="relative">
             <Input
-              id="password"
               type={showPassword ? "text" : "password"}
               placeholder="Create a secure password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={`${inputClasses} pr-10`}
+              className="pr-10"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors animate-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
               disabled={loading}
             >
               {showPassword ? (
@@ -184,33 +167,33 @@ const SignUp = () => {
         {role === "student" && (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={labelClasses}>Branch</label>
-              <Select onValueChange={(val) => val && setBranch(val)} value={branch} required>
-                <SelectTrigger id="branch" className={inputClasses}>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Branch</label>
+              <Select onValueChange={setBranch} value={branch} required>
+                <SelectTrigger className="h-9 w-full rounded-lg border border-input bg-background text-foreground shadow-xs/5">
                   <SelectValue placeholder="Select branch" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111111] border-zinc-800 text-white">
-                  <SelectItem value="Computer" className="focus:bg-zinc-800 focus:text-white">Computer</SelectItem>
-                  <SelectItem value="IT" className="focus:bg-zinc-800 focus:text-white">IT</SelectItem>
-                  <SelectItem value="Civil" className="focus:bg-zinc-800 focus:text-white">Civil</SelectItem>
-                  <SelectItem value="Mechanical" className="focus:bg-zinc-800 focus:text-white">Mechanical</SelectItem>
-                  <SelectItem value="Electrical" className="focus:bg-zinc-800 focus:text-white">Electrical</SelectItem>
-                  <SelectItem value="ENTC" className="focus:bg-zinc-800 focus:text-white">ENTC</SelectItem>
+                <SelectContent className="border-input bg-popover text-foreground">
+                  <SelectItem value="Computer">Computer</SelectItem>
+                  <SelectItem value="IT">IT</SelectItem>
+                  <SelectItem value="Civil">Civil</SelectItem>
+                  <SelectItem value="Mechanical">Mechanical</SelectItem>
+                  <SelectItem value="Electrical">Electrical</SelectItem>
+                  <SelectItem value="ENTC">ENTC</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <label className={labelClasses}>Year</label>
-              <Select onValueChange={(val) => val && setYear(val)} value={year} required>
-                <SelectTrigger id="year" className={inputClasses}>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Year</label>
+              <Select onValueChange={setYear} value={year} required>
+                <SelectTrigger className="h-9 w-full rounded-lg border border-input bg-background text-foreground shadow-xs/5">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#111111] border-zinc-800 text-white">
-                  <SelectItem value="FE" className="focus:bg-zinc-800 focus:text-white">FE</SelectItem>
-                  <SelectItem value="SE" className="focus:bg-zinc-800 focus:text-white">SE</SelectItem>
-                  <SelectItem value="TE" className="focus:bg-zinc-800 focus:text-white">TE</SelectItem>
-                  <SelectItem value="BE" className="focus:bg-zinc-800 focus:text-white">BE</SelectItem>
+                <SelectContent className="border-input bg-popover text-foreground">
+                  <SelectItem value="FE">FE</SelectItem>
+                  <SelectItem value="SE">SE</SelectItem>
+                  <SelectItem value="TE">TE</SelectItem>
+                  <SelectItem value="BE">BE</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -219,62 +202,50 @@ const SignUp = () => {
 
         {/* Faculty Specific Fields */}
         {role === "faculty" && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className={labelClasses}>Designation</label>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Designation</label>
               <Input
-                id="designation"
                 placeholder="Assistant Professor"
                 required
                 value={designation}
                 onChange={(e) => setDesignation(e.target.value)}
-                className={inputClasses}
               />
             </div>
 
             <div>
-              <label className={labelClasses}>Department</label>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Department</label>
               <Input
-                id="department"
                 placeholder="Computer Engineering"
                 required
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className={inputClasses}
               />
             </div>
 
             <div>
-              <label className={labelClasses}>College</label>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">College</label>
               <Input
-                id="collegeName"
                 placeholder="College name"
                 required
                 value={collegeName}
                 onChange={(e) => setCollegeName(e.target.value)}
-                className={inputClasses}
               />
             </div>
 
             <div>
-              <label className={labelClasses}>Subjects</label>
+              <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Subjects</label>
               <Input
-                id="subjects"
                 placeholder="DBMS, OS, TOC (Comma separated)"
                 required
                 value={subjects}
                 onChange={(e) => setSubjects(e.target.value)}
-                className={inputClasses}
               />
             </div>
           </div>
         )}
 
-        <Button
-          type="submit"
-          disabled={loading}
-          className="h-10 mt-4 w-full bg-[#ededed] text-black hover:bg-white transition-all text-sm font-semibold rounded-lg shadow-none"
-        >
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -290,19 +261,18 @@ const SignUp = () => {
       </form>
 
       {/* Footer */}
-      <div className="mt-8 text-center space-y-4">
+      <div className="mt-6 text-center space-y-4">
         <p className="text-xs text-zinc-500">
           Already have an account?{" "}
-          <Link to="/login" className="text-zinc-300 font-medium hover:text-white transition-colors">
+          <Link
+            to="/login"
+            className="text-foreground/80 font-medium hover:text-foreground transition-colors"
+          >
             Sign in
           </Link>
         </p>
+
         
-        <p className="text-[10px] text-zinc-600 tracking-wide max-w-[280px] mx-auto leading-relaxed">
-          By continuing, you agree to NMU StudyHub's{" "}
-          <a href="#" className="underline hover:text-zinc-500 transition-colors">Terms of Service</a> and{" "}
-          <a href="#" className="underline hover:text-zinc-500 transition-colors">Privacy Policy</a>.
-        </p>
       </div>
     </div>
   );
