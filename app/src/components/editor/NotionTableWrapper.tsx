@@ -1,25 +1,30 @@
 import { NodeViewWrapper } from '@tiptap/react';
+import type { ReactNodeViewProps } from '@tiptap/react';
 import { NotionTable, type TableColumn, type TableRowData } from '../ui/notion-table';
 
-interface NotionTableWrapperProps {
-  node: {
-    attrs: {
-      data: {
-        columns: TableColumn[];
-        rows: TableRowData[];
-      };
-    };
-  };
-  updateAttributes: (attrs: { data: { columns: TableColumn[]; rows: TableRowData[] } }) => void;
-}
+type NotionTableData = { columns: TableColumn[]; rows: TableRowData[] };
+
+const defaultTableData: NotionTableData = {
+  columns: [
+    { id: 'col-1', width: 180 },
+    { id: 'col-2', width: 180 },
+    { id: 'col-3', width: 180 },
+  ],
+  rows: [
+    { id: 'row-1', cells: ['', '', ''] },
+    { id: 'row-2', cells: ['', '', ''] },
+    { id: 'row-3', cells: ['', '', ''] },
+    { id: 'row-4', cells: ['', '', ''] },
+  ],
+};
 
 export default function NotionTableWrapper({
   node,
   updateAttributes,
-}: NotionTableWrapperProps) {
-  const tableData = node.attrs.data;
+}: ReactNodeViewProps) {
+  const tableData = (node.attrs.data as NotionTableData | undefined) || defaultTableData;
 
-  const handleTableChange = (newData: { columns: TableColumn[]; rows: TableRowData[] }) => {
+  const handleTableChange = (newData: NotionTableData) => {
     // Only update if data actually changed to prevent loops
     if (JSON.stringify(tableData) !== JSON.stringify(newData)) {
       updateAttributes({ data: newData });

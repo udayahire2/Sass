@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -103,6 +103,8 @@ export default function RichTextEditor({
     }
   }, [slashMenuOpen]);
 
+  const initialContent = useMemo(() => markdownToHtml(content), []);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -144,7 +146,7 @@ export default function RichTextEditor({
       TableHeader,
       TableCell,
     ],
-    content: markdownToHtml(content),
+    content: initialContent,
     editable,
     immediatelyRender: false,
     editorProps: {

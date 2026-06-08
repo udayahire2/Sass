@@ -24,7 +24,7 @@ export default function EditorToolbar({ editor }: EditorToolbarProps) {
   if (!editor) return null;
 
   return (
-    <div className="flex flex-col border-b border-border bg-card select-none sticky top-0 z-30 rounded-t-lg transition-colors shadow-sm">
+    <div className="flex flex-col border-b border-border bg-card select-none sticky top-0 z-30 rounded-t-lg transition-colors">
       {/* Main Toolbar Row with Horizontal ScrollArea */}
       <ScrollArea className="w-full">
         <div className="flex flex-nowrap items-center gap-1 p-1.5 min-w-max">

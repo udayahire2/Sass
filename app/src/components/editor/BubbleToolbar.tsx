@@ -143,10 +143,10 @@ export default function BubbleToolbar({ editor }: BubbleToolbarProps) {
         offset: 8,
         onHide: () => setActivePanel('none'),
       }}
-      className="flex flex-col rounded-md border border-border bg-popover shadow-sm overflow-hidden z-50"
+      className="flex flex-col rounded-md border border-border bg-popover overflow-hidden z-50"
     >
       {/* Main Toolbar Row with horizontal ScrollArea */}
-      <ScrollArea orientation="horizontal" className="w-full">
+      <ScrollArea className="w-full">
         <div className="flex flex-nowrap items-center gap-0.5 px-1 py-1 min-w-max">
           {/* Turn Into Dropdown */}
           <button

@@ -1,4 +1,4 @@
-import { X, Palette, Settings, Sparkles, Sliders } from "lucide-react";
+import { X, Palette, Settings, Sliders, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SettingsModalProps {
@@ -31,32 +31,18 @@ export function SettingsModal({
       previewBg: "#191919",
       desc: "Sleek organic dark canvas",
     },
-    {
-      id: "sepia",
-      name: "Warm Sepia",
-      bgClass: "bg-[#fbf6ec] border-amber-100 text-amber-950",
-      previewBg: "#fbf6ec",
-      desc: "Eye-friendly cozy cream view",
-    },
-    {
-      id: "nord",
-      name: "Polar Nord",
-      bgClass: "bg-[#2e3440] border-slate-700 text-[#d8dee9]",
-      previewBg: "#2e3440",
-      desc: "Frosted Scandinavian blue mode",
-    },
   ];
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-md animate-in fade-in duration-200"
+        className="absolute inset-0 bg-black/40 animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-[680px] h-[480px] bg-background border rounded-xl shadow-2xl flex overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-[680px] h-[480px] bg-background border rounded-md flex overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
         {/* Sidebar */}
         <aside className="w-48 border-r bg-muted/30 p-3 flex flex-col gap-1.5 shrink-0">
           <div className="flex items-center gap-2 px-2.5 py-1.5 mb-2">
@@ -82,7 +68,6 @@ export function SettingsModal({
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-amber-500" />
               <h2 className="text-sm font-semibold">Appearance & Styling</h2>
             </div>
             <button
@@ -113,15 +98,15 @@ export function SettingsModal({
                     key={theme.id}
                     onClick={() => onThemeChange(theme.id)}
                     className={cn(
-                      "flex flex-col text-left p-3 rounded-lg border-2 transition-all duration-150 cursor-pointer shadow-sm relative group",
+                      "flex flex-col text-left p-3 rounded-md border transition-colors duration-150 cursor-pointer relative group",
                       isActive
-                        ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                        ? "border-foreground bg-muted"
                         : "border-border hover:border-foreground/20 hover:bg-black/5 dark:hover:bg-white/5"
                     )}
                   >
                     <div
                       className={cn(
-                        "w-full h-12 rounded border mb-2 relative overflow-hidden transition-all shadow-inner",
+                        "w-full h-12 rounded border mb-2 relative overflow-hidden transition-colors",
                         theme.bgClass
                       )}
                     >
@@ -140,8 +125,8 @@ export function SettingsModal({
                     </span>
 
                     {isActive && (
-                      <span className="absolute top-2 right-2 text-primary font-bold text-xs bg-background rounded-full w-4 h-4 flex items-center justify-center shadow">
-                        ✓
+                      <span className="absolute top-2 right-2 text-foreground bg-background rounded-full w-4 h-4 flex items-center justify-center border border-border">
+                        <Check className="h-3 w-3" />
                       </span>
                     )}
                   </button>

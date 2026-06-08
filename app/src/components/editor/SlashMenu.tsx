@@ -185,7 +185,7 @@ export const ALL_SLASH_ITEMS: SlashItem[] = [
     category: 'advanced',
     action: (editor: Editor) => {
       clearSlashAndRun(editor, (chain) =>
-        chain.insertNotionTable().run()
+        chain.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
       );
     }
   },
@@ -214,13 +214,15 @@ interface SlashMenuProps {
   isOpen: boolean;
   selectedIndex: number;
   filteredItems: SlashItem[];
+  onClose: () => void;
 }
 
 export default function SlashMenu({
   editor,
   isOpen,
   selectedIndex,
-  filteredItems
+  filteredItems,
+  onClose,
 }: SlashMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const selectedRef = useRef<HTMLButtonElement>(null);
@@ -297,6 +299,7 @@ export default function SlashMenu({
                   e.preventDefault();
                   e.stopPropagation();
                   item.action(editor);
+                  onClose();
                 }}
                 className={cn(
                   "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-all cursor-pointer focus:outline-none select-none",
@@ -334,7 +337,7 @@ export default function SlashMenu({
       ref={menuRef}
       data-slash-menu
       className={cn(
-        "fixed rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl text-popover-foreground py-1.5 shadow-2xl shadow-black/10 h-[320px] w-64 overflow-hidden z-[9999] flex flex-col select-none",
+        "fixed rounded-md border border-border bg-popover text-popover-foreground py-1.5 h-[320px] w-64 overflow-hidden z-[9999] flex flex-col select-none",
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
       )}
       style={{

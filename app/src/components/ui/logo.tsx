@@ -26,7 +26,7 @@ export function Logo({ className, showText = true, ...props }: LogoProps) {
             {/* Text Lockup */}
             {showText && (
                 <div className="flex flex-col justify-center -space-y-0.5">
-                    <span className="font-extrabold text-[18px] leading-none tracking-tight text-foreground sm:text-xl">
+                    <span className="font-display font-bold text-[18px] leading-none tracking-tight text-foreground sm:text-xl">
                         NMU
                     </span>
                     <span className="text-[10px] font-medium tracking-[0.08em] text-muted-foreground uppercase sm:text-[11px]">

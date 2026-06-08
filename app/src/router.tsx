@@ -108,10 +108,6 @@ export const router = createBrowserRouter([
                         element: <AddStudyContentPage />,
                     },
                     {
-                        path: "/notes",
-                        element: <NotesPage />,
-                    },
-                    {
                         path: "/profile",
                         element: <StudentLayout />, // We can redirect or just keep it as an alias for now, but let's redirect
                         children: [
@@ -134,6 +130,11 @@ export const router = createBrowserRouter([
                         element: <HowToUsePage />,
                     },
                 ],
+            },
+            {
+                path: "/notes",
+                element: <NotesPage />,
+                errorElement: <ErrorPage />,
             },
             {
                 path: "/login",

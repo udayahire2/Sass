@@ -2,10 +2,10 @@ import { useRef, useState } from "react";
 import {
   Star,
   MoreHorizontal,
-  Menu,
   Copy,
   Trash2,
   Settings2,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NoteMetadata, PageFont } from "@/lib/notesMetadata";
@@ -57,7 +57,17 @@ export function EditorHeader({
             sidebarVisible && "md:hidden"
           )}
         >
-          <Menu className="h-4 w-4" />
+          {/* REPAIRED SVG: Converted to JSX CamelCase */}
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            strokeWidth={1.5} 
+            stroke="currentColor" 
+            className="w-5 h-5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" />
+          </svg>
         </button>
 
         {/* Breadcrumbs */}
@@ -92,7 +102,7 @@ export function EditorHeader({
       <div className="flex items-center gap-0.5 shrink-0">
         {/* Save status */}
         <span className="hidden md:inline text-[12px] text-muted-foreground/50 mr-2 select-none">
-          {isSaving ? "Saving…" : "Saved"}
+          {isSaving ? "Saving..." : "Saved"}
         </span>
 
         {/* Favorite */}
@@ -120,15 +130,20 @@ export function EditorHeader({
 
         {/* Options */}
         <div className="relative" ref={optionsMenuRef}>
-          <button
-            onClick={() => setShowOptionsMenu(!showOptionsMenu)}
-            className="rounded-[4px] p-1.5 text-foreground/40 hover:text-foreground/70 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <span className="text-[11px] font-medium text-muted-foreground/50 hidden sm:inline-block select-none bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded border border-border/50">
+              {metadata.font === 'sans' ? 'Default' : metadata.font === 'serif' ? 'Serif' : 'Mono'}
+            </span>
+            <button
+              onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+              className="rounded-[4px] p-1.5 text-foreground/40 hover:text-foreground/70 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </div>
 
           {showOptionsMenu && (
-            <div className="absolute right-0 top-full mt-1 w-56 rounded-[8px] border border-border/40 bg-background/80 backdrop-blur-xl p-1 shadow-lg z-[300] animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 top-full mt-1 w-56 rounded-md border border-border bg-popover p-1 z-[300] animate-in fade-in zoom-in-95 duration-100">
               {/* Font Selection */}
               <div className="px-2 py-1.5">
                 <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-wider">
@@ -166,9 +181,7 @@ export function EditorHeader({
                   </span>
                   <span>{label}</span>
                   {metadata.font === font && (
-                    <span className="ml-auto text-primary text-xs">
-                      ✓
-                    </span>
+                    <Check className="ml-auto h-3.5 w-3.5 text-foreground" />
                   )}
                 </button>
               ))}
@@ -192,7 +205,7 @@ export function EditorHeader({
                 >
                   <div
                     className={cn(
-                      "h-3 w-3 rounded-full bg-white shadow-sm transition-transform",
+                      "h-3 w-3 rounded-full bg-background border border-border transition-transform",
                       metadata.fullWidth && "translate-x-3"
                     )}
                   />

@@ -11,13 +11,24 @@ export function markdownToHtml(markdown: string): string {
 
   // 1. Pre-process and escape HTML inside code blocks
   const codeBlocks: string[] = [];
-  html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, lang, code) => {
+  html = html.replace(/```([a-zA-Z0-9+#_-]*)\n([\s\S]*?)\n```/g, (match, lang, code) => {
+    // FIX: Handle empty lang parameter
+    if (!code || code.trim() === '') {
+      console.warn('Empty code block detected:', match);
+      return match;
+    }
+
     const escapedCode = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     const placeholder = `__CODE_BLOCK_PLACEHOLDER_${codeBlocks.length}__`;
-    codeBlocks.push(`<pre><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`);
+    const language = lang && lang.trim() ? lang.trim() : 'text';
+
+    // FIX: Ensure proper HTML structure with both data-language and class attributes
+    codeBlocks.push(
+      `<pre data-language="${language}"><code class="language-${language}">${escapedCode}</code></pre>`
+    );
     return placeholder;
   });
 
@@ -279,11 +290,28 @@ function nodeToMarkdown(node: Node): string {
       return `\`${children}\``;
     case 'PRE': {
       const codeEl = element.querySelector('code');
-      const langClass = codeEl?.className || '';
-      const match = langClass.match(/language-(\w+)/);
-      const language = match ? match[1] : '';
-      const codeText = codeEl ? codeEl.textContent || '' : element.textContent || '';
-      return `\n\n\`\`\`${language}\n${codeText.trim()}\n\`\`\`\n\n`;
+
+      // FIX: Try multiple ways to get language attribute for robustness
+      let language = element.getAttribute('data-language') || '';
+
+      if (!language && codeEl) {
+        const langClass = codeEl.className || '';
+        const match = langClass.match(/language-([a-z0-9+#_-]+)/i);
+        language = match ? match[1] : '';
+      }
+
+      // FIX: Get code content safely
+      const codeText = codeEl
+        ? (codeEl.textContent || codeEl.innerText || '')
+        : (element.textContent || element.innerText || '');
+
+      // FIX: Ensure we have content before returning
+      if (!codeText || codeText.trim() === '') {
+        console.warn('Empty code block found in HTML to Markdown conversion');
+        return '\n\n```\n\n```\n\n';
+      }
+
+      return `\n\n\`\`\`${language}\n${codeText.replace(/\n$/, '')}\n\`\`\`\n\n`;
     }
     case 'BLOCKQUOTE':
       return `\n\n> ${children.trim().replace(/\n/g, '\n> ')}\n\n`;

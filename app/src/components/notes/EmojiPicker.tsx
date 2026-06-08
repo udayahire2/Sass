@@ -198,14 +198,14 @@ export function EmojiPicker({ isOpen, onSelect, onClose, triggerRef }: EmojiPick
     <div
       ref={panelRef}
       className={cn(
-        "fixed z-[9999] w-[340px] rounded-xl border shadow-xl",
+        "fixed z-[9999] w-[340px] rounded-md border",
         "bg-white dark:bg-[#2F2F2F]",
         "border-[#e8e5e0] dark:border-[#ffffff14]",
         "flex flex-col overflow-hidden",
         "transition-all duration-150 ease-out",
         isVisible
-          ? "opacity-100 translate-y-0 scale-100"
-          : "opacity-0 -translate-y-1 scale-[0.98]"
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-1"
       )}
       style={{
         top: position.top,
@@ -262,8 +262,7 @@ export function EmojiPicker({ isOpen, onSelect, onClose, triggerRef }: EmojiPick
               <div
                 className={cn(
                   "sticky top-0 z-10 py-1.5 px-0.5",
-                  "bg-white/95 dark:bg-[#2F2F2F]/95",
-                  "backdrop-blur-sm"
+                  "bg-white dark:bg-[#2F2F2F]"
                 )}
               >
                 <span className="text-[11px] font-medium uppercase tracking-wider text-[#b4b4b0] dark:text-[#ffffff50]">

@@ -85,7 +85,7 @@ export function FeatureGrid() {
           </Badge>
 
           <div className="max-w-3xl space-y-4">
-            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-5xl">
+            <h2 className="font-display text-3xl font-semibold tracking-tight text-balance md:text-5xl">
               Everything you need to
               <span className="text-muted-foreground">
                 {" "}

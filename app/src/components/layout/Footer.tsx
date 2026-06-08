@@ -38,7 +38,7 @@ export function Footer() {
         <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:col-span-2 lg:mt-0">
           {/* Study links */}
           <div>
-            <h3 className="text-xs font-medium uppercase tracking-wider">
+            <h3 className="font-display font-semibold text-xs font-medium uppercase tracking-wider">
               Study
             </h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ export function Footer() {
 
           {/* Help column */}
           <div>
-            <h3 className="text-xs font-medium uppercase tracking-wider">
+            <h3 className="font-display font-semibold text-xs font-medium uppercase tracking-wider">
               Help
             </h3>
             <div className="mt-4 space-y-2 text-sm text-muted-foreground">

@@ -42,7 +42,7 @@ export function StatsSection({ compact = false }: StatsSectionProps) {
         <div className="grid grid-cols-4 gap-4">
           {stats.map((stat, index) => (
             <div key={index} className="flex flex-col items-center text-center">
-              <h3 className="text-xl font-bold tracking-tight text-foreground">
+              <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
                 {stat.value}
               </h3>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -68,7 +68,7 @@ export function StatsSection({ compact = false }: StatsSectionProps) {
             >
               <stat.icon className={`h-6 w-6 ${stat.color}`} />
             </div>
-            <h3 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 text-foreground">
+            <h3 className="font-display text-3xl md:text-4xl font-bold tracking-tight mb-2 text-foreground">
               {stat.value}
             </h3>
             <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">

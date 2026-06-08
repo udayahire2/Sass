@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
-import { Check, Copy } from "lucide-react";
+import { Check, Clipboard } from "lucide-react";
 
 import {
   Select,
@@ -48,12 +48,23 @@ export default function CodeBlockComponent({
 }: CodeBlockProps) {
   const [isCopied, setIsCopied] = useState(false);
 
-  const currentLang = node.attrs.language || "text";
+  // FIX: Ensure language attribute is properly extracted and validated
+  let currentLang = node.attrs?.language || node.attrs?.lang || "text";
+
+  // Ensure it's a valid language string
+  if (typeof currentLang !== 'string') {
+    currentLang = "text";
+  }
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(node.textContent || "");
+      const textToCopy = node.textContent || "";
+      if (!textToCopy) {
+        console.warn('No code content to copy');
+        return;
+      }
 
+      await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
 
       setTimeout(() => {
@@ -64,15 +75,11 @@ export default function CodeBlockComponent({
     }
   };
 
-  const lineCount = Math.max(
-    (node.textContent || "").split("\n").length,
-    1
-  );
+  // FIX: Handle edge case of missing content
+  const codeContent = node.textContent || "";
+  const lineCount = Math.max(codeContent.split("\n").length, 1);
 
-  const lines = Array.from(
-    { length: lineCount },
-    (_, index) => index + 1
-  );
+  const lines = Array.from({ length: lineCount }, (_, index) => index + 1);
 
   return (
     <NodeViewWrapper
@@ -165,7 +172,7 @@ export default function CodeBlockComponent({
 
         <button
           onClick={handleCopy}
-          title={isCopied ? "Copied!" : "Copy code"}
+          title={isCopied ? "Copied!" : "Clipboard code"}
           className="
             flex
             items-center
@@ -183,7 +190,7 @@ export default function CodeBlockComponent({
           {isCopied ? (
             <Check className="h-4 w-4 text-green-500" />
           ) : (
-            <Copy className="h-4 w-4" />
+            <Clipboard className="h-4 w-4" />
           )}
         </button>
       </div>

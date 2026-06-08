@@ -22,6 +22,7 @@ import {
   Undo,
   Redo,
   Plus,
+  Table,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -93,13 +94,14 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
     { label: 'Numbered List', icon: ListOrdered, action: () => editor.chain().focus().toggleOrderedList().run() },
     { label: 'Quote', icon: Quote, action: () => editor.chain().focus().toggleBlockquote().run() },
     { label: 'Code Block', icon: FileCode, action: () => editor.chain().focus().toggleCodeBlock().run() },
+    { label: 'Table', icon: Table, action: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run() },
   ];
 
   if (!hasSelection) {
     return (
       <div
         ref={menuRef}
-        className="fixed z-[9999] min-w-[200px] rounded-xl border border-border/40 bg-background/85 backdrop-blur-xl shadow-2xl py-1.5 select-none animate-in fade-in zoom-in-95 duration-100"
+        className="fixed z-[9999] min-w-[200px] rounded-md border border-border bg-popover py-1.5 select-none animate-in fade-in zoom-in-95 duration-100"
         style={{ left: position.x, top: position.y }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -139,7 +141,7 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
           {/* Submenu */}
           {subMenu === 'turnInto' && (
             <div
-              className="absolute left-full top-0 ml-1 min-w-[180px] rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl shadow-2xl shadow-black/10 py-1 animate-in fade-in slide-in-from-left-1 duration-100"
+              className="absolute left-full top-0 ml-1 min-w-[180px] rounded-md border border-border bg-popover py-1 animate-in fade-in slide-in-from-left-1 duration-100"
               onMouseLeave={() => setSubMenu('none')}
             >
               {turnIntoItems.map((item) => (
@@ -174,7 +176,7 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
   return (
     <div
       ref={menuRef}
-      className="fixed z-[9999] min-w-[220px] rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl shadow-2xl shadow-black/15 py-1.5 select-none animate-in fade-in zoom-in-95 duration-100"
+      className="fixed z-[9999] min-w-[220px] rounded-md border border-border bg-popover py-1.5 select-none animate-in fade-in zoom-in-95 duration-100"
       style={{ left: position.x, top: position.y }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -249,7 +251,7 @@ export default function ContextMenu({ editor, position, onClose }: ContextMenuPr
         {/* Turn Into Submenu */}
         {subMenu === 'turnInto' && (
           <div
-            className="absolute left-full top-0 ml-1 min-w-[180px] rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl shadow-2xl shadow-black/10 py-1 animate-in fade-in slide-in-from-left-1 duration-100"
+            className="absolute left-full top-0 ml-1 min-w-[180px] rounded-md border border-border bg-popover py-1 animate-in fade-in slide-in-from-left-1 duration-100"
             onMouseLeave={() => setSubMenu('none')}
           >
             {turnIntoItems.map((item) => (

@@ -50,7 +50,7 @@ export function NotionTable({
 
   const [rows, setRows] = useState<TableRowData[]>(() => {
     if (data?.rows && data.rows.length > 0) return data.rows;
-    return Array.from({ length: 4 }).map((_, i) => ({
+    return Array.from({ length: 4 }).map(() => ({
       id: `row-${Math.random().toString(36).substr(2, 9)}`,
       cells: Array(3).fill(''),
     }));
@@ -463,7 +463,7 @@ export function NotionTable({
                         {/* Top Grab Pill (—) */}
                         <button
                           onClick={(e) => handleColumnPillClick(e, colIndex)}
-                          className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                          className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-background border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded flex items-center justify-center cursor-pointer transition-colors group/pill"
                           title="Select Column"
                         >
                           <div className="w-3 h-0.5 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
@@ -472,7 +472,7 @@ export function NotionTable({
                         {/* Left Grab Pill (|) */}
                         <button
                           onClick={(e) => handleRowPillClick(e, 0)} // Header click rows menu row 0
-                          className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                          className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-background border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded flex items-center justify-center cursor-pointer transition-colors group/pill"
                           title="Select Row"
                         >
                           <div className="w-0.5 h-3 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
@@ -482,7 +482,7 @@ export function NotionTable({
 
                     {/* COLUMN CONTEXT POPOVER MENU */}
                     {activeMenu?.type === 'col' && activeMenu.index === colIndex && (
-                      <div className="absolute top-9 left-1/2 -translate-x-1/2 bg-zinc-950/95 backdrop-blur-md border border-zinc-850 rounded-lg p-1 shadow-xl w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-1 duration-100 select-none">
+                      <div className="absolute top-9 left-1/2 -translate-x-1/2 bg-popover border border-border rounded-md p-1 w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-1 duration-100 select-none">
                         <PopoverItem 
                           icon={ArrowLeft} 
                           label="Insert Left" 
@@ -566,7 +566,7 @@ export function NotionTable({
                             {/* Top Grab Pill (—) */}
                             <button
                               onClick={(e) => handleColumnPillClick(e, colIndex)}
-                              className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                              className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-background border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded flex items-center justify-center cursor-pointer transition-colors group/pill"
                               title="Select Column"
                             >
                               <div className="w-3 h-0.5 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
@@ -575,7 +575,7 @@ export function NotionTable({
                             {/* Left Grab Pill (|) */}
                             <button
                               onClick={(e) => handleRowPillClick(e, rowIndex)}
-                              className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                              className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-background border border-border hover:bg-muted text-muted-foreground hover:text-foreground rounded flex items-center justify-center cursor-pointer transition-colors group/pill"
                               title="Select Row"
                             >
                               <div className="w-0.5 h-3 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
@@ -585,7 +585,7 @@ export function NotionTable({
 
                         {/* ROW CONTEXT POPOVER MENU */}
                         {activeMenu?.type === 'row' && activeMenu.index === rowIndex && isFocused && (
-                          <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-zinc-950/95 backdrop-blur-md border border-zinc-850 rounded-lg p-1 shadow-xl w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-left-1 duration-100 select-none">
+                          <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-popover border border-border rounded-md p-1 w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-left-1 duration-100 select-none">
                             <PopoverItem 
                               icon={ArrowUp} 
                               label="Insert Row Above" 

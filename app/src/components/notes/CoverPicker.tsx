@@ -3,78 +3,26 @@ import { createPortal } from "react-dom";
 import { Link2, Trash2, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// ─── Gradient Presets ─────────────────────────────────────────────────────────
+// Solid cover presets.
 
-interface GradientPreset {
+interface CoverPreset {
   name: string;
   value: string;
 }
 
-const GRADIENT_PRESETS: GradientPreset[] = [
-  {
-    name: "Warm Sunset",
-    value: "linear-gradient(135deg, #f5af19 0%, #f12711 100%)",
-  },
-  {
-    name: "Cool Ocean",
-    value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  },
-  {
-    name: "Forest Dawn",
-    value: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
-  },
-  {
-    name: "Purple Nebula",
-    value: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
-  },
-  {
-    name: "Soft Peach",
-    value: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-  },
-  {
-    name: "Midnight City",
-    value: "linear-gradient(135deg, #232526 0%, #414345 100%)",
-  },
-  {
-    name: "Rose Water",
-    value: "linear-gradient(135deg, #e6b0aa 0%, #f5cac3 50%, #fae1dd 100%)",
-  },
-  {
-    name: "Arctic Blue",
-    value: "linear-gradient(135deg, #74ebd5 0%, #acb6e5 100%)",
-  },
-  {
-    name: "Lavender Fields",
-    value: "linear-gradient(135deg, #c9d6ff 0%, #e2e2e2 100%)",
-  },
-  {
-    name: "Golden Hour",
-    value: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  },
-  {
-    name: "Deep Space",
-    value: "linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)",
-  },
-  {
-    name: "Emerald Mist",
-    value: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-  },
-  {
-    name: "Coral Reef",
-    value: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fdfcfb 100%)",
-  },
-  {
-    name: "Storm Clouds",
-    value: "linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%)",
-  },
-  {
-    name: "Cherry Blossom",
-    value: "linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)",
-  },
-  {
-    name: "Sahara Sand",
-    value: "linear-gradient(135deg, #d4a574 0%, #e6c8a0 50%, #f2e0c9 100%)",
-  },
+const COVER_PRESETS: CoverPreset[] = [
+  { name: "Default", value: "#f7f6f3" },
+  { name: "Gray", value: "#e9e9e7" },
+  { name: "Brown", value: "#eee0da" },
+  { name: "Orange", value: "#fadec9" },
+  { name: "Yellow", value: "#fdecc8" },
+  { name: "Green", value: "#dbeddb" },
+  { name: "Blue", value: "#d3e5ef" },
+  { name: "Purple", value: "#e8deee" },
+  { name: "Pink", value: "#f5e0e9" },
+  { name: "Red", value: "#ffe2dd" },
+  { name: "Charcoal", value: "#2f3437" },
+  { name: "Ink", value: "#37352f" },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -175,9 +123,9 @@ export function CoverPicker({
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
-  const handleGradientSelect = useCallback(
-    (gradient: string) => {
-      onSelect(gradient);
+  const handleCoverSelect = useCallback(
+    (cover: string) => {
+      onSelect(cover);
       onClose();
     },
     [onSelect, onClose]
@@ -221,14 +169,14 @@ export function CoverPicker({
     <div
       ref={panelRef}
       className={cn(
-        "fixed z-[9999] w-[380px] rounded-xl border shadow-xl",
+        "fixed z-[9999] w-[380px] rounded-md border",
         "bg-white dark:bg-[#2F2F2F]",
         "border-[#e8e5e0] dark:border-[#ffffff14]",
         "flex flex-col overflow-hidden",
         "transition-all duration-150 ease-out",
         isVisible
-          ? "opacity-100 translate-y-0 scale-100"
-          : "opacity-0 -translate-y-1 scale-[0.98]"
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-1"
       )}
       style={{
         top: position.top,
@@ -267,39 +215,35 @@ export function CoverPicker({
           <div className="p-3">
             <div className="mb-2">
               <span className="text-[11px] font-medium uppercase tracking-wider text-[#b4b4b0] dark:text-[#ffffff50]">
-                Color & Gradient
+                Color
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              {GRADIENT_PRESETS.map((preset) => (
+              {COVER_PRESETS.map((preset) => (
                 <button
                   key={preset.name}
                   type="button"
-                  onClick={() => handleGradientSelect(preset.value)}
+                  onClick={() => handleCoverSelect(preset.value)}
                   className={cn(
-                    "group relative h-[60px] rounded-lg overflow-hidden",
-                    "ring-1 ring-[#00000008] dark:ring-[#ffffff0a]",
-                    "hover:ring-2 hover:ring-[#37352f40] dark:hover:ring-[#ffffff40]",
-                    "active:scale-[0.97]",
-                    "transition-all duration-150 cursor-pointer"
+                    "group relative h-[60px] rounded-md overflow-hidden border border-border",
+                    "hover:border-foreground/30",
+                    "transition-colors duration-150 cursor-pointer"
                   )}
                   title={preset.name}
                 >
                   <div
                     className="absolute inset-0"
-                    style={{ background: preset.value }}
+                    style={{ backgroundColor: preset.value }}
                   />
-                  {/* Hover overlay with name */}
                   <div
                     className={cn(
                       "absolute inset-0 flex items-end p-1.5",
-                      "bg-gradient-to-t from-black/40 to-transparent",
                       "opacity-0 group-hover:opacity-100",
                       "transition-opacity duration-150"
                     )}
                   >
-                    <span className="text-[10px] font-medium text-white/90 truncate leading-tight">
+                    <span className="rounded-sm bg-background/90 px-1 text-[10px] font-medium text-foreground truncate leading-tight">
                       {preset.name}
                     </span>
                   </div>

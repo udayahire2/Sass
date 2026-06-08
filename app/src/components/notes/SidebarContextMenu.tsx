@@ -65,7 +65,7 @@ export function SidebarContextMenu({
   return createPortal(
     <div
       ref={menuRef}
-      className="fixed z-[12000] min-w-[190px] rounded-lg border border-border/40 bg-background/85 backdrop-blur-xl p-1 shadow-xl select-none animate-in fade-in zoom-in-95 duration-100"
+      className="fixed z-[12000] min-w-[190px] rounded-md border border-border bg-popover p-1 select-none animate-in fade-in zoom-in-95 duration-100"
       style={{ left: position.x, top: position.y }}
       onClick={(e) => e.stopPropagation()}
     >

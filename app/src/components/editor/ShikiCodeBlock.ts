@@ -17,14 +17,20 @@ async function getShiki() {
     });
   }
   isLoadingShiki = true;
-  shikiHighlighter = await createHighlighter({
-    themes: ['github-light', 'github-dark-dimmed'],
-    langs: [
-      'javascript', 'typescript', 'tsx', 'jsx', 'json', 'css', 'html', 
-      'bash', 'python', 'java', 'sql', 'markdown', 'rust', 'go', 'yaml', 
-      'cpp', 'c', 'text'
-    ],
-  });
+  try {
+    shikiHighlighter = await createHighlighter({
+      themes: ['github-light', 'github-dark-dimmed'],
+      langs: [
+        'javascript', 'typescript', 'tsx', 'jsx', 'json', 'css', 'html',
+        'bash', 'python', 'java', 'sql', 'markdown', 'rust', 'go', 'yaml',
+        'cpp', 'c', 'text'
+      ],
+    });
+  } catch (error) {
+    console.error('Failed to load Shiki highlighter:', error);
+    isLoadingShiki = false;
+    return null;
+  }
   isLoadingShiki = false;
   while (loadedCallbacks.length > 0) {
     loadedCallbacks.shift()?.();
@@ -37,19 +43,32 @@ getShiki();
 
 function getDecorations(doc: any) {
   const decorations: Decoration[] = [];
-  
+
   if (!shikiHighlighter) {
     return DecorationSet.empty;
   }
 
-  const isDark = document.documentElement.classList.contains('dark');
+  const isDark =
+    document.documentElement.classList.contains('dark') ||
+    document.querySelector('.theme-dark-editor') !== null;
   const theme = isDark ? 'github-dark-dimmed' : 'github-light';
 
   doc.descendants((node: any, pos: number) => {
     if (node.type.name === 'codeBlock') {
       const text = node.textContent;
-      const lang = node.attrs.language || 'text';
-      
+      // FIX: Handle language attribute properly
+      let lang = node.attrs.language || node.attrs.lang || 'text';
+
+      // Ensure language is supported, fallback to 'text' if not
+      const supportedLangs = [
+        'javascript', 'typescript', 'tsx', 'jsx', 'json', 'css', 'html',
+        'bash', 'python', 'java', 'sql', 'markdown', 'rust', 'go', 'yaml',
+        'cpp', 'c', 'text'
+      ];
+      if (!supportedLangs.includes(lang)) {
+        lang = 'text';
+      }
+
       try {
         const lines = shikiHighlighter!.codeToTokens(text, {
           lang: lang,
@@ -61,7 +80,7 @@ function getDecorations(doc: any) {
           for (const token of line) {
             const start = pos + 1 + index;
             const end = start + token.content.length;
-            
+
             if (start < end) {
               const style = `color: ${token.color || 'inherit'}`;
               decorations.push(
@@ -76,7 +95,8 @@ function getDecorations(doc: any) {
           index += 1; // newline
         }
       } catch (err) {
-        // Fallback or ignore
+        console.error(`Failed to highlight code block with language '${lang}':`, err);
+        // Fallback: don't highlight, just render plain text
       }
     }
   });
@@ -228,7 +248,17 @@ export const ShikiCodeBlock = CodeBlock.extend({
       ...this.parent?.(),
       language: {
         default: 'javascript',
-        parseHTML: element => element.getAttribute('data-language'),
+        parseHTML: element => {
+          const attrLanguage = element.getAttribute('data-language');
+          if (attrLanguage) return attrLanguage;
+
+          const codeElement = element.matches('code')
+            ? element
+            : element.querySelector('code');
+          const className = codeElement?.getAttribute('class') || '';
+          const match = className.match(/language-([a-z0-9+#_-]+)/i);
+          return match?.[1] || 'text';
+        },
         renderHTML: attributes => {
           if (!attributes.language) {
             return {};
@@ -260,7 +290,7 @@ export const ShikiCodeBlock = CodeBlock.extend({
           init(_, { doc }) {
             return getDecorations(doc);
           },
-          apply(tr, set, oldState, newState) {
+          apply(tr, set, _oldState, newState) {
             const shikiMeta = tr.getMeta('shikiLoaded');
             const themeMeta = tr.getMeta('themeChanged');
             if (tr.docChanged || shikiMeta || themeMeta) {
@@ -295,9 +325,23 @@ export const ShikiCodeBlock = CodeBlock.extend({
             attributeFilter: ['class'],
           });
 
+          const editorThemeObserver = new MutationObserver(() => {
+            if (!editorView.isDestroyed) {
+              editorView.dispatch(editorView.state.tr.setMeta('themeChanged', true));
+            }
+          });
+
+          document.querySelectorAll('.theme-light-editor, .theme-dark-editor').forEach((node) => {
+            editorThemeObserver.observe(node, {
+              attributes: true,
+              attributeFilter: ['class'],
+            });
+          });
+
           return {
             destroy() {
               observer.disconnect();
+              editorThemeObserver.disconnect();
             }
           };
         }

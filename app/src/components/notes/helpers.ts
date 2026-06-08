@@ -36,3 +36,23 @@ export function getAncestors(
   }
   return ancestors;
 }
+
+export interface FlattenedNode {
+  node: TreeNode;
+  depth: number;
+}
+
+export function flattenTree(
+  nodes: TreeNode[],
+  expandedNodes: Set<string>,
+  depth: number = 0,
+  result: FlattenedNode[] = []
+): FlattenedNode[] {
+  for (const node of nodes) {
+    result.push({ node, depth });
+    if (expandedNodes.has(node.note.id) && node.children.length > 0) {
+      flattenTree(node.children, expandedNodes, depth + 1, result);
+    }
+  }
+  return result;
+}

@@ -114,7 +114,7 @@ export function HowItWorksSection() {
           <p className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3">
             How it works
           </p>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="font-display text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Simple workflows for everyone
           </h2>
           <p className="mt-4 text-base text-muted-foreground">

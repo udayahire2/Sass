@@ -57,7 +57,7 @@ export const HeadingDropdown = ({ editor }: HeadingDropdownProps) => {
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-1 w-40 rounded-lg border border-border bg-popover p-1 shadow-lg z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute left-0 mt-1 w-40 rounded-md border border-border bg-popover p-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
           {headingOptions.map((option) => (
             <button
               key={`heading-${option.level}`}

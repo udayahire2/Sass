@@ -475,7 +475,7 @@ export default function FacultyDashboard() {
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle>My Uploads</CardTitle>
+              <CardTitle>My Uploads</CardTitle> 
               <CardDescription>Your study materials and their approval status.</CardDescription>
             </div>
             <Button className="" disabled={!user.isApproved}>

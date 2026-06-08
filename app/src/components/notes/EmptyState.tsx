@@ -34,7 +34,7 @@ export function EmptyState({
         </p>
         <button
           onClick={onCreateNote}
-          className="mt-3 flex items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+          className="mt-3 flex items-center gap-2 rounded-[6px] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
         >
           <Plus className="h-4 w-4" />
           New page
