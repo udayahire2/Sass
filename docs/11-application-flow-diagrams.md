@@ -21,11 +21,11 @@ flowchart LR
 ```mermaid
 flowchart TD
     Start[User opens app] --> HasSession{Stored session?}
-    HasSession -->|No| Public[Public home, login, signup]
-    HasSession -->|Yes| Role{Role}
-    Role -->|Student| StudentHome[Home, Resources, Study Stock, Notes, Profile]
-    Role -->|Faculty| FacultyDash[Faculty dashboard]
-    Role -->|Admin| AdminDash[Admin dashboard]
+    HasSession -->|No| Public[Public routes: Home, Resources, Study Stock, Search, Login, Signup]
+    HasSession -->|Yes| Role{Role Guard}
+    Role -->|Student| StudentHome[/dashboard/student: Dashboard, Profile, Uploads, Add Content, Bookmarks, Notes]
+    Role -->|Faculty| FacultyDash[/dashboard/faculty: Dashboard, Upload, Profile]
+    Role -->|Admin| AdminDash[/admin: Dashboard, Syllabus, Resources, IMP Questions, Sample Papers, Users, Approvals, Feedback]
 ```
 
 Current issue:
@@ -164,7 +164,10 @@ flowchart TD
     Admin --> Approvals[GET /study-materials/pending]
     Admin --> Syllabus[Manage /syllabus]
     Admin --> Resources[Manage /resources]
+    Admin --> ImpQuestions[Manage /resources category=IMP Questions]
+    Admin --> SamplePapers[Manage /resources category=Sample Papers]
     Admin --> Feedback[Manage /feedback]
+    Admin --> Topics[Manage /topics/:id/edit]
 ```
 
 ## File Access Flow

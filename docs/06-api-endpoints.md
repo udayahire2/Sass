@@ -123,12 +123,12 @@ All endpoints require admin role.
 
 ## Resources: `/resources`
 
-Resources are admin-managed records. Public callers see approved records only. Admin callers can request status filters.
+Resources are admin-managed records. The frontend dynamically utilizes this API by applying category filters to power different sections of the application, such as **IMP Questions** and **Sample Papers**. Public callers see approved records only. Admin callers can request status filters.
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/resources` | Optional | List resources. |
-| `POST` | `/resources` | Admin | Create approved resource with URL or file. |
+| `GET` | `/resources` | Optional | List resources (supports filtering by `category`, e.g., "IMP Questions"). |
+| `POST` | `/resources` | Admin | Create approved resource with URL or file, assigned to a specific category. |
 | `GET` | `/resources/:id` | Optional | Fetch one resource. |
 | `PATCH` | `/resources/:id` | Admin | Update resource. |
 | `DELETE` | `/resources/:id` | Admin | Soft-delete resource. |
