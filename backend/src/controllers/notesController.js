@@ -154,6 +154,24 @@ exports.updateNote = (req, res, next) => {
             params.push(timestamp);
             params.push(id);
             run(`UPDATE student_notes SET ${updates.join(', ')} WHERE id = ?`, params);
+            
+            // Cascade is_trash to children
+            if (is_trash !== undefined) {
+                const trashValue = is_trash ? 1 : 0;
+                run(`
+                    UPDATE student_notes 
+                    SET is_trash = ?, updated_at = ? 
+                    WHERE id IN (
+                        WITH RECURSIVE descendants AS (
+                            SELECT id FROM student_notes WHERE parent_id = ?
+                            UNION ALL
+                            SELECT sn.id FROM student_notes sn
+                            INNER JOIN descendants d ON sn.parent_id = d.id
+                        )
+                        SELECT id FROM descendants
+                    )
+                `, [trashValue, timestamp, id]);
+            }
         }
 
         const updatedNote = get(`SELECT * FROM student_notes WHERE id = ?`, [id]);
@@ -216,7 +234,19 @@ exports.deleteNote = (req, res, next) => {
         }
 
         const timestamp = nowIso();
-        run(`UPDATE student_notes SET deleted_at = ? WHERE id = ?`, [timestamp, id]);
+        run(`
+            UPDATE student_notes 
+            SET deleted_at = ? 
+            WHERE id IN (
+                WITH RECURSIVE descendants AS (
+                    SELECT id FROM student_notes WHERE id = ?
+                    UNION ALL
+                    SELECT sn.id FROM student_notes sn
+                    INNER JOIN descendants d ON sn.parent_id = d.id
+                )
+                SELECT id FROM descendants
+            )
+        `, [timestamp, id]);
 
         return sendSuccess(res, {
             message: 'Note deleted successfully',
