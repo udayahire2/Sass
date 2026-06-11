@@ -7,9 +7,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
-  --font-sans: 'Inter', sans-serif;
-  --font-heading: 'Inter', sans-serif;
-  --font-mono: 'Geist Mono', monospace;
+  --font-sans: "Inter", sans-serif;
+  --font-heading: "Inter", sans-serif;
+  --font-mono: "Geist Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -86,116 +86,115 @@
 
 :root {
   --radius: 0.625rem;
-  
-  /* Light Mode Eyestrain-Free Configuration */
-  --background: var(--color-neutral-50); 
-  --foreground: var(--color-neutral-900);
-  
-  --card: var(--color-white);
-  --card-foreground: var(--color-neutral-900);
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-neutral-900);
-  
-  --primary: hsl(var(--logo-front));
-  --primary-foreground: var(--color-white);
-  --secondary: --alpha(var(--color-black) / 4%);
-  --secondary-foreground: var(--color-neutral-900);
-  --muted: --alpha(var(--color-black) / 4%);
-  --muted-foreground: color-mix(in srgb, var(--color-neutral-500) 90%, var(--color-black));
-  --accent: --alpha(var(--color-black) / 4%);
-  --accent-foreground: var(--color-neutral-900);
-  
-  --destructive: var(--color-red-600);
-  --destructive-foreground: var(--color-red-900);
-  --info: var(--color-blue-600);
-  --info-foreground: var(--color-blue-900);
-  --success: var(--color-emerald-600);
-  --success-foreground: var(--color-emerald-900);
-  --warning: var(--color-amber-600);
-  --warning-foreground: var(--color-amber-900);
-  
-  --border: --alpha(var(--color-black) / 8%);
-  --input: --alpha(var(--color-black) / 10%);
-  --ring: var(--color-neutral-400);
-  
-  --sidebar: color-mix(in srgb, var(--color-neutral-100) 60%, var(--color-white));
-  --sidebar-foreground: color-mix(in srgb, var(--color-neutral-800) 70%, var(--sidebar));
-  --sidebar-primary: var(--color-neutral-900);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: --alpha(var(--color-black) / 4%);
-  --sidebar-accent-foreground: var(--color-neutral-900);
-  --sidebar-border: --alpha(var(--color-black) / 6%);
-  --sidebar-ring: var(--color-neutral-400);
+
+  /* Premium Light Mode - Calm & Eye-Friendly Slate/Indigo Configuration */
+  --background: hsl(240 12% 98.5%);
+  --foreground: hsl(240 10% 4%);
+
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(240 10% 4%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(240 10% 4%);
+
+  --primary: hsl(262.1 83.3% 57.8%);
+  --primary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(240 4.8% 95.9%);
+  --secondary-foreground: hsl(240 5.9% 10%);
+  --muted: hsl(240 4.8% 95.9%);
+  --muted-foreground: hsl(240 3.8% 46.1%);
+  --accent: hsl(240 4.8% 95.9%);
+  --accent-foreground: hsl(240 5.9% 10%);
+
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --info: hsl(221.2 83.2% 53.3%);
+  --info-foreground: hsl(0 0% 98%);
+  --success: hsl(142.1 76.2% 36.3%);
+  --success-foreground: hsl(0 0% 98%);
+  --warning: hsl(35.4 91.7% 32.9%);
+  --warning-foreground: hsl(0 0% 98%);
+
+  --border: hsl(240 5.9% 90%);
+  --input: hsl(240 5.9% 90%);
+  --ring: hsl(262.1 83.3% 57.8%);
+
+  --sidebar: hsl(240 5% 96.5%);
+  --sidebar-foreground: hsl(240 5% 26%);
+  --sidebar-primary: hsl(262.1 83.3% 57.8%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 92%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(240 5.9% 90%);
+  --sidebar-ring: hsl(262.1 83.3% 57.8%);
 
   --logo-back: 262.1 83.3% 57.8%;
   --logo-front: 263.4 70% 50.4%;
-  
-  --chart-1: var(--color-orange-600);
-  --chart-2: var(--color-teal-600);
-  --chart-3: var(--color-cyan-900);
-  --chart-4: var(--color-amber-400);
-  --chart-5: var(--color-amber-500);
-  
-  --code: var(--color-neutral-100);
-  --code-foreground: var(--color-neutral-900);
-  --code-highlight: --alpha(var(--color-black) / 4%);
+
+  --chart-1: hsl(262.1 83.3% 57.8%);
+  --chart-2: hsl(142.1 76.2% 36.3%);
+  --chart-3: hsl(221.2 83.2% 53.3%);
+  --chart-4: hsl(35.4 91.7% 32.9%);
+  --chart-5: hsl(0 84.2% 60.2%);
+
+  --code: hsl(240 5% 96%);
+  --code-foreground: hsl(240 5% 15%);
+  --code-highlight: hsl(240 4.8% 92%);
 }
 
 .dark {
-  /* DARK MODE PROFILE: True Deep Slate Elevation Hierarchy */
-  --background: var(--color-neutral-950);
-  --foreground: var(--color-neutral-100);
-  
-  /* Cards stack lighter than base canvas to denote elevation */
-  --card: var(--color-neutral-900);
-  --card-foreground: var(--color-neutral-100);
-  --popover: var(--color-neutral-900);
-  --popover-foreground: var(--color-neutral-100);
-  
-  --primary: hsl(var(--logo-front));
-  --primary-foreground: var(--color-white);
-  --secondary: --alpha(var(--color-white) / 4%);
-  --secondary-foreground: var(--color-neutral-100);
-  --muted: --alpha(var(--color-white) / 4%);
-  --muted-foreground: color-mix(in srgb, var(--color-neutral-400) 90%, var(--color-white));
-  --accent: --alpha(var(--color-white) / 4%);
-  --accent-foreground: var(--color-neutral-100);
-  
-  /* High-legibility status variables over true dark canvases */
-  --destructive: var(--color-red-500);
-  --destructive-foreground: var(--color-red-200);
-  --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-200);
-  --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-200);
-  --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-200);
-  
-  --border: --alpha(var(--color-white) / 8%);
-  --input: --alpha(var(--color-white) / 10%);
-  --ring: var(--color-neutral-600);
-  
-  --sidebar: var(--color-neutral-900);
-  --sidebar-foreground: color-mix(in srgb, var(--color-neutral-300) 75%, var(--sidebar));
-  --sidebar-primary: var(--color-neutral-100);
-  --sidebar-primary-foreground: var(--color-neutral-900);
-  --sidebar-accent: --alpha(var(--color-white) / 4%);
-  --sidebar-accent-foreground: var(--color-neutral-100);
-  --sidebar-border: --alpha(var(--color-white) / 6%);
-  --sidebar-ring: var(--color-neutral-600);
+  /* Premium Dark Mode - Deep Slate Elevation Hierarchy (Not harsh pure black) */
+  --background: hsl(240 10% 4%);
+  --foreground: hsl(0 0% 91%);
+
+  /* Cards stack slightly lighter than base canvas to denote elevation */
+  --card: hsl(240 10% 7.5%);
+  --card-foreground: hsl(0 0% 91%);
+  --popover: hsl(240 10% 7.5%);
+  --popover-foreground: hsl(0 0% 91%);
+
+  --primary: hsl(263.4 70% 50.4%);
+  --primary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(240 3.7% 12.5%);
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(240 3.7% 12.5%);
+  --muted-foreground: hsl(240 5% 65%);
+  --accent: hsl(240 3.7% 12.5%);
+  --accent-foreground: hsl(0 0% 98%);
+
+  --destructive: hsl(0 62.8% 30.6%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --info: hsl(221.2 83.2% 53.3%);
+  --info-foreground: hsl(0 0% 98%);
+  --success: hsl(142.1 76.2% 36.3%);
+  --success-foreground: hsl(0 0% 98%);
+  --warning: hsl(35.4 91.7% 32.9%);
+  --warning-foreground: hsl(0 0% 98%);
+
+  --border: hsl(240 3.7% 15.5%);
+  --input: hsl(240 3.7% 15.5%);
+  --ring: hsl(263.4 70% 50.4%);
+
+  --sidebar: hsl(240 10% 5%);
+  --sidebar-foreground: hsl(240 5% 75%);
+  --sidebar-primary: hsl(263.4 70% 50.4%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 3.7% 10%);
+  --sidebar-accent-foreground: hsl(0 0% 98%);
+  --sidebar-border: hsl(240 3.7% 14%);
+  --sidebar-ring: hsl(263.4 70% 50.4%);
 
   --logo-back: 263.4 70% 50.4%;
   --logo-front: 262.1 83.3% 57.8%;
-  
-  --chart-1: var(--color-blue-500);
-  --chart-2: var(--color-emerald-500);
-  --chart-3: var(--color-amber-500);
-  --chart-4: var(--color-purple-500);
-  --chart-5: var(--color-rose-500);
-  
-  --code: var(--color-neutral-900);
-  --code-foreground: var(--color-neutral-100);
-  --code-highlight: --alpha(var(--color-white) / 6%);
+
+  --chart-1: hsl(263.4 70% 50.4%);
+  --chart-2: hsl(142.1 76.2% 36.3%);
+  --chart-3: hsl(221.2 83.2% 53.3%);
+  --chart-4: hsl(35.4 91.7% 32.9%);
+  --chart-5: hsl(0 62.8% 30.6%);
+
+  --code: hsl(240 10% 6%);
+  --code-foreground: hsl(0 0% 91%);
+  --code-highlight: hsl(240 3.7% 14%);
 }
 
 /* Scrollbars customized to dynamically scale using native variables */
@@ -276,10 +275,10 @@
 
 /* Font family utilities for Notion page styles */
 .font-serif {
-  font-family: 'Georgia', 'Cambria', 'Times New Roman', serif;
+  font-family: "Georgia", "Cambria", "Times New Roman", serif;
 }
 .font-mono {
-  font-family: var(--font-mono), 'SFMono-Regular', 'Menlo', monospace;
+  font-family: var(--font-mono), "SFMono-Regular", "Menlo", monospace;
 }
 
 /* Notion-Style Editor Themes */
