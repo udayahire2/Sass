@@ -87,6 +87,7 @@ interface CoverPickerProps {
   onRemove: () => void;
   onClose: () => void;
   triggerRef: React.RefObject<HTMLElement | null>;
+  theme?: string;
 }
 
 export function CoverPicker({
@@ -95,6 +96,7 @@ export function CoverPicker({
   onRemove,
   onClose,
   triggerRef,
+  theme,
 }: CoverPickerProps) {
   const [activeTab, setActiveTab] = useState<TabId>("gallery");
   const [linkUrl, setLinkUrl] = useState("");
@@ -221,11 +223,12 @@ export function CoverPicker({
     <div
       ref={panelRef}
       className={cn(
-        "fixed z-[9999] w-[380px] rounded-xl border shadow-xl",
-        "bg-white dark:bg-[#2F2F2F]",
-        "border-[#e8e5e0] dark:border-[#ffffff14]",
-        "flex flex-col overflow-hidden",
-        "transition-all duration-150 ease-out",
+        "fixed z-[9999] w-[380px] rounded-xl border shadow-xl flex flex-col overflow-hidden transition-all duration-150 ease-out",
+        theme === "light" && "theme-light-editor bg-white text-[#37352f] border-[#e8e5e0]",
+        theme === "dark" && "theme-dark-editor bg-[#191919] text-white border-[#ffffff14]",
+        theme === "sepia" && "theme-sepia-editor bg-[#fbf6ec] text-[#433422] border-amber-100/50",
+        theme === "nord" && "theme-nord-editor bg-[#2e3440] text-[#d8dee9] border-slate-700/50",
+        "backdrop-blur-xl",
         isVisible
           ? "opacity-100 translate-y-0 scale-100"
           : "opacity-0 -translate-y-1 scale-[0.98]"
@@ -237,7 +240,7 @@ export function CoverPicker({
       }}
     >
       {/* ── Tab Bar ──────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-0 px-3 pt-2.5 border-b border-[#f0efec] dark:border-[#ffffff0f]">
+      <div className="flex items-center gap-0 px-3 pt-2.5 border-b border-border/40">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -247,14 +250,14 @@ export function CoverPicker({
               "relative px-3 pb-2.5 pt-1 text-[13px] font-medium",
               "transition-colors duration-100 cursor-pointer",
               activeTab === tab.id
-                ? "text-[#37352f] dark:text-[#ffffffcf]"
-                : "text-[#a9a9a7] dark:text-[#ffffff50] hover:text-[#6b6b69] dark:hover:text-[#ffffff80]"
+                ? "text-foreground font-semibold"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {tab.label}
             {/* Active indicator */}
             {activeTab === tab.id && (
-              <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-[#37352f] dark:bg-[#ffffffcf]" />
+              <span className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full bg-primary" />
             )}
           </button>
         ))}
@@ -266,7 +269,7 @@ export function CoverPicker({
           /* ── Gallery Tab ──────────────────────────────────────────── */
           <div className="p-3">
             <div className="mb-2">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-[#b4b4b0] dark:text-[#ffffff50]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/50">
                 Color & Gradient
               </span>
             </div>
@@ -311,7 +314,7 @@ export function CoverPicker({
           /* ── Link Tab ────────────────────────────────────────────── */
           <div className="p-3">
             <div className="mb-3">
-              <span className="text-[11px] font-medium uppercase tracking-wider text-[#b4b4b0] dark:text-[#ffffff50]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/50">
                 Paste an image link
               </span>
             </div>
@@ -320,25 +323,19 @@ export function CoverPicker({
               <div
                 className={cn(
                   "flex-1 flex items-center gap-2 rounded-lg px-3 h-9",
-                  "bg-[#f7f6f3] dark:bg-[#ffffff0a]",
-                  "border border-transparent",
-                  "focus-within:border-[#e3e2df] dark:focus-within:border-[#ffffff1a]",
-                  "focus-within:bg-white dark:focus-within:bg-[#ffffff0f]",
+                  "bg-muted/50 border border-border/40",
+                  "focus-within:border-primary/40 focus-within:bg-background",
                   "transition-colors duration-150"
                 )}
               >
-                <Link2 className="h-3.5 w-3.5 text-[#a9a9a7] dark:text-[#ffffff50] shrink-0" />
+                <Link2 className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
                 <input
                   type="url"
                   placeholder="https://..."
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   onKeyDown={handleLinkKeyDown}
-                  className={cn(
-                    "flex-1 bg-transparent border-none outline-none",
-                    "text-[13px] placeholder:text-[#b4b4b0] dark:placeholder:text-[#ffffff40]",
-                    "text-[#37352f] dark:text-[#ffffffcf]"
-                  )}
+                  className="flex-1 bg-transparent border-none outline-none text-[13px] placeholder:text-muted-foreground/45 text-foreground"
                   autoFocus
                 />
               </div>
@@ -351,8 +348,8 @@ export function CoverPicker({
                   "flex items-center justify-center h-9 w-9 rounded-lg shrink-0",
                   "transition-all duration-150 cursor-pointer",
                   linkUrl.trim()
-                    ? "bg-[#37352f] dark:bg-[#ffffffcf] text-white dark:text-[#2F2F2F] hover:bg-[#2f2e2b] dark:hover:bg-white"
-                    : "bg-[#f0efec] dark:bg-[#ffffff14] text-[#c8c7c3] dark:text-[#ffffff30] cursor-not-allowed"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "bg-muted text-muted-foreground/40 cursor-not-allowed"
                 )}
               >
                 <ArrowRight className="h-4 w-4" />
@@ -360,7 +357,7 @@ export function CoverPicker({
             </div>
 
             {/* Helper text */}
-            <p className="mt-3 text-[12px] leading-relaxed text-[#b4b4b0] dark:text-[#ffffff40]">
+            <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground/50">
               Works with any image from the web. Paste a direct link to a .jpg, .png, or .webp file
               for best results.
             </p>
@@ -369,15 +366,14 @@ export function CoverPicker({
       </div>
 
       {/* ── Remove Button Footer ────────────────────────────────────── */}
-      <div className="border-t border-[#f0efec] dark:border-[#ffffff0f] px-3 py-2">
+      <div className="border-t border-border/40 px-3 py-2">
         <button
           type="button"
           onClick={handleRemove}
           className={cn(
             "flex items-center gap-2 w-full px-2 py-1.5 rounded-md",
-            "text-[13px] text-[#eb5757] dark:text-[#ff6b6b]",
-            "hover:bg-[#fbe9e9] dark:hover:bg-[#ff6b6b14]",
-            "active:bg-[#f5d5d5] dark:active:bg-[#ff6b6b22]",
+            "text-[13px] text-destructive",
+            "hover:bg-destructive/10 active:bg-destructive/15",
             "transition-colors duration-100 cursor-pointer"
           )}
         >

@@ -65,9 +65,15 @@ export default function NotesPage() {
   // ── Settings & Theme State ──
   const [showSettings, setShowSettings] = useState(false);
   const [editorTheme, setEditorTheme] = useState("light");
+  const [showWordCount, setShowWordCount] = useState(true);
+  const [spellcheck, setSpellcheck] = useState(false);
+  const [pasteImageLink, setPasteImageLink] = useState(true);
 
   const normalizeEditorTheme = useCallback((theme: string | null | undefined) => {
-    return theme === "dark" ? "dark" : "light";
+    if (theme === "dark" || theme === "sepia" || theme === "nord") {
+      return theme;
+    }
+    return "light";
   }, []);
 
   useEffect(() => {
@@ -77,12 +83,39 @@ export default function NotesPage() {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       }).then(r => r.json()).then(payload => {
-        if (payload?.data?.preferences?.editorTheme) {
-          setEditorTheme(normalizeEditorTheme(payload.data.preferences.editorTheme));
+        const prefs = payload?.data?.preferences || {};
+        if (prefs.editorTheme) {
+          setEditorTheme(normalizeEditorTheme(prefs.editorTheme));
         } else {
           setEditorTheme(normalizeEditorTheme(localStorage.getItem("editor-theme")));
         }
-      }).catch(() => setEditorTheme(normalizeEditorTheme(localStorage.getItem("editor-theme"))));
+
+        if (prefs.showWordCount !== undefined) {
+          setShowWordCount(!!prefs.showWordCount);
+        } else {
+          const localVal = localStorage.getItem("pref-show-word-count");
+          setShowWordCount(localVal !== null ? localVal === "true" : true);
+        }
+
+        if (prefs.spellcheck !== undefined) {
+          setSpellcheck(!!prefs.spellcheck);
+        } else {
+          const localVal = localStorage.getItem("pref-spellcheck");
+          setSpellcheck(localVal !== null ? localVal === "true" : false);
+        }
+
+        if (prefs.pasteImageLink !== undefined) {
+          setPasteImageLink(!!prefs.pasteImageLink);
+        } else {
+          const localVal = localStorage.getItem("pref-paste-image-link");
+          setPasteImageLink(localVal !== null ? localVal === "true" : true);
+        }
+      }).catch(() => {
+        setEditorTheme(normalizeEditorTheme(localStorage.getItem("editor-theme")));
+        setShowWordCount(localStorage.getItem("pref-show-word-count") !== "false");
+        setSpellcheck(localStorage.getItem("pref-spellcheck") === "true");
+        setPasteImageLink(localStorage.getItem("pref-paste-image-link") !== "false");
+      });
     });
   }, [normalizeEditorTheme]);
 
@@ -92,6 +125,22 @@ export default function NotesPage() {
     localStorage.setItem("editor-theme", normalizedTheme);
     import("@/services/api").then(({ updatePreferences }) => {
       updatePreferences({ editorTheme: normalizedTheme }).catch(console.error);
+    });
+  };
+
+  const handlePreferenceChange = (key: string, value: boolean) => {
+    if (key === "showWordCount") {
+      setShowWordCount(value);
+      localStorage.setItem("pref-show-word-count", String(value));
+    } else if (key === "spellcheck") {
+      setSpellcheck(value);
+      localStorage.setItem("pref-spellcheck", String(value));
+    } else if (key === "pasteImageLink") {
+      setPasteImageLink(value);
+      localStorage.setItem("pref-paste-image-link", String(value));
+    }
+    import("@/services/api").then(({ updatePreferences }) => {
+      updatePreferences({ [key]: value }).catch(console.error);
     });
   };
 
@@ -562,7 +611,13 @@ export default function NotesPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex h-screen w-screen overflow-hidden bg-background">
+    <div className={cn(
+      "fixed inset-0 z-50 flex h-screen w-screen overflow-hidden bg-background",
+      editorTheme === "light" && "theme-light-editor",
+      editorTheme === "dark" && "theme-dark-editor",
+      editorTheme === "sepia" && "theme-sepia-editor",
+      editorTheme === "nord" && "theme-nord-editor"
+    )}>
       {/* ── Mobile overlay ── */}
       {sidebarVisible && !isSidebarPinned && (
         <div
@@ -623,11 +678,7 @@ export default function NotesPage() {
       />
 
       {/* ═══════════════ MAIN AREA ═══════════════ */}
-      <div className={cn(
-        "flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative transition-all duration-300",
-        editorTheme === "light" && "theme-light-editor",
-        editorTheme === "dark" && "theme-dark-editor"
-      )}>
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative bg-background text-foreground transition-all duration-300">
         {activeNote && !activeNote.meta.trash ? (
           <>
             <EditorHeader
@@ -667,6 +718,8 @@ export default function NotesPage() {
                 setShowCoverPicker(true);
               }}
               onRemoveCover={() => updateMetadataField("cover", "")}
+              showWordCount={showWordCount}
+              spellcheck={spellcheck}
             />
           </>
         ) : (
@@ -687,6 +740,7 @@ export default function NotesPage() {
         }}
         onClose={() => setShowEmojiPicker(false)}
         triggerRef={emojiTriggerRef}
+        theme={editorTheme}
       />
 
       <CoverPicker
@@ -701,6 +755,7 @@ export default function NotesPage() {
         }}
         onClose={() => setShowCoverPicker(false)}
         triggerRef={coverTriggerRef}
+        theme={editorTheme}
       />
 
       <SettingsModal
@@ -708,6 +763,10 @@ export default function NotesPage() {
         onClose={() => setShowSettings(false)}
         editorTheme={editorTheme}
         onThemeChange={handleThemeChange}
+        showWordCount={showWordCount}
+        spellcheck={spellcheck}
+        pasteImageLink={pasteImageLink}
+        onPreferenceChange={handlePreferenceChange}
       />
 
       {sidebarMenu && (
@@ -719,6 +778,7 @@ export default function NotesPage() {
           onDuplicate={handleDuplicateNote}
           onToggleFavorite={handleToggleFavorite}
           onTrash={handleMoveToTrash}
+          theme={editorTheme}
         />
       )}
     </div>

@@ -67,8 +67,8 @@ export function SidebarNoteItem({
       className={cn(
         "group/item relative flex items-center rounded-[4px] mx-1 transition-all duration-150 cursor-pointer",
         isActive
-          ? "bg-[color:var(--sidebar-accent)] text-[color:var(--sidebar-foreground)] font-medium"
-          : "text-[color:var(--sidebar-foreground)] opacity-80 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5"
+          ? "bg-sidebar-accent text-[color:var(--sidebar-foreground)] font-medium"
+          : "text-[color:var(--sidebar-foreground)] opacity-80 hover:opacity-100 hover:bg-sidebar-accent"
       )}
       style={{ paddingLeft: `${depth * 18 + 4}px` }}
       onClick={() => !isRenaming && onSelect()}
@@ -87,7 +87,7 @@ export function SidebarNoteItem({
             e.stopPropagation();
             onToggleExpand?.();
           }}
-          className="shrink-0 rounded-[3px] p-0.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="shrink-0 rounded-[3px] p-0.5 hover:bg-sidebar-accent transition-colors"
         >
           <ChevronRight
             className={cn(
@@ -139,7 +139,7 @@ export function SidebarNoteItem({
                 e.stopPropagation();
                 setShowItemMenu(!showItemMenu);
               }}
-              className="rounded-[3px] p-0.5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              className="rounded-[3px] p-0.5 hover:bg-sidebar-accent transition-colors"
               title="Options"
             >
               <MoreHorizontal className="h-3.5 w-3.5 opacity-50" />
@@ -197,7 +197,7 @@ export function SidebarNoteItem({
               e.stopPropagation();
               onAddChild();
             }}
-            className="rounded-[3px] p-0.5 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            className="rounded-[3px] p-0.5 hover:bg-sidebar-accent transition-colors"
             title="Add a page inside"
           >
             <Plus className="h-3.5 w-3.5 opacity-50" />

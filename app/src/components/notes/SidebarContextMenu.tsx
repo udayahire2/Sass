@@ -12,6 +12,7 @@ interface SidebarContextMenuProps {
   onDuplicate: (noteId: string) => void;
   onToggleFavorite: (noteId: string) => void;
   onTrash: (noteId: string) => void;
+  theme?: string;
 }
 
 export function SidebarContextMenu({
@@ -22,6 +23,7 @@ export function SidebarContextMenu({
   onDuplicate,
   onToggleFavorite,
   onTrash,
+  theme,
 }: SidebarContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +67,14 @@ export function SidebarContextMenu({
   return createPortal(
     <div
       ref={menuRef}
-      className="fixed z-[12000] min-w-[190px] rounded-lg border border-border/40 bg-background/85 backdrop-blur-xl p-1 shadow-xl select-none animate-in fade-in zoom-in-95 duration-100"
+      className={cn(
+        "fixed z-[12000] min-w-[190px] rounded-lg border p-1 shadow-xl select-none animate-in fade-in zoom-in-95 duration-100",
+        theme === "light" && "theme-light-editor bg-white text-[#37352f] border-[#edece9]",
+        theme === "dark" && "theme-dark-editor bg-[#191919] text-white border-[#ffffff14]",
+        theme === "sepia" && "theme-sepia-editor bg-[#fbf6ec] text-[#433422] border-amber-100/50",
+        theme === "nord" && "theme-nord-editor bg-[#2e3440] text-[#d8dee9] border-slate-700/50",
+        "backdrop-blur-xl"
+      )}
       style={{ left: position.x, top: position.y }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -74,7 +83,7 @@ export function SidebarContextMenu({
           onRename(note, e);
           onClose();
         }}
-        className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] hover:bg-black/5 dark:hover:bg-white/5 transition-all text-foreground cursor-pointer"
+        className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] hover:bg-sidebar-accent transition-all text-foreground cursor-pointer"
       >
         <Pencil className="h-3.5 w-3.5 opacity-60" />
         <span>Rename</span>
@@ -85,7 +94,7 @@ export function SidebarContextMenu({
           onToggleFavorite(note.id);
           onClose();
         }}
-        className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] hover:bg-black/5 dark:hover:bg-white/5 transition-all text-foreground cursor-pointer"
+        className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] hover:bg-sidebar-accent transition-all text-foreground cursor-pointer"
       >
         <Star className={cn("h-3.5 w-3.5 opacity-60", note.meta.favorite && "fill-amber-500 text-amber-500 opacity-100")} />
         <span>{note.meta.favorite ? "Remove from favorites" : "Add to favorites"}</span>
@@ -96,7 +105,7 @@ export function SidebarContextMenu({
           onDuplicate(note.id);
           onClose();
         }}
-        className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] hover:bg-black/5 dark:hover:bg-white/5 transition-all text-foreground cursor-pointer"
+        className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[13px] hover:bg-sidebar-accent transition-all text-foreground cursor-pointer"
       >
         <Copy className="h-3.5 w-3.5 opacity-60" />
         <span>Duplicate</span>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Smile, ImageIcon, X, BookOpen, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RichTextEditor from "@/components/editor/RichTextEditor";
@@ -17,6 +17,8 @@ interface PageCanvasProps {
   onRemoveIcon: () => void;
   onOpenCoverPicker: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onRemoveCover: () => void;
+  showWordCount?: boolean;
+  spellcheck?: boolean;
 }
 
 export function PageCanvas({
@@ -30,9 +32,12 @@ export function PageCanvas({
   onRemoveIcon,
   onOpenCoverPicker,
   onRemoveCover,
+  showWordCount = true,
+  spellcheck = false,
 }: PageCanvasProps) {
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Extract headings
   const headings = useMemo(() => {
@@ -67,10 +72,12 @@ export function PageCanvas({
 
   // Scroll sync
   useEffect(() => {
-    const viewport = document.querySelector('[data-slot="scroll-area-viewport"]');
+    const scrollArea = scrollAreaRef.current;
+    if (!scrollArea) return;
+    const viewport = scrollArea.querySelector('[data-slot="scroll-area-viewport"]');
     if (!viewport) return;
     const handleScroll = () => {
-      const editorEl = document.querySelector('.ProseMirror');
+      const editorEl = scrollArea.querySelector('.ProseMirror');
       if (!editorEl) return;
       const headingEls = editorEl.querySelectorAll('h1, h2, h3');
       let activeId = null;
@@ -95,7 +102,7 @@ export function PageCanvas({
     <main className="flex-1 overflow-hidden flex flex-row relative">
       {/* Main Editor Area */}
       <div className="flex-1 min-w-0 flex flex-col">
-        <ScrollArea className="flex-1">
+        <ScrollArea ref={scrollAreaRef} className="flex-1">
           {metadata.cover && (
             <CoverImage
               cover={metadata.cover}
@@ -148,7 +155,8 @@ export function PageCanvas({
                 onChange={onBodyChange}
                 editable={true}
                 placeholder="Press '/' for commands..."
-                showWordCount={true}
+                showWordCount={showWordCount}
+                spellcheck={spellcheck}
               />
             </div>
           </div>
@@ -203,25 +211,38 @@ export function PageCanvas({
             </div>
           ) : (
             // Collapsed mode: vertical strip with horizontal dashes (like the image)
-            <div className="flex flex-col items-center justify-start gap-3 py-4 h-full">
+            <div className="flex flex-col items-center justify-start gap-3 py-3 h-full w-full select-none">
+              {/* Expand Toggle Button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOutlineOpen(true);
+                }}
+                className="rounded-md p-1.5 text-muted-foreground/60 hover:text-foreground hover:bg-muted/60 mb-2 cursor-pointer transition-colors"
+                title="Expand Outline"
+              >
+                <ChevronsRight className="h-4 w-4 rotate-180" />
+              </button>
+
               {headings.map((h) => (
-                <button
-                  key={h.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // If you want click on dash to scroll without expanding, uncomment next line:
-                    // scrollToHeading(h.text);
-                    // Otherwise, clicking expands the sidebar (default behavior)
-                    setIsOutlineOpen(true);
-                  }}
-                  className={cn(
-                    "transition-all duration-200 rounded-full",
-                    activeHeadingId === h.id
-                      ? "w-5 h-0.5 bg-primary"  // active dash longer
-                      : "w-3 h-0.5 bg-muted-foreground/40 hover:bg-muted-foreground/70 hover:w-4"
-                  )}
-                  title={h.text}
-                />
+                <div key={h.id} className="group/dash relative flex items-center justify-center w-full py-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      scrollToHeading(h.text);
+                    }}
+                    className={cn(
+                      "transition-all duration-200 rounded-full cursor-pointer",
+                      activeHeadingId === h.id
+                        ? "w-5 h-0.5 bg-primary"  // active dash longer
+                        : "w-3 h-0.5 bg-muted-foreground/40 hover:bg-muted-foreground/70 hover:w-4"
+                    )}
+                  />
+                  {/* Tooltip */}
+                  <div className="absolute right-full mr-2 px-2.5 py-1 bg-popover/90 backdrop-blur-md border border-border/50 text-foreground text-[10px] font-medium rounded-md shadow-md opacity-0 scale-95 group-hover/dash:opacity-100 group-hover/dash:scale-100 pointer-events-none transition-all duration-150 translate-x-1 group-hover/dash:translate-x-0 whitespace-nowrap z-50">
+                    {h.text}
+                  </div>
+                </div>
               ))}
             </div>
           )}

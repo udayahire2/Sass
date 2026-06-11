@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import {
   Star,
   MoreHorizontal,
-  Menu,
   Copy,
   Trash2,
   Settings2,
@@ -57,7 +56,10 @@ export function EditorHeader({
             sidebarVisible && "md:hidden"
           )}
         >
-          <Menu className="h-4 w-4" />
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="4" y1="8" x2="20" y2="8" />
+            <line x1="4" y1="16" x2="20" y2="16" />
+          </svg>
         </button>
 
         {/* Breadcrumbs */}

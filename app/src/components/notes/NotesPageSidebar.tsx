@@ -1,4 +1,3 @@
-
 import {
   Plus,
   Search,
@@ -97,7 +96,7 @@ export function NotesPageSidebar({
         "bg-[color:var(--sidebar)] text-[color:var(--sidebar-foreground)] border-[color:var(--sidebar-border)]",
         sidebarVisible
           ? "translate-x-0 opacity-100 md:shadow-none"
-          : "-translate-x-full opacity-0 pointer-events-none md:w-0 md:min-w-0 md:border-0"
+          : "-translate-x-full opacity-0 pointer-events-none md:w-0 md:min-w-0 md:border-0",
       )}
       onMouseLeave={() => {
         if (!isSidebarPinned) onSidebarHover(false);
@@ -107,7 +106,7 @@ export function NotesPageSidebar({
       <div className="flex items-center justify-between px-3 py-2.5 min-h-[46px]">
         <button
           onClick={() => navigate("/dashboard/student")}
-          className="flex items-center gap-2 rounded-[4px] px-2 py-1 text-sm font-medium text-[color:var(--sidebar-foreground)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors truncate max-w-[180px]"
+          className="flex items-center gap-2 rounded-[4px] px-2 py-1 text-sm font-medium text-[color:var(--sidebar-foreground)] hover:bg-sidebar-accent transition-colors truncate max-w-[180px]"
         >
           <div className="h-5 w-5 rounded-[4px] bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shrink-0">
             S
@@ -116,13 +115,13 @@ export function NotesPageSidebar({
         </button>
         <button
           onClick={onTogglePin}
-          className="rounded-[4px] p-1 text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+          className="rounded-[4px] p-1 text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all"
           title={isSidebarPinned ? "Collapse sidebar" : "Pin sidebar"}
         >
           <ChevronsLeft
             className={cn(
               "h-4 w-4 transition-transform duration-200",
-              !isSidebarPinned && "rotate-180"
+              !isSidebarPinned && "rotate-180",
             )}
           />
         </button>
@@ -130,7 +129,7 @@ export function NotesPageSidebar({
 
       {/* Search */}
       <div className="px-2 pb-1">
-        <div className="flex items-center gap-2 rounded-[4px] hover:bg-black/5 dark:hover:bg-white/5 px-2.5 py-[5px] text-[color:var(--sidebar-foreground)] transition-colors">
+        <div className="flex items-center gap-2 rounded-lg hover:bg-sidebar-accent px-2.5 py-[5px] text-[color:var(--sidebar-foreground)] transition-colors">
           <Search className="h-3.5 w-3.5 opacity-50 shrink-0" />
           <input
             type="text"
@@ -151,7 +150,7 @@ export function NotesPageSidebar({
       <div className="px-2 pb-1">
         <button
           onClick={onOpenSettings}
-          className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+          className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all"
         >
           <Settings className="h-4 w-4 shrink-0" />
           <span>Settings & Appearance</span>
@@ -165,12 +164,12 @@ export function NotesPageSidebar({
           <div className="mb-1">
             <button
               onClick={() => onToggleFavoritesExpanded()}
-              className="flex w-full items-center gap-1 px-2 py-1 text-[11px] font-semibold text-[color:var(--sidebar-foreground)] opacity-50 hover:bg-black/5 dark:hover:bg-white/5 rounded-[4px] hover:opacity-100 transition-all"
+              className="flex w-full items-center gap-1 px-2 py-1 text-[11px] font-semibold text-[color:var(--sidebar-foreground)] opacity-50 hover:bg-sidebar-accent rounded-[4px] hover:opacity-100 transition-all"
             >
               <ChevronDown
                 className={cn(
                   "h-2.5 w-2.5 transition-transform",
-                  !favoritesExpanded && "-rotate-90"
+                  !favoritesExpanded && "-rotate-90",
                 )}
               />
               Favorites
@@ -202,13 +201,13 @@ export function NotesPageSidebar({
 
         {/* Private Pages */}
         <div className="mb-1">
-          <div className="group flex items-center justify-between px-2 py-1 rounded-[4px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer">
+          <div className="group flex items-center justify-between px-2 py-1 rounded-[4px] hover:bg-sidebar-accent transition-colors cursor-pointer">
             <span className="text-[11px] font-semibold text-[color:var(--sidebar-foreground)] opacity-50">
               Private
             </span>
             <button
               onClick={() => onCreateNote()}
-              className="rounded-[4px] p-0.5 opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+              className="rounded-[4px] p-0.5 opacity-0 group-hover:opacity-100 hover:bg-sidebar-accent transition-all"
               title="New page"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -279,7 +278,7 @@ export function NotesPageSidebar({
           <div className="mt-1 border-t border-[color:var(--sidebar-border)]">
             <button
               onClick={() => onToggleTrash()}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded-[4px] mt-1"
+              className="flex w-full items-center gap-2 px-3 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all rounded-[4px] mt-1"
             >
               <Trash className="h-4 w-4" />
               <span>Trash</span>
@@ -294,11 +293,9 @@ export function NotesPageSidebar({
                 {trashedNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="group flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-[13px] opacity-50 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-all mx-1"
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-[13px] opacity-50 hover:opacity-100 hover:bg-sidebar-accent transition-all mx-1"
                   >
-                    <span className="text-sm">
-                      {note.meta.icon || "📄"}
-                    </span>
+                    <span className="text-sm">{note.meta.icon || "📄"}</span>
                     <span className="flex-1 truncate">{note.title}</span>
                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
@@ -333,7 +330,7 @@ export function NotesPageSidebar({
       <div className="border-t border-[color:var(--sidebar-border)] px-2 py-2">
         <button
           onClick={() => onCreateNote()}
-          className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+          className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all"
         >
           <Plus className="h-4 w-4" />
           New page

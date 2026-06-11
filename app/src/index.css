@@ -6,9 +6,14 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+body {
+  font-feature-settings: "cv11", "ss01", "ss03";
+  letter-spacing: -0.01em;
+}
 @theme inline {
+  --border: hsl(40 8% 90%);
+  --font-heading: "Plus Jakarta Sans", sans-serif;
   --font-sans: "Inter", sans-serif;
-  --font-heading: "Inter", sans-serif;
   --font-mono: "Geist Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -23,6 +28,7 @@
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
+  --color-code-bg: var(--code-bg);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-info: var(--info);
@@ -85,116 +91,151 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
-  /* Premium Light Mode - Calm & Eye-Friendly Slate/Indigo Configuration */
-  --background: hsl(240 12% 98.5%);
-  --foreground: hsl(240 10% 4%);
+  /* ==========================================
+     NOTION INSPIRED LIGHT THEME
+     ========================================== */
+
+  --background: hsl(0 0% 98.8%);
+  --foreground: hsl(40 8% 20%);
 
   --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 4%);
+  --card-foreground: hsl(40 8% 20%);
+
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 4%);
+  --popover-foreground: hsl(40 8% 20%);
 
+  /* Keep Existing Brand Purple */
   --primary: hsl(262.1 83.3% 57.8%);
-  --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 4.8% 95.9%);
-  --secondary-foreground: hsl(240 5.9% 10%);
-  --muted: hsl(240 4.8% 95.9%);
-  --muted-foreground: hsl(240 3.8% 46.1%);
-  --accent: hsl(240 4.8% 95.9%);
-  --accent-foreground: hsl(240 5.9% 10%);
+  --primary-foreground: hsl(0 0% 100%);
 
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --info: hsl(221.2 83.2% 53.3%);
-  --info-foreground: hsl(0 0% 98%);
-  --success: hsl(142.1 76.2% 36.3%);
-  --success-foreground: hsl(0 0% 98%);
-  --warning: hsl(35.4 91.7% 32.9%);
-  --warning-foreground: hsl(0 0% 98%);
+  --secondary: hsl(40 10% 96%);
+  --secondary-foreground: hsl(40 8% 20%);
 
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
+  --muted: hsl(40 10% 95%);
+  --muted-foreground: hsl(40 3% 45%);
+
+  --accent: hsl(40 10% 95%);
+  --accent-foreground: hsl(40 8% 20%);
+
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --success: hsl(142 71% 35%);
+  --success-foreground: hsl(0 0% 100%);
+
+  --warning: hsl(38 92% 40%);
+  --warning-foreground: hsl(0 0% 100%);
+
+  --info: hsl(221 83% 53%);
+  --info-foreground: hsl(0 0% 100%);
+
+  --border: hsl(40 8% 88%);
+  --input: hsl(40 8% 88%);
   --ring: hsl(262.1 83.3% 57.8%);
 
-  --sidebar: hsl(240 5% 96.5%);
-  --sidebar-foreground: hsl(240 5% 26%);
+  /* Sidebar */
+  --sidebar: hsl(40 10% 97%);
+  --sidebar-foreground: hsl(40 8% 22%);
+
   --sidebar-primary: hsl(262.1 83.3% 57.8%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 92%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(240 5.9% 90%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+
+  --sidebar-accent: hsl(40 10% 94%);
+  --sidebar-accent-foreground: hsl(40 8% 20%);
+
+  --sidebar-border: hsl(40 8% 88%);
   --sidebar-ring: hsl(262.1 83.3% 57.8%);
 
+  /* Logo */
   --logo-back: 262.1 83.3% 57.8%;
   --logo-front: 263.4 70% 50.4%;
 
+  /* Charts */
   --chart-1: hsl(262.1 83.3% 57.8%);
-  --chart-2: hsl(142.1 76.2% 36.3%);
-  --chart-3: hsl(221.2 83.2% 53.3%);
-  --chart-4: hsl(35.4 91.7% 32.9%);
-  --chart-5: hsl(0 84.2% 60.2%);
+  --chart-2: hsl(142 71% 35%);
+  --chart-3: hsl(221 83% 53%);
+  --chart-4: hsl(38 92% 40%);
+  --chart-5: hsl(0 72% 51%);
 
-  --code: hsl(240 5% 96%);
-  --code-foreground: hsl(240 5% 15%);
-  --code-highlight: hsl(240 4.8% 92%);
+  /* Code */
+  --code: hsl(40 10% 95%);
+  --code-foreground: hsl(40 8% 20%);
+  --code-highlight: hsl(40 10% 92%);
 }
 
 .dark {
-  /* Premium Dark Mode - Deep Slate Elevation Hierarchy (Not harsh pure black) */
-  --background: hsl(240 10% 4%);
-  --foreground: hsl(0 0% 91%);
+  /* ==========================================
+     NOTION INSPIRED DARK THEME
+     ========================================== */
 
-  /* Cards stack slightly lighter than base canvas to denote elevation */
-  --card: hsl(240 10% 7.5%);
-  --card-foreground: hsl(0 0% 91%);
-  --popover: hsl(240 10% 7.5%);
-  --popover-foreground: hsl(0 0% 91%);
+  --background: hsl(0 0% 10%);
+  --foreground: hsl(0 0% 90%);
 
-  --primary: hsl(263.4 70% 50.4%);
-  --primary-foreground: hsl(0 0% 98%);
-  --secondary: hsl(240 3.7% 12.5%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 3.7% 12.5%);
-  --muted-foreground: hsl(240 5% 65%);
-  --accent: hsl(240 3.7% 12.5%);
-  --accent-foreground: hsl(0 0% 98%);
+  --card: hsl(0 0% 12%);
+  --card-foreground: hsl(0 0% 90%);
 
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --info: hsl(221.2 83.2% 53.3%);
-  --info-foreground: hsl(0 0% 98%);
-  --success: hsl(142.1 76.2% 36.3%);
-  --success-foreground: hsl(0 0% 98%);
-  --warning: hsl(35.4 91.7% 32.9%);
-  --warning-foreground: hsl(0 0% 98%);
+  --popover: hsl(0 0% 12%);
+  --popover-foreground: hsl(0 0% 90%);
 
-  --border: hsl(240 3.7% 15.5%);
-  --input: hsl(240 3.7% 15.5%);
-  --ring: hsl(263.4 70% 50.4%);
+  /* Same Purple Brand */
+  --primary: hsl(262.1 83.3% 57.8%);
+  --primary-foreground: hsl(0 0% 100%);
 
-  --sidebar: hsl(240 10% 5%);
-  --sidebar-foreground: hsl(240 5% 75%);
-  --sidebar-primary: hsl(263.4 70% 50.4%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 3.7% 10%);
-  --sidebar-accent-foreground: hsl(0 0% 98%);
-  --sidebar-border: hsl(240 3.7% 14%);
-  --sidebar-ring: hsl(263.4 70% 50.4%);
+  --secondary: hsl(0 0% 15%);
+  --secondary-foreground: hsl(0 0% 90%);
 
-  --logo-back: 263.4 70% 50.4%;
-  --logo-front: 262.1 83.3% 57.8%;
+  --muted: hsl(0 0% 15%);
+  --muted-foreground: hsl(0 0% 62%);
 
-  --chart-1: hsl(263.4 70% 50.4%);
-  --chart-2: hsl(142.1 76.2% 36.3%);
-  --chart-3: hsl(221.2 83.2% 53.3%);
-  --chart-4: hsl(35.4 91.7% 32.9%);
-  --chart-5: hsl(0 62.8% 30.6%);
+  --accent: hsl(0 0% 15%);
+  --accent-foreground: hsl(0 0% 90%);
 
-  --code: hsl(240 10% 6%);
-  --code-foreground: hsl(0 0% 91%);
-  --code-highlight: hsl(240 3.7% 14%);
+  --destructive: hsl(0 62% 40%);
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --success: hsl(142 71% 35%);
+  --success-foreground: hsl(0 0% 100%);
+
+  --warning: hsl(38 92% 40%);
+  --warning-foreground: hsl(0 0% 100%);
+
+  --info: hsl(221 83% 53%);
+  --info-foreground: hsl(0 0% 100%);
+
+  --border: hsl(0 0% 18%);
+  --input: hsl(0 0% 18%);
+  --ring: hsl(262.1 83.3% 57.8%);
+
+  /* Sidebar */
+  --sidebar: hsl(0 0% 8%);
+  --sidebar-foreground: hsl(0 0% 75%);
+
+  --sidebar-primary: hsl(262.1 83.3% 57.8%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+
+  --sidebar-accent: hsl(0 0% 14%);
+  --sidebar-accent-foreground: hsl(0 0% 90%);
+
+  --sidebar-border: hsl(0 0% 16%);
+  --sidebar-ring: hsl(262.1 83.3% 57.8%);
+
+  /* Logo */
+  --logo-back: 262.1 83.3% 57.8%;
+  --logo-front: 263.4 70% 50.4%;
+
+  /* Charts */
+  --chart-1: hsl(262.1 83.3% 57.8%);
+  --chart-2: hsl(142 71% 35%);
+  --chart-3: hsl(221 83% 53%);
+  --chart-4: hsl(38 92% 40%);
+  --chart-5: hsl(0 62% 40%);
+
+  /* Code */
+  --code: hsl(0 0% 13%);
+  --code-foreground: hsl(0 0% 90%);
+  --code-highlight: hsl(0 0% 16%);
 }
 
 /* Scrollbars customized to dynamically scale using native variables */
@@ -285,27 +326,67 @@
 .theme-light-editor {
   background-color: #ffffff !important;
   color: #37352f !important;
-  --background: 255 255 255;
-  --foreground: 55 53 47;
+  --background: #ffffff;
+  --foreground: #37352f;
+  --sidebar: #fbfbfa !important;
+  --sidebar-foreground: #37352f !important;
+  --sidebar-accent: #f1f0ee !important;
+  --sidebar-border: #edece9 !important;
+  --border: #edece9;
+  --muted: #f1f0ee;
+  --muted-foreground: #7c7b77;
+  --accent: #f1f0ee;
+  --accent-foreground: #37352f;
+  --code-bg: #f9f9f9;
 }
 
 .theme-dark-editor {
   background-color: #191919 !important;
   color: rgba(255, 255, 255, 0.9) !important;
-  --background: 25 25 25;
-  --foreground: 255 255 255;
+  --background: #191919;
+  --foreground: rgba(255, 255, 255, 0.9);
+  --sidebar: #202020 !important;
+  --sidebar-foreground: rgba(255, 255, 255, 0.7) !important;
+  --sidebar-accent: rgba(255, 255, 255, 0.05) !important;
+  --sidebar-border: rgba(255, 255, 255, 0.08) !important;
+  --border: rgba(255, 255, 255, 0.08);
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(255, 255, 255, 0.5);
+  --accent: rgba(255, 255, 255, 0.05);
+  --accent-foreground: rgba(255, 255, 255, 0.9);
+  --code-bg: #202020;
 }
 
 .theme-sepia-editor {
   background-color: #fbf6ec !important;
   color: #433422 !important;
-  --background: 251 246 236;
-  --foreground: 67 52 34;
+  --background: #fbf6ec;
+  --foreground: #433422;
+  --sidebar: #f4ecd8 !important;
+  --sidebar-foreground: #5c4a37 !important;
+  --sidebar-accent: rgba(67, 52, 34, 0.05) !important;
+  --sidebar-border: rgba(67, 52, 34, 0.08) !important;
+  --border: rgba(67, 52, 34, 0.08);
+  --muted: rgba(67, 52, 34, 0.05);
+  --muted-foreground: rgba(67, 52, 34, 0.5);
+  --accent: rgba(67, 52, 34, 0.05);
+  --accent-foreground: #433422;
+  --code-bg: #f4ecd8;
 }
 
 .theme-nord-editor {
   background-color: #2e3440 !important;
   color: #d8dee9 !important;
-  --background: 46 52 64;
-  --foreground: 216 222 233;
+  --background: #2e3440;
+  --foreground: #d8dee9;
+  --sidebar: #242933 !important;
+  --sidebar-foreground: #d8dee9 !important;
+  --sidebar-accent: rgba(216, 222, 233, 0.05) !important;
+  --sidebar-border: rgba(216, 222, 233, 0.08) !important;
+  --border: rgba(216, 222, 233, 0.08);
+  --muted: rgba(216, 222, 233, 0.05);
+  --muted-foreground: rgba(216, 222, 233, 0.5);
+  --accent: rgba(216, 222, 233, 0.05);
+  --accent-foreground: #d8dee9;
+  --code-bg: #242933;
 }
