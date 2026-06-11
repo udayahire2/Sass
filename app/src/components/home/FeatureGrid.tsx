@@ -8,13 +8,6 @@ import {
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
-
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-
 import { cn } from "@/lib/utils";
 
 export type FeatureIcon = ComponentType<{
@@ -34,7 +27,7 @@ const FEATURE_ITEMS: FeatureItem[] = [
     id: "verified-materials",
     title: "Smart subject finder",
     description:
-      "Find materials by branch, semester, and subject in seconds.",
+      "Locate study resources organized by engineering branch, semester, and course code in seconds.",
     href: "/resources",
     icon: BookOpen,
   },
@@ -42,101 +35,74 @@ const FEATURE_ITEMS: FeatureItem[] = [
     id: "branch-curriculum",
     title: "Syllabus reference",
     description:
-      "Search using subject name or course code and know what to study.",
+      "Quickly look up official syllabus content using subject name or university course code.",
     href: "/syllabus",
     icon: FileText,
   },
   {
     id: "archives",
-    title: "Previous papers & resources",
+    title: "Previous papers & notes",
     description:
-      "Access notes, exam papers, and curated study resources.",
+      "Access previous semester exam papers and structured reading notes shared by other students.",
     href: "/resources",
     icon: FolderOpen,
   },
   {
     id: "collaboration",
-    title: "Share & help others",
+    title: "Student upload system",
     description:
-      "Upload notes, contribute resources, and support classmates.",
+      "Directly contribute notes, papers, or digital notes to support your university peers.",
     href: "/add-study-content",
     icon: Users,
   },
 ];
 
-const gridStyles = [
-  "lg:col-span-1",
-  "lg:col-span-2",
-  "lg:col-span-2",
-  "lg:col-span-1",
-];
-
 export function FeatureGrid() {
   return (
-    <section className="py-24">
-      <div className="mx-auto max-w-5xl px-4">
-        {/* Header */}
-        <div className="mb-14 flex flex-col items-center text-center">
-          <Badge
-            variant="secondary"
-            className="mb-5 rounded-full px-3 py-1 font-medium"
-          >
-            Features
-          </Badge>
-
-          <div className="max-w-3xl space-y-4">
-            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-5xl">
-              Everything you need to
-              <span className="text-muted-foreground">
-                {" "}
-                prepare smarter.
-              </span>
-            </h2>
-
-            <p className="mx-auto max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
-              Organized study materials, syllabus references,
-              previous papers, and collaborative uploads — all
-              designed for NMU students.
-            </p>
+    <section className="py-20">
+      <div className="mx-auto max-w-4xl px-4">
+        {/* Header Section */}
+        <div className="mb-16 space-y-4 max-w-2xl">
+          <div className="text-[10px] font-bold text-primary uppercase tracking-widest">
+            Workspace Capabilities
           </div>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Everything required to organize your semester.
+          </h2>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            A minimalist resource catalog, structured syllabus reference, and peer-to-peer sharing mechanism built to reduce study prep time.
+          </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURE_ITEMS.map((feature, index) => (
+        {/* Minimal Grid Layout with thin borders */}
+        <div className="grid grid-cols-1 border-t border-l border-border/60 sm:grid-cols-2">
+          {FEATURE_ITEMS.map((feature) => (
             <Link
               key={feature.id}
               to={feature.href}
-              className={cn(
-                "group block",
-                gridStyles[index]
-              )}
+              className="group block border-r border-b border-border/60 p-8 transition-colors duration-200 hover:bg-muted/10"
             >
-              <Card className="h-full border-border/60 bg-background shadow-none transition-colors hover:bg-muted/30">
-                <CardContent className="flex h-full flex-col p-6 lg:p-8">
-                  {/* Top */}
-                  <div className="mb-10 flex items-start justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border bg-muted/40">
-                      <feature.icon className="h-5 w-5 text-muted-foreground" />
-                    </div>
-
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-background opacity-0 transition-all duration-200 group-hover:opacity-100">
-                      <ArrowUpRight className="h-4 w-4" />
-                    </div>
+              <div className="flex h-full flex-col justify-between space-y-8">
+                {/* Icon & Arrow */}
+                <div className="flex items-center justify-between">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/80 bg-muted/10 text-muted-foreground transition-colors duration-200 group-hover:bg-primary/5 group-hover:text-primary group-hover:border-primary/20">
+                    <feature.icon className="h-4.5 w-4.5" />
                   </div>
-
-                  {/* Content */}
-                  <div className="mt-auto max-w-md space-y-3">
-                    <h3 className="text-xl font-medium tracking-tight md:text-2xl">
-                      {feature.title}
-                    </h3>
-
-                    <p className="text-sm leading-6 text-muted-foreground md:text-base">
-                      {feature.description}
-                    </p>
+                  <div className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground/80" />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                {/* Content */}
+                <div className="space-y-2">
+                  <h3 className="text-sm font-bold text-foreground tracking-tight flex items-center gap-1.5">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
             </Link>
           ))}
         </div>
