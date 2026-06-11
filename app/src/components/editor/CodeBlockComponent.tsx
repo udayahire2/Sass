@@ -3,12 +3,12 @@ import { NodeViewContent, NodeViewWrapper } from "@tiptap/react";
 import { Check, Copy } from "lucide-react";
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/selectEditor";
+  SelectClean,
+  SelectCleanContent,
+  SelectCleanItem,
+  SelectCleanTrigger,
+  SelectCleanValue,
+} from "../ui/SelectClean";
 
 interface CodeBlockProps {
   node: {
@@ -84,7 +84,7 @@ export default function CodeBlockComponent({
         rounded-xl
         border
         border-border
-        bg-neutral-900
+        bg-code-bg
         font-mono
         shadow-sm
         transition-colors
@@ -108,59 +108,27 @@ export default function CodeBlockComponent({
           className="relative flex items-center"
           onMouseDown={(e) => e.preventDefault()}
         >
-          <Select
+          <SelectClean
             value={currentLang}
             onValueChange={(value) =>
               updateAttributes({ language: value })
             }
           >
-            <SelectTrigger
-              className="
-                h-7
-                w-fit
-                border-none
-                bg-transparent
-                px-2
-                text-xs
-                font-medium
-                text-muted-foreground
-                shadow-none
-                transition-colors
-                hover:bg-muted
-                hover:text-foreground
-                focus:ring-0
-                focus:ring-offset-0
-                data-[state=open]:bg-muted
-              "
-            >
-              <SelectValue placeholder="Language" />
-            </SelectTrigger>
+            <SelectCleanTrigger>
+              <SelectCleanValue placeholder="Language" />
+            </SelectCleanTrigger>
 
-            <SelectContent
-              className="
-                z-[9999]
-                min-w-[180px]
-                border-border
-                bg-popover
-                text-popover-foreground
-              "
-            >
+            <SelectCleanContent>
               {LANGUAGES.map((lang) => (
-                <SelectItem
+                <SelectCleanItem
                   key={lang.value}
                   value={lang.value}
-                  className="
-                    cursor-pointer
-                    text-sm
-                    focus:bg-accent
-                    focus:text-accent-foreground
-                  "
                 >
                   {lang.label}
-                </SelectItem>
+                </SelectCleanItem>
               ))}
-            </SelectContent>
-          </Select>
+            </SelectCleanContent>
+          </SelectClean>
         </div>
 
         <button

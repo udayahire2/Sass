@@ -16,7 +16,7 @@ export function markdownToHtml(markdown: string): string {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-    const placeholder = `__CODE_BLOCK_PLACEHOLDER_${codeBlocks.length}__`;
+    const placeholder = `:::CODEBLOCKPLACEHOLDER${codeBlocks.length}:::`;
     codeBlocks.push(`<pre><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`);
     return placeholder;
   });
@@ -28,7 +28,7 @@ export function markdownToHtml(markdown: string): string {
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-    const placeholder = `__INLINE_CODE_PLACEHOLDER_${inlineCodes.length}__`;
+    const placeholder = `:::INLINECODEPLACEHOLDER${inlineCodes.length}:::`;
     inlineCodes.push(`<code>${escapedCode}</code>`);
     return placeholder;
   });
@@ -194,7 +194,7 @@ export function markdownToHtml(markdown: string): string {
 
     // Check if the line is already a block HTML tag
     const isBlock = /^(<\/?(h[1-6]|ul|ol|li|blockquote|pre|table|thead|tbody|tr|th|td|div|p|img|hr|iframe)\b)/i.test(trimmed);
-    const isPlaceholder = trimmed.startsWith('__CODE_BLOCK_PLACEHOLDER_') || trimmed.startsWith('__INLINE_CODE_PLACEHOLDER_');
+    const isPlaceholder = trimmed.startsWith(':::CODEBLOCKPLACEHOLDER') || trimmed.startsWith(':::INLINECODEPLACEHOLDER');
 
     if (isBlock || isPlaceholder) {
       wrappedLines.push(line);
@@ -206,10 +206,10 @@ export function markdownToHtml(markdown: string): string {
 
   // 13. Restore code blocks and inline code
   codeBlocks.forEach((codeBlock, index) => {
-    html = html.replace(`__CODE_BLOCK_PLACEHOLDER_${index}__`, codeBlock);
+    html = html.replace(`:::CODEBLOCKPLACEHOLDER${index}:::`, codeBlock);
   });
   inlineCodes.forEach((inlineCode, index) => {
-    html = html.replace(`__INLINE_CODE_PLACEHOLDER_${index}__`, inlineCode);
+    html = html.replace(`:::INLINECODEPLACEHOLDER${index}:::`, inlineCode);
   });
 
   return html;
