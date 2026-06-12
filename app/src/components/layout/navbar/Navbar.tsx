@@ -261,11 +261,11 @@ function DesktopNavLinks() {
             <div className="col-span-1 bg-neutral-50 dark:bg-neutral-900/40 p-5 flex flex-col justify-between border-r border-neutral-200 dark:border-neutral-800">
               <div className="space-y-2">
                 <span className="inline-flex items-center rounded-md bg-neutral-200/50 dark:bg-neutral-800 px-2 py-0.5 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tracking-wide uppercase">
-                  Academic Hub
+                  Knowledge Base
                 </span>
-                <h4 className="text-sm font-bold text-foreground tracking-tight leading-snug">Learn Smarter</h4>
+                <h4 className="text-sm font-bold text-foreground tracking-tight leading-snug">Master Your Courses</h4>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Access premium study stock, structured syllabus guides, and top-tier question banks designed for maximum performance.
+                  Your all-in-one academic companion with curated resources, syllabus guides, and exam prep materials to help you excel.
                 </p>
               </div>
               <Link
@@ -273,7 +273,7 @@ function DesktopNavLinks() {
                 onClick={close}
                 className="group/btn inline-flex items-center gap-1 text-xs font-semibold text-neutral-600 hover:text-foreground dark:text-neutral-400 dark:hover:text-foreground transition-colors mt-4"
               >
-                Browse catalog
+                Explore repository
                 <ArrowRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
               </Link>
             </div>
@@ -281,24 +281,24 @@ function DesktopNavLinks() {
             {/* Right side navigation items grid */}
             <div className="col-span-2 p-3 flex flex-col gap-2 bg-white dark:bg-[#1f1f1f]">
               <div className="grid grid-cols-2 gap-1.5">
-                {/* Study Stock */}
+                {/* Library */}
                 <Link
                   to="/study-stock"
                   onClick={close}
                   className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-500/10 bg-blue-500/5 text-blue-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
                     <Library className="h-4.5 w-4.5" />
                   </div>
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Study Stock
+                        Digital Library
                       </span>
                       <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
                     </div>
                     <p className="text-[10px] leading-normal text-muted-foreground">
-                      Academic books & lecture notes repository.
+                      Access textbooks, lecture notes, and study guides.
                     </p>
                   </div>
                 </Link>
@@ -309,62 +309,62 @@ function DesktopNavLinks() {
                   onClick={close}
                   className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/10 bg-emerald-500/5 text-emerald-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
                     <Compass className="h-4.5 w-4.5" />
                   </div>
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Syllabus
+                        Course Syllabus
                       </span>
                       <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
                     </div>
                     <p className="text-[10px] leading-normal text-muted-foreground">
-                      Curriculum layouts & weightage details.
+                      Explore course structures, modules, and grading criteria.
                     </p>
                   </div>
                 </Link>
 
-                {/* Imp Questions */}
+                {/* Question Bank */}
                 <Link
                   to="/study-material/imp-questions"
                   onClick={close}
                   className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/10 bg-purple-500/5 text-purple-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
                     <Sparkles className="h-4.5 w-4.5" />
                   </div>
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Imp Questions
+                        Question Bank
                       </span>
                       <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
                     </div>
                     <p className="text-[10px] leading-normal text-muted-foreground">
-                      Frequently asked exam questions.
+                      Practice with curated, high-yield exam questions.
                     </p>
                   </div>
                 </Link>
 
-                {/* Sample Papers */}
+                {/* Past Papers */}
                 <Link
                   to="/study-material/sample-papers"
                   onClick={close}
                   className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/10 bg-rose-500/5 text-rose-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
                     <FileText className="h-4.5 w-4.5" />
                   </div>
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1">
                       <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Sample Papers
+                        Past Papers
                       </span>
                       <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
                     </div>
                     <p className="text-[10px] leading-normal text-muted-foreground">
-                      Mock mockups & mock test sets.
+                      Test your knowledge with previous years' papers.
                     </p>
                   </div>
                 </Link>
@@ -377,15 +377,15 @@ function DesktopNavLinks() {
                 className="group mt-1 flex items-center justify-between rounded-lg bg-neutral-50 dark:bg-neutral-900/30 border border-neutral-200/60 dark:border-neutral-800/60 p-2.5 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-amber-500/10 bg-amber-500/5 text-amber-500 shadow-3xs">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-3xs">
                     <FolderOpen className="h-4 w-4" />
                   </div>
                   <div className="space-y-0.5 text-left">
                     <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
-                      Browse All Material
+                      Browse All Resources
                     </span>
                     <p className="text-[10px] text-muted-foreground leading-none">
-                      Explore our full collection of online assets.
+                      Explore our full collection of academic assets.
                     </p>
                   </div>
                 </div>
@@ -412,10 +412,10 @@ function DesktopNavLinks() {
                   : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
               )}
             >
-              Support
+              Resources
               <ChevronDown
                 className={cn(
-                  "h-3.5 w-3.5 opacity-60 transition-transform duration-250 ease-out",
+                  "h-3.5 w-3.5 opacity-60 transition-transform duration-200 ease-out",
                   open && "rotate-180 text-foreground opacity-100",
                 )}
               />
@@ -665,7 +665,7 @@ function PopoverMobileMenu() {
               Study Hub
             </div>
             
-            {/* Study Stock */}
+            {/* Library */}
             <Link
               to="/study-stock"
               onClick={close}
@@ -677,7 +677,7 @@ function PopoverMobileMenu() {
               )}
             >
               <Library className="h-4 w-4 text-blue-500" />
-              Study Stock
+              Digital Library
             </Link>
 
             {/* Syllabus */}
@@ -692,7 +692,7 @@ function PopoverMobileMenu() {
               )}
             >
               <Compass className="h-4 w-4 text-emerald-500" />
-              Syllabus
+              Course Syllabus
             </Link>
 
             {/* Study Material heading */}
@@ -715,7 +715,7 @@ function PopoverMobileMenu() {
               Browse All
             </Link>
 
-            {/* Imp Questions */}
+            {/* Question Bank */}
             <Link
               to="/study-material/imp-questions"
               onClick={close}
@@ -727,10 +727,10 @@ function PopoverMobileMenu() {
               )}
             >
               <Sparkles className="h-4 w-4 text-purple-500" />
-              Imp Questions
+              Question Bank
             </Link>
 
-            {/* Sample Papers */}
+            {/* Past Papers */}
             <Link
               to="/study-material/sample-papers"
               onClick={close}
@@ -742,7 +742,7 @@ function PopoverMobileMenu() {
               )}
             >
               <FileText className="h-4 w-4 text-rose-500" />
-              Sample Papers
+              Past Papers
             </Link>
 
             {/* Support section (only for non‑admin) */}
