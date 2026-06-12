@@ -15,6 +15,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -233,47 +234,48 @@ export default function SyllabusPage() {
 
       {/* Results List */}
       {!loading && !error && (
-        <Card>
-          <CardContent className="p-0">
-            {filteredSyllabus.length > 0 ? (
-              filteredSyllabus.map((item) => (
-                <div
-                  key={item._id || item.code}
-                  className="flex flex-col gap-4 border-b border-border p-5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
+        <>
+          {filteredSyllabus.length > 0 ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredSyllabus.map((item) => (
+                <Card key={item._id || item.code} className="flex flex-col h-full hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <Badge variant="outline">{item.code}</Badge>
-                      <Badge variant="secondary">{item.type}</Badge>
-                      <span className="text-sm text-muted-foreground">{item.credits} credits</span>
+                      <Badge variant="secondary" className="capitalize">{item.type}</Badge>
                     </div>
-
-                    <div>
-                      <h2 className="text-lg font-semibold tracking-tight">{item.title}</h2>
-                      <p className="text-sm text-muted-foreground">
-                        {item.branch} · {formatSyllabusTerm(item)}
-                      </p>
-                    </div>
+                    <CardTitle className="text-lg tracking-tight line-clamp-2">{item.title}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {item.branch} · {formatSyllabusTerm(item)}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-4">
+                    <p className="text-sm font-medium text-muted-foreground">{item.credits} Credits</p>
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <Button className="w-full" variant="outline" onClick={() => setViewItem(item)}>
+                      {item.type === "markdown" ? "Read Content" : "View Document"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-3 py-12 text-center p-0">
+                <div className="flex flex-col items-center gap-3 py-12 text-center w-full">
+                  <Search className="h-8 w-8 text-muted-foreground/40" />
+                  <div>
+                    <h2 className="text-lg font-semibold">No syllabus items found</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Try a different subject name, code, or filter.
+                    </p>
                   </div>
-
-                  <Button variant="outline" onClick={() => setViewItem(item)}>
-                    {item.type === "markdown" ? "Open content" : "Open file"}
-                  </Button>
                 </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center gap-3 py-12 text-center">
-                <Search className="h-8 w-8 text-muted-foreground/40" />
-                <div>
-                  <h2 className="text-lg font-semibold">No syllabus items found</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Try a different subject name, code, or filter.
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
 
       {/* Details Dialog */}
