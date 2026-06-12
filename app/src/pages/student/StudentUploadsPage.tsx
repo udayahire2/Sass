@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Clock, CheckCircle2, XCircle, UploadCloud } from "lucide-react";
+import { FileText, Clock, CheckCircle2, XCircle, UploadCloud, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +16,9 @@ const formatDate = (dateString?: string) => {
 };
 
 const statusConfig = {
-  pending: { label: "Pending", icon: Clock, className: "bg-muted text-muted-foreground border-transparent" },
-  approved: { label: "Approved", icon: CheckCircle2, className: "bg-muted text-muted-foreground border-transparent" },
-  rejected: { label: "Rejected", icon: XCircle, className: "bg-muted text-muted-foreground border-transparent" },
+  pending: { label: "In Review", icon: Clock, colorClass: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20", animate: true },
+  approved: { label: "Approved", icon: CheckCircle2, colorClass: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20", animate: false },
+  rejected: { label: "Rejected", icon: XCircle, colorClass: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20", animate: false },
 } as const;
 
 export default function StudentUploadsPage() {
@@ -35,91 +35,106 @@ export default function StudentUploadsPage() {
   }, [token]);
 
   return (
-    <Card className="border-border/70 shadow-sm overflow-hidden">
-      <CardHeader className="border-b border-border/50 pb-4 bg-secondary/20">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <FileText className="h-5 w-5 text-muted-foreground" />
-          My Uploads
-        </CardTitle>
-        <CardDescription>Track the approval status of study materials you have contributed.</CardDescription>
+    <Card className="border-border/40 shadow-sm overflow-hidden bg-card/50 backdrop-blur-xl">
+      <CardHeader className="border-b border-border/30 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle className="text-xl flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              My Uploads
+            </CardTitle>
+            <CardDescription className="mt-1.5">Track the approval status of study materials you have contributed.</CardDescription>
+          </div>
+          <Button asChild className="shrink-0 shadow-sm">
+            <Link to="/dashboard/student/add-content">
+              <UploadCloud className="mr-2 h-4 w-4" />
+              Upload New
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent className="pt-6 px-0 sm:px-6">
+      <CardContent className="p-0">
         {materialsLoading ? (
-          <Empty className="py-12">
+          <Empty className="py-16">
             <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Spinner className="h-5 w-5" />
+              <EmptyMedia variant="icon" className="bg-transparent border-none shadow-none text-primary">
+                <Spinner className="h-6 w-6" />
               </EmptyMedia>
               <EmptyTitle>Loading Uploads</EmptyTitle>
             </EmptyHeader>
           </Empty>
         ) : userMaterials.length === 0 ? (
-          <Empty className="mx-4 sm:mx-0">
+          <Empty className="py-16 mx-4 sm:mx-0">
             <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <FileText className="h-5 w-5" />
+              <EmptyMedia variant="icon" className="bg-secondary/20">
+                <FileText className="h-6 w-6 text-muted-foreground" />
               </EmptyMedia>
-              <EmptyTitle>No Uploads Yet</EmptyTitle>
-              <EmptyDescription>Get started by sharing your notes, sample papers, or study content with the community.</EmptyDescription>
+              <EmptyTitle className="mt-4">No Uploads Yet</EmptyTitle>
+              <EmptyDescription className="max-w-md mx-auto">Get started by sharing your notes, sample papers, or study content with the community.</EmptyDescription>
             </EmptyHeader>
-            <Button variant="outline">
-                <UploadCloud className="mr-2 h-4 w-4" />
+            <Button variant="outline" className="mt-4" asChild>
               <Link to="/dashboard/student/add-content">
-                Upload Material
+                <UploadCloud className="mr-2 h-4 w-4" />
+                Start Uploading
               </Link>
             </Button>
           </Empty>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-border/70 mx-4 sm:mx-0">
-            <div className="overflow-x-auto">
-              <Table className="min-w-160">
-                <TableHeader className="bg-secondary/60">
-                  <TableRow>
-                    <TableHead className="w-70">Content</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead className="text-right">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {userMaterials.map((m) => {
-                    const status = statusConfig[m.status] || statusConfig.pending;
-                    const StatusIcon = status.icon;
-                    return (
-                      <TableRow key={m._id || m.id} className="hover:bg-secondary/20 transition-colors">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
-                              <FileText className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate font-semibold text-sm text-foreground">{m.title}</p>
-                              <span className="mt-1 inline-block rounded border border-border/80 bg-muted/80 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                                {m.type}
-                              </span>
-                            </div>
+          <div className="w-full">
+            <Table className="min-w-[600px]">
+              <TableHeader className="bg-secondary/30">
+                <TableRow className="hover:bg-transparent border-border/30">
+                  <TableHead className="w-[45%] pl-6 text-xs uppercase tracking-wider font-semibold text-muted-foreground">Content</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Subject</TableHead>
+                  <TableHead className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Date</TableHead>
+                  <TableHead className="pr-6 text-right text-xs uppercase tracking-wider font-semibold text-muted-foreground">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {userMaterials.map((m) => {
+                  const status = statusConfig[m.status] || statusConfig.pending;
+                  const StatusIcon = status.icon;
+                  return (
+                    <TableRow key={m._id || m.id} className="group hover:bg-muted/30 transition-colors border-border/30">
+                      <TableCell className="pl-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/50 bg-background shadow-sm transition-colors group-hover:border-primary/20 group-hover:bg-primary/5">
+                            <FileText className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
-                        </TableCell>
-                        <TableCell className="font-semibold text-sm">{m.subject}</TableCell>
-                        <TableCell className="text-muted-foreground text-xs">
-                          {formatDate(m.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Badge className={cn("rounded-full px-2.5 py-0.5 font-normal text-xs border-transparent capitalize w-fit",
-                            m.status === "approved" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" :
-                            m.status === "rejected" ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" :
-                            "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                          )}>
-                            <StatusIcon className="mr-1 h-3.5 w-3.5 inline-block align-middle" />
-                            <span className="align-middle">{status.label}</span>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-sm text-foreground transition-colors group-hover:text-primary">{m.title}</p>
+                            <span className="mt-1 inline-flex items-center rounded border border-border/50 bg-secondary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                              {m.type}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-4">
+                        <span className="font-medium text-sm text-muted-foreground group-hover:text-foreground transition-colors">{m.subject}</span>
+                      </TableCell>
+                      <TableCell className="py-4 text-xs text-muted-foreground font-medium">
+                        {formatDate(m.createdAt)}
+                      </TableCell>
+                      <TableCell className="pr-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <Badge className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide border shadow-sm flex items-center gap-1.5 w-fit", status.colorClass)}>
+                            {status.animate && (
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                              </span>
+                            )}
+                            {!status.animate && <StatusIcon className="h-3 w-3" />}
+                            {status.label}
                           </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         )}
       </CardContent>

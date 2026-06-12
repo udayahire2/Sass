@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { Camera, ZoomIn, Edit2, Save, Mail, BookOpen, CalendarDays, Clock } from "lucide-react";
+import { Camera, ZoomIn, Edit2, Save, Mail, BookOpen, CalendarDays, Clock, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { buildApiUrl, buildAvatarUrl, getErrorMessage, parseApiData } from "@/services/api";
+import { motion, AnimatePresence } from "framer-motion";
 
 // ------------------------------------------------------------
-// Cropping utilities (unchanged)
+// Cropping utilities
 // ------------------------------------------------------------
 async function getCroppedImg(imageSrc: string, pixelCrop: Area, outputSize = 400): Promise<Blob> {
   const image = await createImage(imageSrc);
@@ -105,7 +106,7 @@ export default function StudentProfilePage() {
         setUser(updatedUser);
         window.dispatchEvent(new CustomEvent("auth-change"));
         setIsEditing(false);
-        toast.success("Profile updated seamlessly.");
+        toast.success("Profile details updated securely.");
       } else {
         toast.error(getErrorMessage(data, "Update failed"));
       }
@@ -157,7 +158,7 @@ export default function StudentProfilePage() {
       setAvatarPreview(resolvedUrl);
       window.dispatchEvent(new CustomEvent("auth-change"));
       setCropModalOpen(false);
-      toast.success("Avatar updated.");
+      toast.success("Avatar updated successfully.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Process failed.");
     } finally {
@@ -169,12 +170,12 @@ export default function StudentProfilePage() {
     <div className="space-y-6">
       {/* Avatar Crop Modal */}
       <Dialog open={cropModalOpen} onOpenChange={setCropModalOpen}>
-        <DialogContent className="border-border/70 bg-card shadow-lg sm:max-w-md rounded-2xl">
+        <DialogContent className="border-border/40 bg-card/95 backdrop-blur-xl shadow-2xl sm:max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold">Crop Avatar</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">Reposition your image before saving to your profile.</DialogDescription>
+            <DialogTitle className="text-xl font-semibold">Reposition Avatar</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">Pinch or use the slider to zoom and drag to adjust.</DialogDescription>
           </DialogHeader>
-          <div className="relative h-64 w-full overflow-hidden rounded-xl border border-border bg-muted">
+          <div className="relative h-64 w-full overflow-hidden rounded-xl border border-border/50 bg-black/5 dark:bg-white/5">
             {imageSrc && (
               <Cropper
                 image={imageSrc} crop={crop} zoom={zoom} aspect={1} cropShape="round"
@@ -182,160 +183,190 @@ export default function StudentProfilePage() {
               />
             )}
           </div>
-          <div className="flex items-center gap-3 pt-2">
-            <ZoomIn className="h-4 w-4 text-muted-foreground" />
-            <Input type="range" min={1} max={3} step={0.05} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="flex-1 accent-foreground" />
-            <span className="w-9 text-right text-xs tabular-nums text-muted-foreground">{zoom.toFixed(1)}x</span>
+          <div className="flex items-center gap-4 pt-2">
+            <ZoomIn className="h-5 w-5 text-muted-foreground" />
+            <Input type="range" min={1} max={3} step={0.05} value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="flex-1 cursor-ew-resize accent-primary" />
+            <span className="w-10 text-right text-xs font-medium tabular-nums text-muted-foreground">{zoom.toFixed(1)}x</span>
           </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setCropModalOpen(false)}>Cancel</Button>
-            <Button variant="default" onClick={handleApplyCrop} disabled={avatarUploading}>
-              {avatarUploading ? "Saving..." : "Apply"}
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="ghost" className="rounded-xl" onClick={() => setCropModalOpen(false)}>Cancel</Button>
+            <Button variant="default" className="rounded-xl shadow-md px-6" onClick={handleApplyCrop} disabled={avatarUploading}>
+              {avatarUploading ? "Processing..." : "Save Avatar"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Hero Card */}
-      <Card className="overflow-hidden border-border/70 bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card)_92%,var(--color-amber-50))_0%,var(--card)_55%,color-mix(in_srgb,var(--card)_90%,var(--color-stone-100))_100%)] p-6 sm:p-8">
-        <div className="flex flex-col items-center gap-6 text-center md:flex-row md:text-left">
-          <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
-            <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-background bg-muted shadow-md transition-all duration-300 group-hover:scale-102 group-hover:border-primary/20">
-              {avatarPreview || user?.avatar ? (
-                <img src={avatarPreview || user?.avatar || undefined} alt="Avatar" className="h-full w-full object-cover" />
-              ) : (
-                <DefaultAvatar name={user?.name || "User"} size={112} className="h-full w-full" />
-              )}
+      {/* Hero Identity Card */}
+      <Card className="overflow-hidden border-border/40 shadow-sm bg-card relative">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_srgb,var(--color-primary)_10%,transparent)_0%,transparent_100%)] opacity-50" />
+        <CardContent className="p-8 relative">
+          <div className="flex flex-col items-center gap-6 text-center md:flex-row md:text-left">
+            <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+              <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-background bg-secondary shadow-lg transition-transform duration-500 ease-out group-hover:scale-105 group-hover:shadow-primary/20">
+                {avatarPreview || user?.avatar ? (
+                  <img src={avatarPreview || user?.avatar || undefined} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <DefaultAvatar name={user?.name || "User"} size={112} className="h-full w-full" />
+                )}
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <Camera className="h-8 w-8 text-white drop-shadow-md" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 rounded-full bg-primary p-1.5 text-primary-foreground shadow-sm ring-2 ring-background">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <Input ref={avatarInputRef} type="file" accept="image/*" onChange={onAvatarFileChange} className="hidden" />
             </div>
-            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 opacity-0 backdrop-blur-[2px] transition-all duration-300 group-hover:opacity-100">
-              <Camera className="h-6 w-6 text-white" />
+            
+            <div className="space-y-3">
+              <div className="flex flex-col items-center gap-2 md:items-start">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-3xl font-bold tracking-tight text-foreground">{user?.name}</h2>
+                  <Badge className="rounded-full px-3 py-0.5 font-bold text-[10px] bg-primary/10 text-primary border-transparent uppercase tracking-widest shadow-sm">
+                    Student Account
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium bg-muted/50 px-3 py-1 rounded-full border border-border/50">
+                  <Mail className="h-4 w-4" />
+                  {user?.email}
+                </div>
+              </div>
             </div>
-            <Input ref={avatarInputRef} type="file" accept="image/*" onChange={onAvatarFileChange} className="hidden" />
           </div>
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-              <h2 className="text-2xl font-bold tracking-tight">{user?.name}</h2>
-              <Badge className="rounded-full px-2.5 py-0.5 font-semibold text-[10px] border-border/50 bg-secondary/80 text-foreground uppercase tracking-wider">
-                Student
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground flex items-center justify-center gap-1.5 md:justify-start">
-              <Mail className="h-3.5 w-3.5 text-muted-foreground/80" />
-              {user?.email}
-            </p>
-          </div>
-        </div>
+        </CardContent>
       </Card>
 
-      {/* Personal Information Card */}
-      <Card className="border-border/70 shadow-sm overflow-hidden">
-        <CardHeader className="pb-4 border-b border-border/50 flex flex-row items-center justify-between">
+      {/* Personal Information Setup */}
+      <Card className="border-border/40 shadow-sm overflow-hidden bg-card/50 backdrop-blur-xl">
+        <CardHeader className="pb-5 border-b border-border/30 flex flex-row items-center justify-between bg-secondary/10">
           <div>
-            <CardTitle className="text-lg">Personal Information</CardTitle>
-            <CardDescription>View and manage your academic profile details.</CardDescription>
+            <CardTitle className="text-lg">Academic Profile</CardTitle>
+            <CardDescription className="mt-1">Manage your academic details and preferences.</CardDescription>
           </div>
-          {!isEditing && (
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-              <Edit2 className="mr-2 h-3.5 w-3.5 text-muted-foreground" /> Edit Profile
-            </Button>
-          )}
+          <AnimatePresence mode="wait">
+            {!isEditing && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(true)} className="shadow-sm rounded-lg">
+                  <Edit2 className="mr-2 h-4 w-4 text-muted-foreground" /> Edit Info
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardHeader>
+        
         <CardContent className="pt-6">
-          {isEditing ? (
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-3">
-                {/* Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-                </div>
-                {/* Branch */}
-                <div className="space-y-2">
-                  <Label htmlFor="branch">Branch</Label>
-                  <Select value={branch} onValueChange={(val) => setBranch(val ?? "")} required>
-                    <SelectTrigger id="branch">
-                      <SelectValue placeholder="Select branch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["Computer", "IT", "Civil", "Mechanical", "Electrical", "ENTC"].map(b => (
-                        <SelectItem key={b} value={b}>{b} Engineering</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Year */}
-                <div className="space-y-2">
-                  <Label htmlFor="year">Year</Label>
-                  <Select value={year} onValueChange={(val) => setYear(val ?? "")} required>
-                    <SelectTrigger id="year">
-                      <SelectValue placeholder="Select year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["FE", "SE", "TE", "BE"].map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setName(user?.name || "");
-                    setBranch(user?.branch || "");
-                    setYear(user?.year || "");
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Saving..." : <><Save className="mr-2 h-3.5 w-3.5" /> Save Changes</>}
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-3">
-              {/* Branch */}
-              <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 px-4 py-3.5 shadow-sm transition-all hover:bg-secondary/20">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+          <AnimatePresence mode="wait">
+            {isEditing ? (
+              <motion.form 
+                key="edit-form"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+                onSubmit={handleUpdate} 
+                className="space-y-6"
+              >
+                <div className="grid gap-6 sm:grid-cols-3">
+                  <div className="space-y-2.5">
+                    <Label htmlFor="name" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Full Name</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="bg-background shadow-sm" required />
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Branch</p>
-                    <p className="text-sm font-semibold mt-0.5">{user?.branch ? `${user.branch} Engg.` : "Not specified"}</p>
+                  <div className="space-y-2.5">
+                    <Label htmlFor="branch" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Engineering Branch</Label>
+                    <Select value={branch} onValueChange={(val) => setBranch(val ?? "")} required>
+                      <SelectTrigger id="branch" className="bg-background shadow-sm">
+                        <SelectValue placeholder="Select branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Computer", "IT", "Civil", "Mechanical", "Electrical", "ENTC"].map(b => (
+                          <SelectItem key={b} value={b}>{b} Engineering</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2.5">
+                    <Label htmlFor="year" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Academic Year</Label>
+                    <Select value={year} onValueChange={(val) => setYear(val ?? "")} required>
+                      <SelectTrigger id="year" className="bg-background shadow-sm">
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["FE", "SE", "TE", "BE"].map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </div>
+                
+                <div className="flex justify-end gap-3 pt-4 border-t border-border/40">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="rounded-lg"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setName(user?.name || "");
+                      setBranch(user?.branch || "");
+                      setYear(user?.year || "");
+                    }}
+                  >
+                    <X className="mr-2 h-4 w-4" /> Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading} className="rounded-lg shadow-md px-6">
+                    {loading ? "Saving..." : <><Save className="mr-2 h-4 w-4" /> Save Details</>}
+                  </Button>
+                </div>
+              </motion.form>
+            ) : (
+              <motion.div 
+                key="view-mode"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="grid gap-4 sm:grid-cols-3"
+              >
+                {/* Branch Card */}
+                <div className="group flex items-center justify-between rounded-2xl border border-border/40 bg-secondary/10 p-5 transition-all hover:bg-secondary/30 hover:border-border/60 hover:shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-xl bg-background p-3 shadow-sm border border-border/50 text-blue-500 transition-transform group-hover:scale-110">
+                      <BookOpen className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Branch</p>
+                      <p className="text-sm font-semibold text-foreground">{user?.branch ? `${user.branch} Engg.` : "Not specified"}</p>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Academic Year */}
-              <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 px-4 py-3.5 shadow-sm transition-all hover:bg-secondary/20">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
-                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Academic Year</p>
-                    <p className="text-sm font-semibold mt-0.5">{user?.year || "Not specified"}</p>
+                {/* Academic Year Card */}
+                <div className="group flex items-center justify-between rounded-2xl border border-border/40 bg-secondary/10 p-5 transition-all hover:bg-secondary/30 hover:border-border/60 hover:shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-xl bg-background p-3 shadow-sm border border-border/50 text-amber-500 transition-transform group-hover:scale-110">
+                      <CalendarDays className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Academic Year</p>
+                      <p className="text-sm font-semibold text-foreground">{user?.year || "Not specified"}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Member Since */}
-              <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 px-4 py-3.5 shadow-sm transition-all hover:bg-secondary/20">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Member Since</p>
-                    <p className="text-sm font-semibold mt-0.5">{formatDate(user?.createdAt)}</p>
+                {/* Member Since Card */}
+                <div className="group flex items-center justify-between rounded-2xl border border-border/40 bg-secondary/10 p-5 transition-all hover:bg-secondary/30 hover:border-border/60 hover:shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-xl bg-background p-3 shadow-sm border border-border/50 text-emerald-500 transition-transform group-hover:scale-110">
+                      <Clock className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Member Since</p>
+                      <p className="text-sm font-semibold text-foreground">{formatDate(user?.createdAt)}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardContent>
       </Card>
     </div>
