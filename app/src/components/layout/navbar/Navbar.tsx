@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Sun,
   Moon,
@@ -16,7 +17,7 @@ import {
   MessageSquare,
   ArrowRight,
   FolderOpen,
-  Home
+  Home,
 } from "lucide-react";
 import { gsap } from "gsap";
 import Menu from "@/svgs/menu";
@@ -43,7 +44,7 @@ function getDashboardPath(user: AuthUser | null) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  GSAP-powered dropdown (replaces Radix DropdownMenuContent)                */
+/*  GSAP-powered dropdown (unchanged)                                         */
 /* -------------------------------------------------------------------------- */
 function GsapDropdown({
   trigger,
@@ -70,7 +71,6 @@ function GsapDropdown({
 
     if (isInitialMount.current) {
       isInitialMount.current = false;
-      // hide the panel initially without animation
       gsap.set(panel, { autoAlpha: 0, scale: 0.96, y: -8 });
       return;
     }
@@ -106,7 +106,6 @@ function GsapDropdown({
     }
   }, [open]);
 
-  // Dismiss on outside click & Escape
   useEffect(() => {
     const handlePointerDown = (e: PointerEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) close();
@@ -127,9 +126,11 @@ function GsapDropdown({
       {trigger({ open, toggle })}
       <div
         className={cn(
-          "absolute top-full z-50 mt-1",
-          open ? "visible pointer-events-auto" : "invisible pointer-events-none select-none",
-          wrapperClassName || "right-0"
+          "absolute top-full z-50 mt-2",
+          open
+            ? "visible pointer-events-auto"
+            : "invisible pointer-events-none select-none",
+          wrapperClassName || "right-0",
         )}
       >
         <div
@@ -147,22 +148,14 @@ function GsapDropdown({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Search bar (unchanged)                                                    */
+/*  Search bar – compact variant for dynamic island                           */
 /* -------------------------------------------------------------------------- */
 function NavbarSearch() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const normalizedQuery = query.trim();
-    if (!normalizedQuery) {
-      navigate("/resources");
-      return;
-    }
-    navigate(`/syllabus?search=${encodeURIComponent(normalizedQuery)}`);
-  };
-
+  // Handle global keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -174,17 +167,31 @@ function NavbarSearch() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [navigate]);
 
+  // Handle click on the input – triggers the same shortcut behavior
+  const handleInputClick = () => {
+    navigate("/search");
+  };
+
+  // Optional: also handle focus via keyboard Tab (same effect)
+  const handleInputFocus = () => {
+    navigate("/search");
+  };
+
   return (
-    <form onSubmit={handleSubmit}>
-      <InputGroup>
+    <form onSubmit={(e) => e.preventDefault()} className="hidden md:block">
+      <InputGroup className="w-32 lg:w-36">
         <InputGroupInput
           placeholder="Search…"
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => setQuery(e.target.value)} // kept but won't be used because input is readOnly
+          readOnly
+          onClick={handleInputClick}
+          onFocus={handleInputFocus}
+          className="cursor-pointer"
         />
-        <InputGroupAddon align="inline-end">
-          <Kbd>Ctrl</Kbd>
+        <InputGroupAddon align="inline-end" className="pr-2">
+          <Kbd>⌘</Kbd>
           <Kbd>K</Kbd>
         </InputGroupAddon>
       </InputGroup>
@@ -194,6 +201,7 @@ function NavbarSearch() {
 
 /* -------------------------------------------------------------------------- */
 /*  Desktop Navigation – regrouped links into “Study” & “Support” dropdowns   */
+/*  (adjusted styling to fit within pill)                                     */
 /* -------------------------------------------------------------------------- */
 function DesktopNavLinks() {
   const location = useLocation();
@@ -201,31 +209,33 @@ function DesktopNavLinks() {
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    return (
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
   };
 
   const studyLinks = NAV_LINKS.filter((link) =>
     ["/study-stock", "/resources", "/syllabus"].includes(link.path),
   );
-  const supportLinks = user && user.role !== "admin"
-    ? [
-      { path: "/feedback", label: "Feedback" },
-      { path: "/how-to-use", label: "How to use" },
-    ]
-    : [];
+  const supportLinks =
+    user && user.role !== "admin"
+      ? [
+          { path: "/feedback", label: "Feedback" },
+          { path: "/how-to-use", label: "How to use" },
+        ]
+      : [];
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav className="hidden items-center gap-1 md:flex">
       {/* Home link */}
       <Link
         to="/"
         className={cn(
-          "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 border border-transparent",
+          "rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150",
           isActive("/")
-            ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
-            : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
         )}
-        aria-current={isActive("/") ? "page" : undefined}
       >
         Home
       </Link>
@@ -239,10 +249,10 @@ function DesktopNavLinks() {
             type="button"
             onClick={toggle}
             className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
+              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none cursor-pointer",
               studyLinks.some((l) => isActive(l.path)) || open
-                ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
-                : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
             )}
           >
             Study
@@ -263,9 +273,12 @@ function DesktopNavLinks() {
                 <span className="inline-flex items-center rounded-md bg-neutral-200/50 dark:bg-neutral-800 px-2 py-0.5 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tracking-wide uppercase">
                   Knowledge Base
                 </span>
-                <h4 className="text-sm font-bold text-foreground tracking-tight leading-snug">Master Your Courses</h4>
+                <h4 className="text-sm font-bold text-foreground tracking-tight leading-snug">
+                  Master Your Courses
+                </h4>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Your all-in-one academic companion with curated resources, syllabus guides, and exam prep materials to help you excel.
+                  Your all-in-one academic companion with curated resources,
+                  syllabus guides, and exam prep materials to help you excel.
                 </p>
               </div>
               <Link
@@ -396,7 +409,7 @@ function DesktopNavLinks() {
         )}
       </GsapDropdown>
 
-      {/* Support Dropdown - Notion-Themed Compact List */}
+      {/* Support Dropdown */}
       {supportLinks.length > 0 && (
         <GsapDropdown
           wrapperClassName="left-1/2 -translate-x-1/2 mt-2"
@@ -406,10 +419,10 @@ function DesktopNavLinks() {
               type="button"
               onClick={toggle}
               className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none cursor-pointer",
                 supportLinks.some((l) => isActive(l.path)) || open
-                  ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
-                  : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
               )}
             >
               Resources
@@ -476,7 +489,7 @@ function DesktopNavLinks() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Theme toggle, user menu, mobile menu (adapted to use GsapDropdown)        */
+/*  Theme toggle (compact for pill)                                           */
 /* -------------------------------------------------------------------------- */
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -485,18 +498,21 @@ function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="h-9 w-9 rounded-md bg-transparent hover:bg-muted/50"
+      className="h-8 w-8 rounded-full bg-transparent hover:bg-muted/50"
       aria-label="Toggle theme"
     >
       {theme === "dark" ? (
-        <Sun className="h-4 w-4 text-foreground" />
+        <Sun className="h-4 w-4" />
       ) : (
-        <Moon className="h-4 w-4 text-foreground" />
+        <Moon className="h-4 w-4" />
       )}
     </Button>
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/*  User menu (compact avatar)                                                */
+/* -------------------------------------------------------------------------- */
 function UserMenuDesktop() {
   const { user, logout, getInitials } = useLocalAuth();
 
@@ -548,19 +564,31 @@ function UserMenuDesktop() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium leading-tight">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                    <p className="truncate text-sm font-medium leading-tight">
+                      {user.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
               </div>
               <div className="p-1.5">
                 <Link
-                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"}
+                  to={
+                    user.role === "admin"
+                      ? "/admin/dashboard"
+                      : user.role === "faculty"
+                        ? "/dashboard/faculty"
+                        : "/dashboard/student"
+                  }
                   onClick={close}
                   className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
                 >
                   <User className="h-4 w-4" />
-                  {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
+                  {user.role === "student" || !user.role
+                    ? "View Profile"
+                    : "Dashboard"}
                 </Link>
                 <Link
                   to="/notes"
@@ -574,7 +602,10 @@ function UserMenuDesktop() {
               <div className="border-t border-border/40 mx-2" />
               <div className="p-1.5">
                 <button
-                  onClick={() => { close(); logout(); }}
+                  onClick={() => {
+                    close();
+                    logout();
+                  }}
                   className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
                 >
                   <LogOut className="mr-2.5 h-4 w-4" />
@@ -600,39 +631,70 @@ function UserMenuDesktop() {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/*  Mobile menu – unchanged, but the trigger button is adapted to pill style */
+/* -------------------------------------------------------------------------- */
+
+
+
 function PopoverMobileMenu() {
   const location = useLocation();
   const { user, logout, getInitials } = useLocalAuth();
   const { theme, setTheme } = useTheme();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
-  const supportLinks = user && user.role !== "admin"
-    ? [
-      { path: "/feedback", label: "Feedback" },
-      { path: "/how-to-use", label: "How to use" },
-    ]
-    : [];
+  const supportLinks =
+    user && user.role !== "admin"
+      ? [
+          { path: "/feedback", label: "Feedback" },
+          { path: "/how-to-use", label: "How to use" },
+        ]
+      : [];
 
-  const closeDropdownRef = useRef<() => void>(() => { });
+  const closeDropdownRef = useRef<() => void>(() => {});
   useEffect(() => {
     closeDropdownRef.current();
   }, [location.pathname]);
 
+  // Prevent scroll from propagating to the body
+  useEffect(() => {
+    const scrollElement = scrollRef.current;
+    if (!scrollElement) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Stop propagation to prevent body scroll
+      e.stopPropagation();
+      // Optionally, if you want to prevent default only when content is scrollable,
+      // but we'll let the browser handle natural scroll inside the div.
+      // However, stopping propagation is enough to avoid body scroll.
+    };
+
+    // Use capture phase to catch events before they bubble
+    scrollElement.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+    scrollElement.addEventListener('touchmove', handleWheel, { passive: false, capture: true });
+
+    return () => {
+      scrollElement.removeEventListener('wheel', handleWheel, { capture: true });
+      scrollElement.removeEventListener('touchmove', handleWheel, { capture: true });
+    };
+  }, []);
+
   return (
     <GsapDropdown
       wrapperClassName="right-0 mt-2"
-      panelClassName="w-68 p-2 bg-white dark:bg-[#1f1f1f]"
+      panelClassName="w-72 p-0 bg-white dark:bg-[#1f1f1f] rounded-xl shadow-xl z-50 overflow-hidden"
       trigger={({ open, toggle }) => (
         <Button
           variant="ghost"
           size="icon"
           onClick={toggle}
           className={cn(
-            "h-9 w-9 rounded-md bg-transparent hover:bg-muted/50 lg:hidden border border-transparent cursor-pointer",
+            "h-8 w-8 rounded-full bg-transparent hover:bg-muted/50 md:hidden border border-transparent cursor-pointer",
             open && "bg-muted text-foreground border-border/40",
           )}
           aria-label="Open navigation menu"
@@ -644,270 +706,292 @@ function PopoverMobileMenu() {
       {(close) => {
         closeDropdownRef.current = close;
         return (
-          <div className="space-y-1.5">
-            {/* Home */}
-            <Link
-              to="/"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive("/")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Home className="h-4 w-4" />
-              Home
-            </Link>
+          <div
+            ref={scrollRef}
+            className="max-h-[70vh] overflow-y-auto overscroll-contain"
+            style={{ overscrollBehavior: 'contain' }}
+          >
+            <div className="space-y-1.5 p-2">
+              {/* Home */}
+              <Link
+                to="/"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                  isActive("/")
+                    ? "bg-muted text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+              >
+                <Home className="h-4 w-4" />
+                Home
+              </Link>
 
-            {/* Study section */}
-            <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              Study Hub
-            </div>
-            
-            {/* Library */}
-            <Link
-              to="/study-stock"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive("/study-stock")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Library className="h-4 w-4 text-blue-500" />
-              Digital Library
-            </Link>
-
-            {/* Syllabus */}
-            <Link
-              to="/syllabus"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive("/syllabus")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Compass className="h-4 w-4 text-emerald-500" />
-              Course Syllabus
-            </Link>
-
-            {/* Study Material heading */}
-            <div className="pl-3 py-1 text-[10px] font-semibold text-muted-foreground/75 uppercase tracking-wider">
-              Materials
-            </div>
-
-            {/* Browse All */}
-            <Link
-              to="/resources"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
-                isActive("/resources") && !location.pathname.includes("/study-material/")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <FolderOpen className="h-4 w-4 text-amber-500" />
-              Browse All
-            </Link>
-
-            {/* Question Bank */}
-            <Link
-              to="/study-material/imp-questions"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
-                isActive("/study-material/imp-questions")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Sparkles className="h-4 w-4 text-purple-500" />
-              Question Bank
-            </Link>
-
-            {/* Past Papers */}
-            <Link
-              to="/study-material/sample-papers"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
-                isActive("/study-material/sample-papers")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <FileText className="h-4 w-4 text-rose-500" />
-              Past Papers
-            </Link>
-
-            {/* Support section (only for non‑admin) */}
-            {supportLinks.length > 0 && (
-              <>
-                <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                  Support
-                </div>
-                {/* Feedback */}
-                <Link
-                  to="/feedback"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                    isActive("/feedback")
-                      ? "bg-muted text-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                  )}
-                >
-                  <MessageSquare className="h-4 w-4 text-pink-500" />
-                  Give Feedback
-                </Link>
-
-                {/* How to use */}
-                <Link
-                  to="/how-to-use"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                    isActive("/how-to-use")
-                      ? "bg-muted text-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-                  )}
-                >
-                  <HelpCircle className="h-4 w-4 text-cyan-500" />
-                  How to Use
-                </Link>
-              </>
-            )}
-
-            <div className="my-2 border-t border-border/40" />
-
-            {/* User section */}
-            {user ? (
-              <>
-                <div className="px-3 py-2 flex items-center gap-2 bg-muted/30 rounded-lg">
-                  {user.avatar ? (
-                    <Avatar className="h-7 w-7">
-                      <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <DefaultAvatar name={user.name} size={28} />
-                  )}
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-semibold">{user.name}</p>
-                    <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
-                  </div>
-                </div>
-                <Link
-                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"}
-                  onClick={close}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                >
-                  <User className="h-4 w-4" />
-                  {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
-                </Link>
-                <Link
-                  to="/notes"
-                  onClick={close}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                >
-                  <FileText className="h-4 w-4" />
-                  My Notes
-                </Link>
-                <button
-                  onClick={() => { close(); logout(); }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Log out
-                </button>
-              </>
-            ) : (
-              <div className="grid grid-cols-2 gap-2 p-1">
-                <Link
-                  to="/login"
-                  onClick={close}
-                  className="flex items-center justify-center rounded-lg border border-border/40 px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={close}
-                  className="flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
-                >
-                  Get started
-                </Link>
+              {/* Study section */}
+              <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                Study Hub
               </div>
-            )}
-            
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4 text-amber-500" /> : <Moon className="h-4 w-4 text-blue-500" />}
-              {theme === "dark" ? "Light mode" : "Dark mode"}
-            </button>
+
+              {/* Library */}
+              <Link
+                to="/study-stock"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                  isActive("/study-stock")
+                    ? "bg-muted text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+              >
+                <Library className="h-4 w-4 text-blue-500" />
+                Digital Library
+              </Link>
+
+              {/* Syllabus */}
+              <Link
+                to="/syllabus"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                  isActive("/syllabus")
+                    ? "bg-muted text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+              >
+                <Compass className="h-4 w-4 text-emerald-500" />
+                Course Syllabus
+              </Link>
+
+              {/* Study Material heading */}
+              <div className="pl-3 py-1 text-[10px] font-semibold text-muted-foreground/75 uppercase tracking-wider">
+                Materials
+              </div>
+
+              {/* Browse All */}
+              <Link
+                to="/resources"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
+                  isActive("/resources") && !location.pathname.includes("/study-material/")
+                    ? "bg-muted text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+              >
+                <FolderOpen className="h-4 w-4 text-amber-500" />
+                Browse All
+              </Link>
+
+              {/* Question Bank */}
+              <Link
+                to="/study-material/imp-questions"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
+                  isActive("/study-material/imp-questions")
+                    ? "bg-muted text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+              >
+                <Sparkles className="h-4 w-4 text-purple-500" />
+                Question Bank
+              </Link>
+
+              {/* Past Papers */}
+              <Link
+                to="/study-material/sample-papers"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
+                  isActive("/study-material/sample-papers")
+                    ? "bg-muted text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                )}
+              >
+                <FileText className="h-4 w-4 text-rose-500" />
+                Past Papers
+              </Link>
+
+              {/* Support section */}
+              {supportLinks.length > 0 && (
+                <>
+                  <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                    Support
+                  </div>
+                  <Link
+                    to="/feedback"
+                    onClick={close}
+                    className={cn(
+                      "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive("/feedback")
+                        ? "bg-muted text-foreground font-semibold"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    )}
+                  >
+                    <MessageSquare className="h-4 w-4 text-pink-500" />
+                    Give Feedback
+                  </Link>
+                  <Link
+                    to="/how-to-use"
+                    onClick={close}
+                    className={cn(
+                      "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive("/how-to-use")
+                        ? "bg-muted text-foreground font-semibold"
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                    )}
+                  >
+                    <HelpCircle className="h-4 w-4 text-cyan-500" />
+                    How to Use
+                  </Link>
+                </>
+              )}
+
+              <div className="my-2 border-t border-border/40" />
+
+              {/* User section */}
+              {user ? (
+                <>
+                  <div className="px-3 py-2 flex items-center gap-2 bg-muted/30 rounded-lg">
+                    {user.avatar ? (
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <DefaultAvatar name={user.name} size={28} />
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold">{user.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    to={
+                      user.role === "admin"
+                        ? "/admin/dashboard"
+                        : user.role === "faculty"
+                          ? "/dashboard/faculty"
+                          : "/dashboard/student"
+                    }
+                    onClick={close}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  >
+                    <User className="h-4 w-4" />
+                    {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
+                  </Link>
+                  <Link
+                    to="/notes"
+                    onClick={close}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  >
+                    <FileText className="h-4 w-4" />
+                    My Notes
+                  </Link>
+                  <button
+                    onClick={() => {
+                      close();
+                      logout();
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 p-1">
+                  <Link
+                    to="/login"
+                    onClick={close}
+                    className="flex items-center justify-center rounded-lg border border-border/40 px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    onClick={close}
+                    className="flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
+                  >
+                    Get started
+                  </Link>
+                </div>
+              )}
+
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4 text-amber-500" />
+                ) : (
+                  <Moon className="h-4 w-4 text-blue-500" />
+                )}
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </button>
+            </div>
           </div>
         );
       }}
     </GsapDropdown>
   );
 }
-
 /* -------------------------------------------------------------------------- */
-/*  Main Navbar (unchanged structure)                                         */
+/*  Main Navbar – DYNAMIC ISLAND STYLE                                        */
+/*  - Sticky floating pill at the top                                          */
+/*  - Adaptive width, glassmorphism, centered                                 */
 /* -------------------------------------------------------------------------- */
 export function Navbar() {
   const { user } = useLocalAuth();
   const dashboardPath = getDashboardPath(user);
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-6 lg:gap-8">
-          <Link to={dashboardPath} className="shrink-0" aria-label="Go to dashboard">
-            <Logo />
-          </Link>
+    <div className="sticky top-0 z-50 flex justify-center pointer-events-none">
+      {/* The dynamic island pill - now at top-0 with medium rounded corners */}
+      <div className="pointer-events-auto flex items-center gap-3 rounded-md border border-border/80 bg-background px-4 py-1.5 backdrop-blur-md transition-all duration-300 hover:bg-background/90 w-fit max-w-[95vw] md:max-w-[90vw] lg:max-w-5xl mt-2">
+        {/* Logo – links to dashboard */}
+        <Link
+          to={dashboardPath}
+          className="shrink-0"
+          aria-label="Go to dashboard"
+        >
+          <Logo />
+        </Link>
 
-          <div className="hidden lg:block">
-            <DesktopNavLinks />
+        {/* Desktop navigation links – hidden on mobile */}
+        <DesktopNavLinks />
+
+        {/* Spacer to push right-aligned items */}
+        <div className="flex-1" />
+
+        {/* Search bar – hidden on mobile */}
+        <NavbarSearch />
+
+        {/* Theme toggle */}
+        <ThemeToggle />
+
+        {/* User menu (if logged in) or sign in buttons */}
+        {user ? (
+          <UserMenuDesktop />
+        ) : (
+          <div className="hidden items-center gap-2 md:flex">
+            <Button
+              size="sm"
+              variant="ghost"
+            >
+              <Link to="/login">Sign In</Link>
+            </Button>
+            <Button
+              size="sm"
+            >
+              <Link to="/signup">Get Started</Link>
+            </Button>
           </div>
-        </div>
+        )}
 
-        <div className="flex shrink-0 items-center gap-2">
-          <div className="hidden md:block">
-            <NavbarSearch />
-          </div>
-
-          <ThemeToggle />
-
-          {user ? (
-            <UserMenuDesktop />
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
-              <Button
-                size="sm"
-                variant="ghost"
-              >
-                <Link to="/login">Sign In</Link>
-              </Button>
-
-              <Button
-                size="sm"
-              >
-                <Link to="/signup">Get Started</Link>
-              </Button>
-            </div>
-          )}
-
-          <PopoverMobileMenu />
-        </div>
+        {/* Mobile menu trigger – only visible on small screens */}
+        <PopoverMobileMenu />
       </div>
-    </header>
+    </div>
   );
 }
