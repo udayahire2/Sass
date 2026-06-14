@@ -9,6 +9,14 @@ import {
   Eraser
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { 
+  Table, 
+  TableHeader, 
+  TableBody, 
+  TableRow, 
+  TableHead, 
+  TableCell 
+} from '@/components/ui/table';
 
 // Interfaces for Table Data Structure
 export interface TableColumn {
@@ -90,7 +98,6 @@ export function NotionTable({
   const [tableWidth, setTableWidth] = useState<number | string>('100%');
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Trigger onChange updates
@@ -152,7 +159,7 @@ export function NotionTable({
     e.preventDefault();
     e.stopPropagation();
     const startX = e.clientX;
-    const startWidth = tableContainerRef.current?.getBoundingClientRect().width || 600;
+    const startWidth = containerRef.current?.getBoundingClientRect().width || 600;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaX = moveEvent.clientX - startX;
@@ -401,11 +408,8 @@ export function NotionTable({
       tabIndex={0}
       style={{ width: tableWidth }}
     >
-      <div 
-        ref={tableContainerRef}
-        className="overflow-x-auto w-full bg-transparent relative border-t border-b border-zinc-150 dark:border-zinc-800/80 pr-2"
-      >
-        <table className="w-full border-collapse table-fixed select-text">
+      <div className="relative w-full overflow-x-auto pr-2 bg-transparent">
+        <Table className="table-fixed select-text border border-border bg-transparent rounded-none">
           <colgroup>
             {columns.map((col) => (
               <col key={col.id} style={{ width: col.width }} />
@@ -413,19 +417,19 @@ export function NotionTable({
           </colgroup>
 
           {/* Header Row */}
-          <thead>
-            <tr className="border-b border-zinc-200 dark:border-zinc-800 h-10 bg-zinc-50/10 dark:bg-zinc-900/5">
+          <TableHeader className="bg-transparent border-b border-border rounded-none">
+            <TableRow className="border-b border-border h-10 bg-transparent hover:bg-transparent rounded-none">
               {columns.map((col, colIndex) => {
                 const isFocused = focusedCell?.rowIndex === -1 && focusedCell?.colIndex === colIndex;
                 const isEditing = editingCell?.rowIndex === -1 && editingCell?.colIndex === colIndex;
                 const isColSelected = selectedColIndex === colIndex;
 
                 return (
-                  <th
+                  <TableHead
                     key={col.id}
                     className={cn(
-                      "relative border-r border-zinc-150 dark:border-zinc-850/50 p-0 text-left font-medium select-none h-10 transition-all duration-150 last:border-r-0",
-                      isColSelected && "bg-blue-500/5 dark:bg-blue-500/10"
+                      "relative border-r border-border p-0 text-left font-medium select-none h-10 transition-all duration-150 last:border-r-0 bg-transparent text-muted-foreground rounded-none",
+                      isColSelected && "bg-accent/40 dark:bg-accent/30"
                     )}
                     onClick={() => handleCellClick(-1, colIndex)}
                     onDoubleClick={() => handleCellDoubleClick(-1, colIndex)}
@@ -437,11 +441,11 @@ export function NotionTable({
                           value={col.title || ''}
                           onChange={(e) => handleCellChange(-1, colIndex, e.target.value)}
                           onBlur={() => setEditingCell(null)}
-                          className="w-full resize-none bg-transparent border-none outline-none focus:ring-0 p-0 text-xs tracking-wide font-medium text-zinc-500 dark:text-zinc-400 block whitespace-pre-wrap select-text h-5"
+                          className="w-full resize-none bg-transparent border-none outline-none focus:ring-0 p-0 text-xs tracking-wide font-medium text-muted-foreground block whitespace-pre-wrap select-text h-5"
                           placeholder="..."
                         />
                       ) : (
-                        <span className="text-xs tracking-wide font-medium text-zinc-400 dark:text-zinc-500 font-sans">
+                        <span className="text-xs tracking-wide font-medium text-muted-foreground font-sans">
                           {col.title}
                         </span>
                       )}
@@ -450,39 +454,39 @@ export function NotionTable({
                     {/* Column Border Drag Resizer */}
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, colIndex)}
-                      className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/50 active:bg-blue-500 z-20 transition-colors"
+                      className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/50 active:bg-primary z-20 transition-colors"
                       title="Drag to resize column"
                     />
 
                     {/* FOCUSED CELL BLUE OUTLINE & FLOATING PILLS */}
                     {isFocused && (
                       <>
-                        {/* Thin Solid Blue Active Cell Border */}
-                        <div className="absolute inset-0 border border-blue-500 z-30 pointer-events-none" />
+                        {/* Thin Solid Primary Active Cell Border */}
+                        <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
 
                         {/* Top Grab Pill (—) */}
                         <button
                           onClick={(e) => handleColumnPillClick(e, colIndex)}
-                          className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                          className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
                           title="Select Column"
                         >
-                          <div className="w-3 h-0.5 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
+                          <div className="w-3 h-0.5 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
                         </button>
 
                         {/* Left Grab Pill (|) */}
                         <button
                           onClick={(e) => handleRowPillClick(e, 0)} // Header click rows menu row 0
-                          className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                          className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
                           title="Select Row"
                         >
-                          <div className="w-0.5 h-3 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
+                          <div className="w-0.5 h-3 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
                         </button>
                       </>
                     )}
 
                     {/* COLUMN CONTEXT POPOVER MENU */}
                     {activeMenu?.type === 'col' && activeMenu.index === colIndex && (
-                      <div className="absolute top-9 left-1/2 -translate-x-1/2 bg-zinc-950/95 backdrop-blur-md border border-zinc-850 rounded-lg p-1 shadow-xl w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-1 duration-100 select-none">
+                      <div className="absolute top-9 left-1/2 -translate-x-1/2 bg-popover/95 backdrop-blur-md border border-border rounded-none p-1 shadow-md w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-top-1 duration-100 select-none">
                         <PopoverItem 
                           icon={ArrowLeft} 
                           label="Insert Left" 
@@ -493,7 +497,7 @@ export function NotionTable({
                           label="Insert Right" 
                           onClick={() => handleAddColRight(colIndex)} 
                         />
-                        <div className="h-px bg-zinc-850 my-1 mx-1" />
+                        <div className="h-px bg-border my-1 mx-1" />
                         <PopoverItem 
                           icon={Eraser} 
                           label="Clear Column" 
@@ -507,23 +511,23 @@ export function NotionTable({
                         />
                       </div>
                     )}
-                  </th>
+                  </TableHead>
                 );
               })}
-            </tr>
-          </thead>
+            </TableRow>
+          </TableHeader>
 
           {/* Table Data Rows */}
-          <tbody>
+          <TableBody className="bg-transparent rounded-none">
             {rows.map((row, rowIndex) => {
               const isRowSelected = selectedRowIndex === rowIndex;
 
               return (
-                <tr
+                <TableRow
                   key={row.id}
                   className={cn(
-                    "border-b border-zinc-150 dark:border-zinc-850/30 hover:bg-zinc-50/10 dark:hover:bg-zinc-900/5 transition-colors duration-100 last:border-b-0",
-                    isRowSelected && "bg-blue-500/5 dark:bg-blue-500/10"
+                    "border-b border-border hover:bg-muted/30 transition-colors duration-100 last:border-b-0 bg-transparent rounded-none",
+                    isRowSelected && "bg-accent/50 dark:bg-accent/40"
                   )}
                 >
                   {row.cells.map((cellText, colIndex) => {
@@ -532,13 +536,13 @@ export function NotionTable({
                     const isColSelected = selectedColIndex === colIndex;
 
                     return (
-                      <td
+                      <TableCell
                         key={`${rowIndex}-${colIndex}`}
                         onClick={() => handleCellClick(rowIndex, colIndex)}
                         onDoubleClick={() => handleCellDoubleClick(rowIndex, colIndex)}
                         className={cn(
-                          "relative border-r border-zinc-150 dark:border-zinc-850/30 p-2.5 h-10 align-top select-text whitespace-pre-wrap outline-none font-sans text-sm transition-all text-zinc-700 dark:text-zinc-300 break-words last:border-r-0",
-                          isColSelected && "bg-blue-500/5 dark:bg-blue-500/10",
+                          "relative border-r border-border p-2.5 h-10 align-top select-text whitespace-pre-wrap outline-none font-sans text-sm transition-all text-foreground break-words last:border-r-0 bg-transparent rounded-none",
+                          isColSelected && "bg-accent/40 dark:bg-accent/30",
                           isEditing && "p-1.5"
                         )}
                       >
@@ -548,7 +552,7 @@ export function NotionTable({
                             value={cellText}
                             onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
                             onBlur={() => setEditingCell(null)}
-                            className="w-full min-h-[2.25rem] h-full resize-none bg-transparent border-none outline-none focus:ring-0 p-1 text-sm font-sans text-zinc-900 dark:text-zinc-100 block whitespace-pre-wrap select-text"
+                            className="w-full min-h-[2.25rem] h-full resize-none bg-transparent border-none outline-none focus:ring-0 p-1 text-sm font-sans text-foreground block whitespace-pre-wrap select-text"
                             placeholder=""
                           />
                         ) : (
@@ -560,32 +564,32 @@ export function NotionTable({
                         {/* FOCUSED CELL BLUE OUTLINE & FLOATING PILLS */}
                         {isFocused && (
                           <>
-                            {/* Thin Solid Blue Active Cell Border */}
-                            <div className="absolute inset-0 border border-blue-500 z-30 pointer-events-none" />
+                            {/* Thin Solid Primary Active Cell Border */}
+                            <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
 
                             {/* Top Grab Pill (—) */}
                             <button
                               onClick={(e) => handleColumnPillClick(e, colIndex)}
-                              className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                              className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
                               title="Select Column"
                             >
-                              <div className="w-3 h-0.5 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
+                              <div className="w-3 h-0.5 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
                             </button>
 
                             {/* Left Grab Pill (|) */}
                             <button
                               onClick={(e) => handleRowPillClick(e, rowIndex)}
-                              className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-zinc-900 border border-zinc-850 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded flex items-center justify-center shadow-lg cursor-pointer transition-all active:scale-95 group/pill"
+                              className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
                               title="Select Row"
                             >
-                              <div className="w-0.5 h-3 bg-zinc-500 rounded group-hover/pill:bg-zinc-300 transition-colors" />
+                              <div className="w-0.5 h-3 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
                             </button>
                           </>
                         )}
 
                         {/* ROW CONTEXT POPOVER MENU */}
                         {activeMenu?.type === 'row' && activeMenu.index === rowIndex && isFocused && (
-                          <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-zinc-950/95 backdrop-blur-md border border-zinc-850 rounded-lg p-1 shadow-xl w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-left-1 duration-100 select-none">
+                          <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-popover/95 backdrop-blur-md border border-border rounded-none p-1 shadow-md w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-left-1 duration-100 select-none">
                             <PopoverItem 
                               icon={ArrowUp} 
                               label="Insert Row Above" 
@@ -596,7 +600,7 @@ export function NotionTable({
                               label="Insert Row Below" 
                               onClick={() => handleAddRowBelow(rowIndex)} 
                             />
-                            <div className="h-px bg-zinc-850 my-1 mx-1" />
+                            <div className="h-px bg-border my-1 mx-1" />
                             <PopoverItem 
                               icon={Eraser} 
                               label="Clear Row" 
@@ -610,19 +614,19 @@ export function NotionTable({
                             />
                           </div>
                         )}
-                      </td>
+                      </TableCell>
                     );
                   })}
-                </tr>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         {/* Global Bottom-Right Table Resize Handle */}
         <div
           onMouseDown={handleTableResizeMouseDown}
-          className="absolute bottom-0.5 right-0.5 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 z-40 text-zinc-400 dark:text-zinc-600 hover:text-blue-500 opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
+          className="absolute bottom-0.5 right-0.5 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 z-40 text-muted-foreground/40 hover:text-primary opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
           title="Drag to resize table width"
         >
           <svg width="6" height="6" viewBox="0 0 6 6" className="fill-current">
@@ -631,18 +635,18 @@ export function NotionTable({
         </div>
       </div>
 
-      {/* Sleek Minimal Add Buttons below the table */}
+      {/* Sleek Add Buttons below the table */}
       <div className="flex items-center gap-2.5 mt-2.5 px-0.5 select-none" contentEditable={false}>
         <button
           onClick={() => handleAddRowBelow(rows.length - 1)}
-          className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors bg-transparent border-0 px-2 py-1 cursor-pointer hover:bg-zinc-500/5 rounded-md font-sans font-medium"
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 px-2 py-1 cursor-pointer hover:bg-accent rounded-none font-sans font-medium"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Row
         </button>
         <button
           onClick={() => handleAddColRight(columns.length - 1)}
-          className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors bg-transparent border-0 px-2 py-1 cursor-pointer hover:bg-zinc-500/5 rounded-md font-sans font-medium"
+          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 px-2 py-1 cursor-pointer hover:bg-accent rounded-none font-sans font-medium"
         >
           <Plus className="w-3.5 h-3.5" />
           Add Column
@@ -672,8 +676,8 @@ function PopoverItem({
         onClick();
       }}
       className={cn(
-        "flex items-center gap-1.5 px-2 py-1 w-full text-left text-xs font-sans rounded cursor-pointer text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 transition-colors",
-        destructive && "text-red-500/80 hover:text-red-400 hover:bg-red-950/20"
+        "flex items-center gap-1.5 px-2 py-1 w-full text-left text-xs font-sans rounded-none cursor-pointer text-muted-foreground hover:text-foreground hover:bg-accent transition-colors",
+        destructive && "text-destructive hover:bg-destructive/10 hover:text-destructive"
       )}
     >
       <Icon className="w-3 h-3 shrink-0" />
