@@ -13,17 +13,13 @@ import {
   Star,
   Upload,
   XCircle,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -90,13 +86,13 @@ function StarRating({
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
-        <Button
+        <button
           key={star}
           type="button"
           disabled={readOnly}
           className={cn(
-            "transition-colors",
-            readOnly ? "cursor-default" : "cursor-pointer hover:scale-110"
+            "p-1 focus:outline-none transition-transform duration-150",
+            readOnly ? "cursor-default" : "cursor-pointer hover:scale-110 active:scale-95"
           )}
           onMouseEnter={() => !readOnly && setHovered(star)}
           onMouseLeave={() => !readOnly && setHovered(0)}
@@ -107,10 +103,10 @@ function StarRating({
               px,
               star <= active
                 ? "fill-amber-400 text-amber-400"
-                : "fill-muted text-muted-foreground/40"
+                : "fill-muted text-muted-foreground/25"
             )}
           />
-        </Button>
+        </button>
       ))}
     </div>
   );
@@ -136,35 +132,6 @@ function StatusBadge({ status }: { status: StudyMaterial["status"] }) {
   );
 }
 
-// ----------------------------------------------------------------------
-// Stat Card (plain, no gradients)
-// ----------------------------------------------------------------------
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: number;
-}) {
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardDescription className="text-xs uppercase tracking-wide">
-            {label}
-          </CardDescription>
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </div>
-        <CardTitle className="text-2xl font-semibold tabular-nums">
-          {value}
-        </CardTitle>
-      </CardHeader>
-    </Card>
-  );
-}
 
 // ----------------------------------------------------------------------
 // Feedback Form (clean)
@@ -386,9 +353,11 @@ export default function FacultyDashboard() {
   if (loading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
-        <div className="space-y-3 text-center">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Loading dashboard…</p>
+        <div className="space-y-3 text-center animate-in fade-in duration-300">
+          <Spinner className="mx-auto h-8 w-8" />
+          <p className="text-sm text-muted-foreground">
+            Loading dashboard...
+          </p>
         </div>
       </div>
     );
@@ -402,185 +371,293 @@ export default function FacultyDashboard() {
     );
   }
 
+  const displayName = user.designation
+    ? `${user.designation} ${user.name}`
+    : user.name;
+
   return (
-    <div className="space-y-8">
-      {/* Welcome Card – plain, no gradient */}
-      <Card>
-        <CardHeader className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">Faculty Workspace</Badge>
-            {user.isApproved ? (
-              <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
-                <CheckCircle2 className="mr-1 h-3 w-3" /> Active
+    <div className="space-y-8 pb-10">
+      {/* Header */}
+      <section className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="border-primary/25 bg-primary/5 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full">
+                Faculty Workspace
               </Badge>
-            ) : (
-              <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
-                <AlertTriangle className="mr-1 h-3 w-3" /> Pending Approval
-              </Badge>
-            )}
-          </div>
-          <CardTitle className="text-2xl font-semibold tracking-tight">
-            {user.designation ? `${user.designation} ` : ""}
-            {user.name}
-          </CardTitle>
-          <CardDescription className="text-sm">
-            {[user.department, user.collegeName].filter(Boolean).join(" · ")}
-          </CardDescription>
-          {!user.isApproved && (
-            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/20 dark:text-amber-300">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>Your account is pending admin approval. Uploads are restricted until approved.</p>
+              {user.isApproved ? (
+                <Badge variant="outline" className="border-emerald-500/25 bg-emerald-500/5 text-emerald-500 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Approved & Active
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-amber-500/25 bg-amber-500/5 text-amber-500 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  <AlertTriangle className="mr-1 h-3.5 w-3.5" /> Pending Approval
+                </Badge>
+              )}
             </div>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-4">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+              Welcome back, {displayName}
+            </h1>
+            <p className="text-muted-foreground text-sm max-w-2xl">
+              {[user.department, user.collegeName].filter(Boolean).join(" · ") || "Manage your academic resources and student feedback."}
+            </p>
+          </div>
+
           <div className="flex flex-wrap gap-3">
-            <Button  disabled={!user.isApproved}>
+            {user.isApproved ? (
+              <Button asChild>
+                <Link to="/dashboard/faculty/upload">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Material
+                </Link>
+              </Button>
+            ) : (
+              <Button disabled className="opacity-60 cursor-not-allowed">
                 <Upload className="mr-2 h-4 w-4" />
-              <Link to="/dashboard/faculty/upload">
                 Upload Material
-              </Link>
-            </Button>
-            <Button variant="outline">
-                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+            <Button variant="outline" asChild>
               <Link to="/dashboard/faculty/profile">
                 View Profile
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
-          {user.subjects && user.subjects.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-muted-foreground">Subjects:</span>
-              {user.subjects.map((s) => (
-                <Badge key={s} variant="secondary" className="rounded-full text-xs">
-                  {s}
-                </Badge>
-              ))}
+        </div>
+
+        {/* Warning notification banner if not approved */}
+        {!user.isApproved && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+            <div className="space-y-1">
+              <p className="font-semibold">Account Pending Admin Verification</p>
+              <p className="text-muted-foreground/80">Your profile is currently under review by the administration. You will have full access to upload materials and give feedback once your account has been approved.</p>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      </section>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-5">
-        <StatCard icon={FileText} label="Total Uploads" value={stats.total_uploaded} />
-        <StatCard icon={CheckCircle2} label="Approved" value={stats.approved_count} />
-        <StatCard icon={Clock3} label="Pending" value={stats.pending_count} />
-        <StatCard icon={XCircle} label="Rejected" value={stats.rejected_count} />
-        <StatCard icon={MessageSquarePlus} label="Feedback Given" value={stats.feedback_given_count} />
-      </div>
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Uploads</p>
+                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.total_uploaded}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Materials shared</p>
+              </div>
+              <FileText className="h-5 w-5 text-muted-foreground/70" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Approved</p>
+                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.approved_count}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Active in library</p>
+              </div>
+              <CheckCircle2 className="h-5 w-5 text-emerald-500/90" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.pending_count}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Awaiting review</p>
+              </div>
+              <Clock3 className="h-5 w-5 text-amber-500/90" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.rejected_count}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Requires attention</p>
+              </div>
+              <XCircle className="h-5 w-5 text-red-500/90" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Feedback Given</p>
+                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.feedback_given_count}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Reviews submitted</p>
+              </div>
+              <MessageSquarePlus className="h-5 w-5 text-blue-500/90" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">My Profile</p>
+                <h2 className="mt-2 text-base font-semibold leading-tight text-foreground truncate max-w-[130px]" title={user.designation || "Faculty"}>
+                  {user.designation || "Faculty"}
+                </h2>
+                <p className="text-[10px] text-muted-foreground truncate max-w-[130px]" title={user.department || "No Department"}>
+                  {user.department || "No Department"}
+                </p>
+                {user.subjects && user.subjects.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {user.subjects.slice(0, 2).map((s) => (
+                      <Badge key={s} variant="secondary" className="text-[9px] px-1.5 py-0 rounded-full font-normal">
+                        {s}
+                      </Badge>
+                    ))}
+                    {user.subjects.length > 2 && (
+                      <span className="text-[9px] text-muted-foreground self-center">
+                        +{user.subjects.length - 2}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <User className="h-5 w-5 text-muted-foreground/70" />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {/* My Uploads Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle>My Uploads</CardTitle>
-              <CardDescription>Your study materials and their approval status.</CardDescription>
-            </div>
-            <Button className="" disabled={!user.isApproved}>
-                <Upload className="mr-2 h-3.5 w-3.5" />
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold tracking-tight">My Uploads</h2>
+            <p className="text-sm text-muted-foreground">Your shared study materials and their approval status.</p>
+          </div>
+          {user.isApproved && (
+            <Button size="sm" asChild>
               <Link to="/dashboard/faculty/upload">
+                <Upload className="mr-2 h-4 w-4" />
                 Upload New
               </Link>
             </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {myUploads.length === 0 ? (
-            <div className="rounded-md border border-dashed p-12 text-center">
-              <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/50" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                No uploads yet.{" "}
-                {user.isApproved && (
-                  <Link
-                    to="/dashboard/faculty/upload"
-                    className="font-medium text-foreground underline underline-offset-2"
-                  >
-                    Upload your first material
-                  </Link>
-                )}
-              </p>
-            </div>
-          ) : (
-            <ScrollArea className="h-[400px] w-full rounded-md border">
-              <Table>
-                <TableHeader className="bg-muted/30 sticky top-0 z-10">
-                  <TableRow>
-                    <TableHead className="w-70">Content</TableHead>
-                    <TableHead>Subject</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead className="text-right">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {myUploads.map((m) => (
-                    <TableRow key={m._id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-md border p-2">
-                            <FileText className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{m.title}</p>
-                            <Badge variant="outline" className="text-xs">
-                              {m.type}
-                            </Badge>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{m.subject}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {new Date(m.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <StatusBadge status={m.status} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ScrollArea>
           )}
-        </CardContent>
-      </Card>
+        </div>
+
+        <Card className="border-border/40 overflow-hidden">
+          <CardContent className="p-0">
+            {myUploads.length === 0 ? (
+              <div className="p-12 text-center">
+                <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/45" />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  No uploads yet.{" "}
+                  {user.isApproved && (
+                    <Link
+                      to="/dashboard/faculty/upload"
+                      className="font-medium text-foreground underline underline-offset-2"
+                    >
+                      Upload your first material
+                    </Link>
+                  )}
+                </p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[400px] w-full">
+                <Table>
+                  <TableHeader className="bg-muted/30 sticky top-0 z-10">
+                    <TableRow>
+                      <TableHead className="w-70">Content</TableHead>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {myUploads.map((m) => (
+                      <TableRow key={m._id} className="hover:bg-muted/30 transition-colors">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="rounded-lg border border-border/50 p-2 bg-background">
+                              <FileText className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-foreground text-sm">{m.title}</p>
+                              <Badge variant="outline" className="text-[10px] mt-0.5 py-0">
+                                {m.type}
+                              </Badge>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-foreground">{m.subject}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(m.createdAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <StatusBadge status={m.status} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Give Feedback Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Review & Feedback</CardTitle>
-          <CardDescription>
-            Rate and review approved study materials. Your feedback helps maintain quality.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {approvedMaterials.length === 0 ? (
-            <div className="rounded-md border border-dashed p-12 text-center">
-              <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/50" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                No approved materials available for review yet.
-              </p>
-            </div>
-          ) : (
-            <ScrollArea className="h-[500px] w-full rounded-md border pr-4">
-              <div className="space-y-3 pr-4">
-                {approvedMaterials.slice(0, 20).map((m) => (
-                  <FeedbackPanel
-                    key={m._id}
-                    material={m}
-                    userId={user.id ?? user._id ?? ""}
-                  />
-                ))}
-                {approvedMaterials.length > 20 && (
-                  <p className="pt-1 text-center text-xs text-muted-foreground">
-                    Showing 20 of {approvedMaterials.length} approved materials.
-                  </p>
-                )}
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">Review & Feedback</h2>
+          <p className="text-sm text-muted-foreground">
+            Rate and review approved study materials. Your feedback helps maintain library quality.
+          </p>
+        </div>
+
+        <Card className="border-border/40">
+          <CardContent className="p-6">
+            {approvedMaterials.length === 0 ? (
+              <div className="p-8 text-center">
+                <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/45" />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  No approved materials available for review yet.
+                </p>
               </div>
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <ScrollArea className="h-[500px] w-full pr-2">
+                <div className="space-y-4">
+                  {approvedMaterials.slice(0, 20).map((m) => (
+                    <FeedbackPanel
+                      key={m._id}
+                      material={m}
+                      userId={user.id ?? user._id ?? ""}
+                    />
+                  ))}
+                  {approvedMaterials.length > 20 && (
+                    <p className="pt-2 text-center text-xs text-muted-foreground">
+                      Showing 20 of {approvedMaterials.length} approved materials.
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            )}
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }

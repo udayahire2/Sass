@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { NoteMetadata } from "@/lib/notesMetadata";
-import { CoverImage } from "./CoverImage";
+import { NoteCoverImage } from "./NoteCoverImage";
 
-interface PageCanvasProps {
+interface NoteEditorCanvasProps {
   title: string;
   metadata: NoteMetadata;
   bodyMarkdown: string;
@@ -21,7 +21,7 @@ interface PageCanvasProps {
   spellcheck?: boolean;
 }
 
-export function PageCanvas({
+export function NoteEditorCanvas({
   title,
   metadata,
   bodyMarkdown,
@@ -34,7 +34,7 @@ export function PageCanvas({
   onRemoveCover,
   showWordCount = true,
   spellcheck = false,
-}: PageCanvasProps) {
+}: NoteEditorCanvasProps) {
   const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -104,7 +104,7 @@ export function PageCanvas({
       <div className="flex-1 min-w-0 flex flex-col">
         <ScrollArea ref={scrollAreaRef} className="flex-1">
           {metadata.cover && (
-            <CoverImage
+            <NoteCoverImage
               cover={metadata.cover}
               onChangeCover={onOpenCoverPicker}
               onRemoveCover={onRemoveCover}
@@ -117,14 +117,21 @@ export function PageCanvas({
             {/* Icon + Title (same as before) */}
             <div className={cn("relative group/title", metadata.cover ? (metadata.icon ? "mt-0" : "mt-8") : "mt-16")}>
               {metadata.icon && (
-                <div className={cn("relative", metadata.cover ? "-mt-10 mb-2 z-10" : "mb-2")}>
-                  <button onClick={onOpenEmojiPicker} className="group/emoji relative text-[78px] leading-[86px] cursor-pointer hover:opacity-80">
+                <div className={cn("relative inline-block group/emoji", metadata.cover ? "-mt-10 mb-2 z-10" : "mb-2")}>
+                  <button
+                    onClick={onOpenEmojiPicker}
+                    className="text-[78px] leading-[86px] cursor-pointer hover:opacity-80 focus:outline-none"
+                  >
                     {metadata.icon}
-                    <div className="absolute -top-1 -right-1 opacity-0 group-hover/emoji:opacity-100">
-                      <span className="bg-background border rounded-full p-0.5">
-                        <X className="h-3 w-3" onClick={(e) => { e.stopPropagation(); onRemoveIcon(); }} />
-                      </span>
-                    </div>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemoveIcon();
+                    }}
+                    className="absolute -top-1 -right-1 opacity-0 group-hover/emoji:opacity-100 bg-background border border-border hover:bg-accent text-muted-foreground hover:text-foreground rounded-full p-0.5 shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center h-5 w-5 z-20"
+                  >
+                    <X className="h-3 w-3" />
                   </button>
                 </div>
               )}
@@ -163,69 +170,66 @@ export function PageCanvas({
         </ScrollArea>
       </div>
 
-      {/* Outline Sidebar - Dash Style (like image) */}
+      {/* Outline Sidebar */}
       {headings.length > 0 && (
         <div
           className={cn(
-            "h-full transition-all duration-300 ease-in-out border-l border-border bg-background",
-            isOutlineOpen ? "w-72" : "w-10 cursor-pointer hover:bg-muted/20"
+            "h-full transition-all duration-300 ease-in-out bg-background flex-shrink-0 z-10",
+            isOutlineOpen ? "w-[280px] border-l border-border/40 shadow-sm" : "w-10 cursor-pointer hover:bg-accent/50 border-l border-border/10"
           )}
           onClick={() => !isOutlineOpen && setIsOutlineOpen(true)}
         >
           {isOutlineOpen ? (
-            // Expanded mode: full TOC
-            <div className="flex flex-col h-full">
-              <div className="flex items-center justify-between px-3 py-3 border-b border-border/40 shrink-0">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-1.5">
-                  <BookOpen className="h-3.5 w-3.5" />
-                  Table of Contents
+            <div className="flex flex-col h-full w-full">
+              <div className="flex items-center justify-between px-4 py-3 shrink-0">
+                <span className="text-[12px] font-medium text-muted-foreground flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Table of contents
                 </span>
                 <button
                   onClick={(e) => { e.stopPropagation(); setIsOutlineOpen(false); }}
-                  className="rounded-md p-1.5 text-muted-foreground/60 hover:text-foreground hover:bg-muted/60"
+                  className="rounded-[4px] p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                 >
                   <ChevronsRight className="h-4 w-4" />
                 </button>
               </div>
-              <ScrollArea className="flex-1 py-2 px-2">
-                <div className="flex flex-col gap-1">
+              <ScrollArea className="flex-1 px-2 pb-4">
+                <div className="flex flex-col gap-[2px]">
                   {headings.map((h) => (
                     <button
                       key={h.id}
                       onClick={() => scrollToHeading(h.text)}
                       className={cn(
-                        "text-left w-full rounded-md px-3 py-1.5 text-sm transition-all",
-                        "hover:bg-muted/60",
+                        "text-left rounded-[4px] px-2.5 py-1.5 text-[13px] transition-colors focus:outline-none",
                         activeHeadingId === h.id
-                          ? "bg-primary/10 text-primary font-medium border-l-2 border-primary"
-                          : "text-muted-foreground hover:text-foreground",
-                        h.level === 2 && "pl-6",
-                        h.level === 3 && "pl-9"
+                          ? "text-foreground font-medium bg-accent/60"
+                          : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
+                        h.level === 1 && "ml-0 w-full",
+                        h.level === 2 && "ml-3 w-[calc(100%-12px)]",
+                        h.level === 3 && "ml-6 w-[calc(100%-24px)]"
                       )}
                     >
-                      <span className="truncate block">{h.text}</span>
+                      <span className="truncate block leading-snug">{h.text}</span>
                     </button>
                   ))}
                 </div>
               </ScrollArea>
             </div>
           ) : (
-            // Collapsed mode: vertical strip with horizontal dashes (like the image)
-            <div className="flex flex-col items-center justify-start gap-3 py-3 h-full w-full select-none">
-              {/* Expand Toggle Button */}
+            <div className="flex flex-col items-center justify-start gap-2 py-3 h-full w-full select-none">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOutlineOpen(true);
                 }}
-                className="rounded-md p-1.5 text-muted-foreground/60 hover:text-foreground hover:bg-muted/60 mb-2 cursor-pointer transition-colors"
-                title="Expand Outline"
+                className="rounded-[4px] p-1.5 text-muted-foreground/50 hover:text-foreground hover:bg-accent mb-2 cursor-pointer transition-colors"
+                title="Table of contents"
               >
                 <ChevronsRight className="h-4 w-4 rotate-180" />
               </button>
 
               {headings.map((h) => (
-                <div key={h.id} className="group/dash relative flex items-center justify-center w-full py-1">
+                <div key={h.id} className="group/dash relative flex items-center justify-center w-full py-0.5">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -234,12 +238,11 @@ export function PageCanvas({
                     className={cn(
                       "transition-all duration-200 rounded-full cursor-pointer",
                       activeHeadingId === h.id
-                        ? "w-5 h-0.5 bg-primary"  // active dash longer
-                        : "w-3 h-0.5 bg-muted-foreground/40 hover:bg-muted-foreground/70 hover:w-4"
+                        ? "w-4 h-1 bg-primary/70"
+                        : "w-2.5 h-1 bg-muted-foreground/30 hover:bg-muted-foreground/60 hover:w-3.5"
                     )}
                   />
-                  {/* Tooltip */}
-                  <div className="absolute right-full mr-2 px-2.5 py-1 bg-popover/90 backdrop-blur-md border border-border/50 text-foreground text-[10px] font-medium rounded-md shadow-md opacity-0 scale-95 group-hover/dash:opacity-100 group-hover/dash:scale-100 pointer-events-none transition-all duration-150 translate-x-1 group-hover/dash:translate-x-0 whitespace-nowrap z-50">
+                  <div className="absolute right-full mr-3 px-2 py-1 bg-popover/95 backdrop-blur-sm border border-border/40 text-foreground text-[11px] font-medium rounded shadow-sm opacity-0 scale-95 group-hover/dash:opacity-100 group-hover/dash:scale-100 pointer-events-none transition-all duration-150 translate-x-1 group-hover/dash:translate-x-0 whitespace-nowrap z-50">
                     {h.text}
                   </div>
                 </div>
