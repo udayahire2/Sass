@@ -4,6 +4,7 @@ import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { createHighlighter, type Highlighter } from 'shiki';
 import CodeBlockComponent from './CodeBlockComponent';
+import { normalizeLanguage } from './markdownUtils';
 
 let shikiHighlighter: Highlighter | null = null;
 let isLoadingShiki = false;
@@ -228,7 +229,16 @@ export const ShikiCodeBlock = CodeBlock.extend({
       ...this.parent?.(),
       language: {
         default: 'javascript',
-        parseHTML: element => element.getAttribute('data-language'),
+        parseHTML: element => {
+          const dataLang = element.getAttribute('data-language');
+          if (dataLang) return normalizeLanguage(dataLang);
+          const codeEl = element.querySelector('code');
+          if (codeEl) {
+            const match = codeEl.className.match(/language-([a-zA-Z0-9_+#-]+)/);
+            if (match) return normalizeLanguage(match[1]);
+          }
+          return null;
+        },
         renderHTML: attributes => {
           if (!attributes.language) {
             return {};

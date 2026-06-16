@@ -4,6 +4,30 @@
  * underline, code blocks, lists, links, images, tables, and youtube embeds).
  */
 
+function escapeHtmlAttr(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/'/g, '&#39;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export function normalizeLanguage(lang: string | null | undefined): string {
+  if (!lang) return 'text';
+  const l = lang.toLowerCase().trim();
+  const mapping: Record<string, string> = {
+    'js': 'javascript',
+    'ts': 'typescript',
+    'py': 'python',
+    'md': 'markdown',
+    'yml': 'yaml',
+    'c++': 'cpp',
+    'sh': 'bash',
+  };
+  return mapping[l] || l;
+}
+
 export function markdownToHtml(markdown: string): string {
   if (!markdown) return '';
 
@@ -11,13 +35,14 @@ export function markdownToHtml(markdown: string): string {
 
   // 1. Pre-process and escape HTML inside code blocks
   const codeBlocks: string[] = [];
-  html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (_, lang, code) => {
+  html = html.replace(/```([a-zA-Z0-9_+#-]*)\s*\n([\s\S]*?)\n```/g, (_, lang, code) => {
     const escapedCode = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     const placeholder = `:::CODEBLOCKPLACEHOLDER${codeBlocks.length}:::`;
-    codeBlocks.push(`<pre><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`);
+    const normalizedLang = normalizeLanguage(lang);
+    codeBlocks.push(`<pre data-language="${normalizedLang}"><code class="language-${normalizedLang}">${escapedCode}</code></pre>`);
     return placeholder;
   });
 
@@ -94,22 +119,26 @@ export function markdownToHtml(markdown: string): string {
       line.split('|').slice(1, -1).map(c => c.trim())
     );
 
-    let tableHtml = '<table>';
-    tableHtml += '<thead><tr>';
-    headers.forEach(h => {
-      tableHtml += `<th>${h}</th>`;
+    const columns = headers.map((h, i) => ({
+      id: `col-${i + 1}`,
+      width: 180,
+      title: h,
+    }));
+
+    const tableRows = rows.map((row, rIdx) => {
+      const cells = columns.map((_, cIdx) => row[cIdx] || '');
+      return {
+        id: `row-${rIdx + 1}`,
+        cells,
+      };
     });
-    tableHtml += '</tr></thead>';
-    tableHtml += '<tbody>';
-    rows.forEach(row => {
-      tableHtml += '<tr>';
-      row.forEach(cell => {
-        tableHtml += `<td>${cell}</td>`;
-      });
-      tableHtml += '</tr>';
-    });
-    tableHtml += '</tbody></table>';
-    return tableHtml;
+
+    const tableData = {
+      columns,
+      rows: tableRows,
+    };
+
+    return `<div data-type="notion-table" data-table-json="${escapeHtmlAttr(JSON.stringify(tableData))}"></div>`;
   }
 
   // 5. Headings
@@ -280,8 +309,9 @@ function nodeToMarkdown(node: Node): string {
     case 'PRE': {
       const codeEl = element.querySelector('code');
       const langClass = codeEl?.className || '';
-      const match = langClass.match(/language-(\w+)/);
-      const language = match ? match[1] : '';
+      const match = langClass.match(/language-([a-zA-Z0-9_+#-]+)/);
+      const rawLang = element.getAttribute('data-language') || (match ? match[1] : '') || '';
+      const language = normalizeLanguage(rawLang);
       const codeText = codeEl ? codeEl.textContent || '' : element.textContent || '';
       return `\n\n\`\`\`${language}\n${codeText.trim()}\n\`\`\`\n\n`;
     }
@@ -337,6 +367,31 @@ function nodeToMarkdown(node: Node): string {
     case 'TH':
       return children;
     case 'DIV':
+      if (element.getAttribute('data-type') === 'notion-table') {
+        const dataStr = element.getAttribute('data-table-json');
+        if (dataStr) {
+          try {
+            const tableData = JSON.parse(dataStr);
+            const cols = tableData.columns || [];
+            const rows = tableData.rows || [];
+            if (cols.length > 0) {
+              const headerTitles = cols.map((c: any, idx: number) => c.title || (idx === 0 ? 'Name' : `Column ${idx}`));
+              const headerLine = `| ${headerTitles.join(' | ')} |\n`;
+              const dividerLine = `| ${cols.map(() => '---').join(' | ')} |\n`;
+              let rowsText = '';
+              rows.forEach((r: any) => {
+                const cells = r.cells || [];
+                const cellsText = cols.map((_: any, idx: number) => (cells[idx] || '').trim());
+                rowsText += `| ${cellsText.join(' | ')} |\n`;
+              });
+              return `\n\n${headerLine}${dividerLine}${rowsText}\n\n`;
+            }
+          } catch (e) {
+            console.error('Failed to parse notion table data JSON', e);
+          }
+        }
+        return '';
+      }
       if (element.hasAttribute('data-youtube-video') || element.getAttribute('data-youtube-video') === 'true') {
         const iframe = element.querySelector('iframe');
         const src = iframe?.getAttribute('src') || '';

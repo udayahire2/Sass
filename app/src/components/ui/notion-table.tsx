@@ -30,16 +30,29 @@ export interface TableRowData {
   cells: string[]; // Cell contents by column index
 }
 
+const GripIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" className="text-muted-foreground/50 hover:text-foreground/80 transition-colors">
+    <circle cx="4" cy="3" r="1" fill="currentColor"/>
+    <circle cx="4" cy="6" r="1" fill="currentColor"/>
+    <circle cx="4" cy="9" r="1" fill="currentColor"/>
+    <circle cx="8" cy="3" r="1" fill="currentColor"/>
+    <circle cx="8" cy="6" r="1" fill="currentColor"/>
+    <circle cx="8" cy="9" r="1" fill="currentColor"/>
+  </svg>
+);
+
 interface NotionTableProps {
   data?: { columns: TableColumn[]; rows: TableRowData[] };
   className?: string;
   onChange?: (data: { columns: TableColumn[]; rows: TableRowData[] }) => void;
+  editable?: boolean;
 }
 
 export function NotionTable({
   data,
   className,
   onChange,
+  editable = true,
 }: NotionTableProps) {
   // ── State Management ──
   const [columns, setColumns] = useState<TableColumn[]>(() => {
@@ -88,6 +101,15 @@ export function NotionTable({
   const [selectedColIndex, setSelectedColIndex] = useState<number | null>(null);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
 
+  // Hover states for Column/Row cells and Column/Row handle selection
+  const [hoveredColIndex, setHoveredColIndex] = useState<number | null>(null);
+  const [hoveredRowIndex, setHoveredRowIndex] = useState<number | null>(null);
+  const [hoveredColHandleIndex, setHoveredColHandleIndex] = useState<number | null>(null);
+  const [hoveredRowHandleIndex, setHoveredRowHandleIndex] = useState<number | null>(null);
+
+  // Toggle for showing structural layout controls (double click)
+  const [showControls, setShowControls] = useState(false);
+
   // Custom Floating Popover State (directly attached to grabbed pills)
   const [activeMenu, setActiveMenu] = useState<{
     type: 'col' | 'row';
@@ -99,6 +121,7 @@ export function NotionTable({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
+  const clickTimeoutRef = useRef<number | null>(null);
 
   // Trigger onChange updates
   useEffect(() => {
@@ -126,10 +149,18 @@ export function NotionTable({
         setSelectedColIndex(null);
         setSelectedRowIndex(null);
         setActiveMenu(null);
+        setHoveredColHandleIndex(null);
+        setHoveredRowHandleIndex(null);
+        setShowControls(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      if (clickTimeoutRef.current) {
+        window.clearTimeout(clickTimeoutRef.current);
+      }
+    };
   }, []);
 
   // ── Column Resizing Logic ──
@@ -178,15 +209,31 @@ export function NotionTable({
 
   // ── Cell Focus & Click Operations ──
   const handleCellClick = (rowIndex: number, colIndex: number) => {
+    if (!editable) return;
     setFocusedCell({ rowIndex, colIndex });
+    setEditingCell({ rowIndex, colIndex });
     setSelectedColIndex(null);
     setSelectedRowIndex(null);
     setActiveMenu(null);
+
+    if (clickTimeoutRef.current) {
+      window.clearTimeout(clickTimeoutRef.current);
+    }
+
+    clickTimeoutRef.current = window.setTimeout(() => {
+      setShowControls(false);
+      clickTimeoutRef.current = null;
+    }, 200);
   };
 
   const handleCellDoubleClick = (rowIndex: number, colIndex: number) => {
+    if (!editable) return;
+    if (clickTimeoutRef.current) {
+      window.clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
     setFocusedCell({ rowIndex, colIndex });
-    setEditingCell({ rowIndex, colIndex });
+    setShowControls(prev => !prev);
   };
 
   const handleCellChange = (rowIndex: number, colIndex: number, val: string) => {
@@ -381,6 +428,9 @@ export function NotionTable({
     setSelectedColIndex(null);
     setSelectedRowIndex(null);
     setActiveMenu(null);
+    setHoveredColHandleIndex(null);
+    setHoveredRowHandleIndex(null);
+    setShowControls(false);
   };
 
   // ── Grab Pill Selection Click Handlers ──
@@ -408,8 +458,11 @@ export function NotionTable({
       tabIndex={0}
       style={{ width: tableWidth }}
     >
-      <div className="relative w-full overflow-x-auto pr-2 bg-transparent">
-        <Table className="table-fixed select-text border border-border bg-transparent rounded-none">
+      <div className="relative w-full overflow-x-auto p-7 bg-transparent">
+        <Table 
+          onMouseLeave={() => { setHoveredColIndex(null); setHoveredRowIndex(null); }}
+          className="table-fixed select-text border-collapse bg-transparent rounded-none w-full border-y border-transparent"
+        >
           <colgroup>
             {columns.map((col) => (
               <col key={col.id} style={{ width: col.width }} />
@@ -422,17 +475,18 @@ export function NotionTable({
               {columns.map((col, colIndex) => {
                 const isFocused = focusedCell?.rowIndex === -1 && focusedCell?.colIndex === colIndex;
                 const isEditing = editingCell?.rowIndex === -1 && editingCell?.colIndex === colIndex;
-                const isColSelected = selectedColIndex === colIndex;
+                const isColHighlighted = showControls && (selectedColIndex === colIndex || hoveredColHandleIndex === colIndex);
 
                 return (
                   <TableHead
                     key={col.id}
                     className={cn(
-                      "relative border-r border-border p-0 text-left font-medium select-none h-10 transition-all duration-150 last:border-r-0 bg-transparent text-muted-foreground rounded-none",
-                      isColSelected && "bg-accent/40 dark:bg-accent/30"
+                      "relative border-r border-border p-0 text-left font-semibold text-foreground/85 select-none h-10 transition-all duration-150 last:border-r-0 bg-transparent rounded-none text-sm",
+                      isColHighlighted && "bg-violet-500/10 dark:bg-violet-950/30"
                     )}
                     onClick={() => handleCellClick(-1, colIndex)}
                     onDoubleClick={() => handleCellDoubleClick(-1, colIndex)}
+                    onMouseEnter={() => setHoveredColIndex(colIndex)}
                   >
                     <div className="flex items-center justify-between px-3.5 h-full relative">
                       {isEditing ? (
@@ -441,47 +495,41 @@ export function NotionTable({
                           value={col.title || ''}
                           onChange={(e) => handleCellChange(-1, colIndex, e.target.value)}
                           onBlur={() => setEditingCell(null)}
-                          className="w-full resize-none bg-transparent border-none outline-none focus:ring-0 p-0 text-xs tracking-wide font-medium text-muted-foreground block whitespace-pre-wrap select-text h-5"
+                          className="w-full resize-none bg-transparent border-none outline-none focus:ring-0 p-0 text-sm font-semibold text-foreground block whitespace-pre-wrap select-text h-5"
                           placeholder="..."
                         />
                       ) : (
-                        <span className="text-xs tracking-wide font-medium text-muted-foreground font-sans">
+                        <span className="text-sm font-semibold text-foreground font-sans">
                           {col.title}
                         </span>
                       )}
                     </div>
 
                     {/* Column Border Drag Resizer */}
-                    <div
-                      onMouseDown={(e) => handleResizeMouseDown(e, colIndex)}
-                      className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/50 active:bg-primary z-20 transition-colors"
-                      title="Drag to resize column"
-                    />
+                    {editable && (
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, colIndex)}
+                        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/50 active:bg-primary z-20 transition-colors"
+                        title="Drag to resize column"
+                      />
+                    )}
 
-                    {/* FOCUSED CELL BLUE OUTLINE & FLOATING PILLS */}
+                    {/* FOCUSED CELL BLUE OUTLINE */}
                     {isFocused && (
-                      <>
-                        {/* Thin Solid Primary Active Cell Border */}
-                        <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
+                      <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
+                    )}
 
-                        {/* Top Grab Pill (—) */}
-                        <button
-                          onClick={(e) => handleColumnPillClick(e, colIndex)}
-                          className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
-                          title="Select Column"
-                        >
-                          <div className="w-3 h-0.5 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
-                        </button>
-
-                        {/* Left Grab Pill (|) */}
-                        <button
-                          onClick={(e) => handleRowPillClick(e, 0)} // Header click rows menu row 0
-                          className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
-                          title="Select Row"
-                        >
-                          <div className="w-0.5 h-3 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
-                        </button>
-                      </>
+                    {/* Column Grip Handle */}
+                    {showControls && (hoveredColIndex === colIndex || selectedColIndex === colIndex) && (
+                      <button
+                        onClick={(e) => handleColumnPillClick(e, colIndex)}
+                        onMouseEnter={() => setHoveredColHandleIndex(colIndex)}
+                        onMouseLeave={() => setHoveredColHandleIndex(null)}
+                        className="absolute -top-6 left-1/2 -translate-x-1/2 z-40 w-6 h-4.5 bg-popover border border-border hover:bg-accent rounded flex items-center justify-center shadow-xs cursor-pointer transition-all duration-100"
+                        title="Select Column"
+                      >
+                        <GripIcon />
+                      </button>
                     )}
 
                     {/* COLUMN CONTEXT POPOVER MENU */}
@@ -520,29 +568,31 @@ export function NotionTable({
           {/* Table Data Rows */}
           <TableBody className="bg-transparent rounded-none">
             {rows.map((row, rowIndex) => {
-              const isRowSelected = selectedRowIndex === rowIndex;
+              const isRowHighlighted = showControls && (selectedRowIndex === rowIndex || hoveredRowHandleIndex === rowIndex);
 
               return (
                 <TableRow
                   key={row.id}
                   className={cn(
                     "border-b border-border hover:bg-muted/30 transition-colors duration-100 last:border-b-0 bg-transparent rounded-none",
-                    isRowSelected && "bg-accent/50 dark:bg-accent/40"
+                    isRowHighlighted && "bg-violet-500/10 dark:bg-violet-950/30"
                   )}
+                  onMouseEnter={() => setHoveredRowIndex(rowIndex)}
                 >
                   {row.cells.map((cellText, colIndex) => {
                     const isFocused = focusedCell?.rowIndex === rowIndex && focusedCell?.colIndex === colIndex;
                     const isEditing = editingCell?.rowIndex === rowIndex && editingCell?.colIndex === colIndex;
-                    const isColSelected = selectedColIndex === colIndex;
+                    const isColHighlighted = showControls && (selectedColIndex === colIndex || hoveredColHandleIndex === colIndex);
 
                     return (
                       <TableCell
                         key={`${rowIndex}-${colIndex}`}
                         onClick={() => handleCellClick(rowIndex, colIndex)}
                         onDoubleClick={() => handleCellDoubleClick(rowIndex, colIndex)}
+                        onMouseEnter={() => setHoveredColIndex(colIndex)}
                         className={cn(
                           "relative border-r border-border p-2.5 h-10 align-top select-text whitespace-pre-wrap outline-none font-sans text-sm transition-all text-foreground break-words last:border-r-0 bg-transparent rounded-none",
-                          isColSelected && "bg-accent/40 dark:bg-accent/30",
+                          isColHighlighted && "bg-violet-500/10 dark:bg-violet-950/30",
                           isEditing && "p-1.5"
                         )}
                       >
@@ -561,34 +611,26 @@ export function NotionTable({
                           </div>
                         )}
 
-                        {/* FOCUSED CELL BLUE OUTLINE & FLOATING PILLS */}
+                        {/* FOCUSED CELL BLUE OUTLINE */}
                         {isFocused && (
-                          <>
-                            {/* Thin Solid Primary Active Cell Border */}
-                            <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
+                          <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
+                        )}
 
-                            {/* Top Grab Pill (—) */}
-                            <button
-                              onClick={(e) => handleColumnPillClick(e, colIndex)}
-                              className="absolute -top-2 left-1/2 -translate-x-1/2 z-40 w-7 h-3.5 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
-                              title="Select Column"
-                            >
-                              <div className="w-3 h-0.5 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
-                            </button>
-
-                            {/* Left Grab Pill (|) */}
-                            <button
-                              onClick={(e) => handleRowPillClick(e, rowIndex)}
-                              className="absolute top-1/2 -translate-y-1/2 -left-2 z-40 w-3.5 h-7 bg-popover border border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground rounded-none flex items-center justify-center shadow-sm cursor-pointer transition-all active:scale-95 group/pill"
-                              title="Select Row"
-                            >
-                              <div className="w-0.5 h-3 bg-muted-foreground/50 rounded-none group-hover/pill:bg-accent-foreground transition-colors" />
-                            </button>
-                          </>
+                        {/* Row Grip Handle */}
+                        {showControls && colIndex === 0 && (hoveredRowIndex === rowIndex || selectedRowIndex === rowIndex) && (
+                          <button
+                            onClick={(e) => handleRowPillClick(e, rowIndex)}
+                            onMouseEnter={() => setHoveredRowHandleIndex(rowIndex)}
+                            onMouseLeave={() => setHoveredRowHandleIndex(null)}
+                            className="absolute top-1/2 -translate-y-1/2 -left-7 z-40 w-4.5 h-6 bg-popover border border-border hover:bg-accent rounded flex items-center justify-center shadow-xs cursor-pointer transition-all duration-100"
+                            title="Select Row"
+                          >
+                            <GripIcon />
+                          </button>
                         )}
 
                         {/* ROW CONTEXT POPOVER MENU */}
-                        {activeMenu?.type === 'row' && activeMenu.index === rowIndex && isFocused && (
+                        {activeMenu?.type === 'row' && activeMenu.index === rowIndex && colIndex === 0 && (
                           <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-popover/95 backdrop-blur-md border border-border rounded-none p-1 shadow-md w-44 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-left-1 duration-100 select-none">
                             <PopoverItem 
                               icon={ArrowUp} 
@@ -624,34 +666,62 @@ export function NotionTable({
         </Table>
 
         {/* Global Bottom-Right Table Resize Handle */}
-        <div
-          onMouseDown={handleTableResizeMouseDown}
-          className="absolute bottom-0.5 right-0.5 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 z-40 text-muted-foreground/40 hover:text-primary opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
-          title="Drag to resize table width"
-        >
-          <svg width="6" height="6" viewBox="0 0 6 6" className="fill-current">
-            <path d="M5 0h1v1H5V0zm-2 2h1v1H3V2zm2 0h1v1H5V2zM1 4h1v1H1V4zm2 0h1v1H3V4zm2 0h1v1H5V4z" />
-          </svg>
-        </div>
+        {editable && (
+          <div
+            onMouseDown={handleTableResizeMouseDown}
+            className="absolute bottom-[30px] right-[30px] w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 z-40 text-muted-foreground/40 hover:text-primary opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
+            title="Drag to resize table width"
+          >
+            <svg width="6" height="6" viewBox="0 0 6 6" className="fill-current">
+              <path d="M5 0h1v1H5V0zm-2 2h1v1H3V2zm2 0h1v1H5V2zM1 4h1v1H1V4zm2 0h1v1H3V4zm2 0h1v1H5V4z" />
+            </svg>
+          </div>
+        )}
       </div>
 
-      {/* Sleek Add Buttons below the table */}
-      <div className="flex items-center gap-2.5 mt-2.5 px-0.5 select-none" contentEditable={false}>
-        <button
-          onClick={() => handleAddRowBelow(rows.length - 1)}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 px-2 py-1 cursor-pointer hover:bg-accent rounded-none font-sans font-medium"
+      {/* Add Column hover button on the right edge */}
+      {editable && showControls && (
+        <div 
+          className="absolute top-[28px] bottom-[28px] right-0 w-[28px] flex items-center justify-center opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
+          contentEditable={false}
         >
-          <Plus className="w-3.5 h-3.5" />
-          Add Row
-        </button>
-        <button
-          onClick={() => handleAddColRight(columns.length - 1)}
-          className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 px-2 py-1 cursor-pointer hover:bg-accent rounded-none font-sans font-medium"
+          <div className="relative group/add-col-tooltip">
+            <button
+              onClick={() => handleAddColRight(columns.length - 1)}
+              className="w-5 h-5 rounded hover:bg-accent hover:text-foreground text-muted-foreground/45 bg-transparent border border-transparent hover:border-border flex items-center justify-center cursor-pointer transition-all duration-150"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[11px] font-sans px-2.5 py-1 rounded shadow-md whitespace-nowrap pointer-events-none opacity-0 scale-95 group-hover/add-col-tooltip:opacity-100 group-hover/add-col-tooltip:scale-100 transition-all duration-150 z-50">
+              Add column to the right
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1a1a1a]" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Row hover button at the bottom edge */}
+      {editable && showControls && (
+        <div 
+          className="absolute left-[28px] right-[28px] bottom-0 h-[28px] flex items-center justify-center opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
+          contentEditable={false}
         >
-          <Plus className="w-3.5 h-3.5" />
-          Add Column
-        </button>
-      </div>
+          <div className="relative group/add-row-tooltip">
+            <button
+              onClick={() => handleAddRowBelow(rows.length - 1)}
+              className="w-5 h-5 rounded hover:bg-accent hover:text-foreground text-muted-foreground/45 bg-transparent border border-transparent hover:border-border flex items-center justify-center cursor-pointer transition-all duration-150"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-[11px] font-sans px-2.5 py-1 rounded shadow-md whitespace-nowrap pointer-events-none opacity-0 scale-95 group-hover/add-row-tooltip:opacity-100 group-hover/add-row-tooltip:scale-100 transition-all duration-150 z-50">
+              Add row
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#1a1a1a]" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

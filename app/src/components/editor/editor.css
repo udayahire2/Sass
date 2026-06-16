@@ -503,3 +503,74 @@
   line-height: inherit !important;
   box-shadow: none !important;
 }
+
+/* ── Custom Notion Table Overrides ── */
+.notion-table-node-view table {
+  border-collapse: collapse !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  background-color: transparent !important;
+}
+
+.notion-table-node-view th,
+.notion-table-node-view td {
+  border: none !important;
+  border-right: 1px solid var(--border, rgba(255, 255, 255, 0.08)) !important;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08)) !important;
+  padding: 0.5rem 0.75rem !important;
+  background-color: transparent;
+  text-transform: none !important;
+  font-size: 0.875rem !important;
+  font-weight: normal !important;
+  color: var(--foreground) !important;
+  letter-spacing: normal !important;
+}
+
+.notion-table-node-view th {
+  font-weight: 600 !important;
+}
+
+.notion-table-node-view th:last-child,
+.notion-table-node-view td:last-child {
+  border-right: none !important;
+}
+
+.notion-table-node-view tr:last-child td {
+  border-bottom: none !important;
+}
+
+.notion-table-node-view tr:nth-child(even) td {
+  background-color: transparent !important;
+}
+
+.notion-table-node-view tr:hover td {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+:root:not(.dark) .notion-table-node-view tr:hover td {
+  background-color: rgba(0, 0, 0, 0.015) !important;
+}
+
+/* Custom backgrounds for selection/highlight */
+.notion-table-node-view th.bg-violet-500\/10,
+.notion-table-node-view td.bg-violet-500\/10 {
+  background-color: rgba(139, 92, 246, 0.1) !important;
+}
+
+.notion-table-node-view tr.bg-violet-500\/10 td {
+  background-color: rgba(139, 92, 246, 0.1) !important;
+}
+
+:root.dark .notion-table-node-view th.dark\:bg-violet-950\/30,
+:root.dark .notion-table-node-view td.dark\:bg-violet-950\/30 {
+  background-color: rgba(76, 29, 149, 0.3) !important;
+}
+
+:root.dark .notion-table-node-view tr.dark\:bg-violet-950\/30 td {
+  background-color: rgba(76, 29, 149, 0.3) !important;
+}
+

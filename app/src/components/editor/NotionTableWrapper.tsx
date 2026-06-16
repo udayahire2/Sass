@@ -2,6 +2,7 @@ import { NodeViewWrapper } from '@tiptap/react';
 import { NotionTable, type TableColumn, type TableRowData } from '../ui/notion-table';
 
 interface NotionTableWrapperProps {
+  editor: any;
   node: {
     attrs: {
       data: {
@@ -14,14 +15,16 @@ interface NotionTableWrapperProps {
 }
 
 export default function NotionTableWrapper({
+  editor,
   node,
   updateAttributes,
 }: NotionTableWrapperProps) {
   const tableData = node.attrs.data;
+  const isEditable = editor?.isEditable ?? true;
 
   const handleTableChange = (newData: { columns: TableColumn[]; rows: TableRowData[] }) => {
     // Only update if data actually changed to prevent loops
-    if (JSON.stringify(tableData) !== JSON.stringify(newData)) {
+    if (isEditable && JSON.stringify(tableData) !== JSON.stringify(newData)) {
       updateAttributes({ data: newData });
     }
   };
@@ -31,6 +34,7 @@ export default function NotionTableWrapper({
       <NotionTable 
         data={tableData} 
         onChange={handleTableChange} 
+        editable={isEditable}
       />
     </NodeViewWrapper>
   );
