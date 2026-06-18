@@ -150,7 +150,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-3xl px-4 sm:px-6"
+      className="mx-auto w-full max-w-3xl px-4 pb-24 sm:px-6 sm:pb-20"
     >
       {/* ── Back Link ── */}
       <div className="mb-6">
@@ -181,9 +181,9 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         )}
 
         {/* ── Page Properties ── */}
-        <div className="flex flex-col gap-3 border-y border-border/40 py-4 sm:gap-4">
+        <div className="flex flex-col gap-2 border-y border-border/40 py-3 sm:gap-2">
           {topic.estimatedTime && (
-            <div className="flex flex-wrap items-center gap-3 text-sm">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
                 Duration
               </span>
@@ -194,7 +194,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
               Includes
             </span>
@@ -217,7 +217,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
               Progress
             </span>
@@ -236,7 +236,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
               Status
             </span>
@@ -268,7 +268,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
 
       {/* ── Video Section ── */}
       {hasVideo && (
-        <section className="mb-10">
+        <section className="mb-8">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold tracking-tight text-foreground">
               Video Lecture
@@ -332,7 +332,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
 
       {/* ── Key Points Section ── */}
       {hasSummary && topic.summaryPoints && (
-        <section className="mb-10">
+        <section className="mb-8">
           <div className="rounded-xl border border-amber-200/50 bg-amber-50/50 p-5 dark:border-amber-500/20 dark:bg-amber-500/[0.06]">
             <div className="mb-3 flex items-center gap-2">
               <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -356,7 +356,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       )}
 
       {/* ── Topic Content Section ── */}
-      <section className="mb-10">
+      <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-primary/80" strokeWidth={1.8} />
@@ -365,7 +365,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         </div>
 
         {hasNotes ? (
-          <div className="rounded-xl border border-border/40 bg-background overflow-hidden transition-shadow duration-200 hover:shadow-sm">
+          <div className="rounded-xl border border-border/40 bg-background p-4 overflow-hidden transition-shadow duration-200 hover:shadow-sm sm:p-5">
             <RichTextEditor
               content={topic.contentMarkdown || topic.markdownContent || ""}
               onChange={() => {}}
