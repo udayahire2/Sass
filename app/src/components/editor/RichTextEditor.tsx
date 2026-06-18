@@ -12,6 +12,7 @@ import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
 import { ShikiCodeBlock } from './ShikiCodeBlock';
+import { NotionTableNode } from './NotionTableNode';
 
 import { markdownToHtml, htmlToMarkdown } from './markdownUtils';
 import BubbleToolbar from './BubbleToolbar';
@@ -29,6 +30,8 @@ export interface RichTextEditorProps {
   placeholder?: string;
   showWordCount?: boolean;
   className?: string;
+  spellcheck?: boolean;
+  pasteImageLink?: boolean;
 }
 
 export default function RichTextEditor({
@@ -38,6 +41,8 @@ export default function RichTextEditor({
   placeholder = 'Write something...',
   showWordCount = false,
   className,
+  spellcheck = false,
+  pasteImageLink = true,
 }: RichTextEditorProps) {
   const [slashMenuOpen, setSlashMenuOpen] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
@@ -47,6 +52,16 @@ export default function RichTextEditor({
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const isInternalUpdate = useRef(false);
+
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  const pasteImageLinkRef = useRef(pasteImageLink);
+  useEffect(() => {
+    pasteImageLinkRef.current = pasteImageLink;
+  }, [pasteImageLink]);
 
   const filteredSlashItems = ALL_SLASH_ITEMS.filter(item =>
     item.label.toLowerCase().includes(slashQuery.toLowerCase()) ||
@@ -143,6 +158,7 @@ export default function RichTextEditor({
       TableRow,
       TableHeader,
       TableCell,
+      NotionTableNode,
     ],
     content: markdownToHtml(content),
     editable,
@@ -150,7 +166,24 @@ export default function RichTextEditor({
     editorProps: {
       attributes: {
         class: 'focus:outline-none min-h-[200px]',
-        spellcheck: 'false',
+        spellcheck: spellcheck ? 'true' : 'false',
+      },
+      handlePaste: (view, event) => {
+        if (!pasteImageLinkRef.current) return false;
+        const text = event.clipboardData?.getData('text/plain');
+        if (!text) return false;
+        
+        const isImageUrl = text.match(/\.(jpeg|jpg|gif|png|webp|svg)(?:\?.*)?$/i) || 
+                           text.match(/^https:\/\/(?:images\.unsplash\.com|images\.pexels\.com|res\.cloudinary\.com)\/.+$/i);
+                           
+        if (isImageUrl) {
+          const { schema } = view.state;
+          const node = schema.nodes.image.create({ src: text });
+          const transaction = view.state.tr.replaceSelectionWith(node);
+          view.dispatch(transaction);
+          return true;
+        }
+        return false;
       },
       handleKeyDown: (view, event) => {
         const { isOpen, selectedIndex: selIdx, filteredItems } = slashStateRef.current;
@@ -218,7 +251,7 @@ export default function RichTextEditor({
       isInternalUpdate.current = true;
       const html = editor.getHTML();
       const markdown = htmlToMarkdown(html);
-      onChange(markdown);
+      onChangeRef.current(markdown);
       checkSlashMenu(editor);
     },
     onSelectionUpdate: ({ editor }) => {
@@ -286,6 +319,18 @@ export default function RichTextEditor({
     editor.setEditable(editable);
   }, [editable, editor]);
 
+  // Synchronize spellcheck updates dynamically
+  useEffect(() => {
+    if (!editor) return;
+    editor.setOptions({
+      editorProps: {
+        attributes: {
+          spellcheck: spellcheck ? 'true' : 'false',
+        }
+      }
+    });
+  }, [spellcheck, editor]);
+
   if (!editor) {
     return null;
   }
@@ -302,7 +347,7 @@ export default function RichTextEditor({
       <div className="w-full text-foreground transition-all duration-200 bg-transparent border-none">
         <EditorContent
           editor={editor}
-          className="w-full font-sans text-base focus:outline-none focus:ring-0"
+          className="w-full text-base focus:outline-none focus:ring-0"
         />
 
         {editable && <BubbleToolbar editor={editor} />}
