@@ -92,12 +92,7 @@ body {
 
 :root {
   --radius: 0.75rem;
-
-  /* ==========================================
-     NOTION INSPIRED LIGHT THEME
-     ========================================== */
-
-  --background: hsl(0 0% 98.8%);
+  --background: var(--color-neutral-100);
   --foreground: hsl(40 8% 20%);
 
   --card: hsl(0 0% 100%);
@@ -107,7 +102,8 @@ body {
   --popover-foreground: hsl(40 8% 20%);
 
   /* Keep Existing Brand Purple */
-  --primary: hsl(262.1 83.3% 57.8%);
+  /* --primary: var(--color-blue-500); */
+  --primary: var(--color-blue-500);
   --primary-foreground: hsl(0 0% 100%);
 
   --secondary: hsl(40 10% 96%);
@@ -133,27 +129,27 @@ body {
 
   --border: hsl(40 8% 88%);
   --input: hsl(40 8% 88%);
-  --ring: hsl(262.1 83.3% 57.8%);
+  --ring: var(--color-blue-500);
 
   /* Sidebar */
   --sidebar: hsl(40 10% 97%);
   --sidebar-foreground: hsl(40 8% 22%);
 
-  --sidebar-primary: hsl(262.1 83.3% 57.8%);
+  --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: hsl(0 0% 100%);
 
   --sidebar-accent: hsl(40 10% 94%);
   --sidebar-accent-foreground: hsl(40 8% 20%);
 
   --sidebar-border: hsl(40 8% 88%);
-  --sidebar-ring: hsl(262.1 83.3% 57.8%);
+  --sidebar-ring: var(--color-blue-500);
 
   /* Logo */
   --logo-back: 262.1 83.3% 57.8%;
   --logo-front: 263.4 70% 50.4%;
 
   /* Charts */
-  --chart-1: hsl(262.1 83.3% 57.8%);
+  --chart-1: var(--color-blue-500);
   --chart-2: hsl(142 71% 35%);
   --chart-3: hsl(221 83% 53%);
   --chart-4: hsl(38 92% 40%);
@@ -170,7 +166,7 @@ body {
      NOTION INSPIRED DARK THEME
      ========================================== */
 
-  --background: hsl(0 0% 10%);
+  --background: var(--color-neutral-900);
   --foreground: hsl(0 0% 90%);
 
   --card: hsl(0 0% 12%);
@@ -180,7 +176,8 @@ body {
   --popover-foreground: hsl(0 0% 90%);
 
   /* Same Purple Brand */
-  --primary: hsl(262.1 83.3% 57.8%);
+  /* --primary: var(--color-blue-500); */
+  --primary: var(--color-blue-500);
   --primary-foreground: hsl(0 0% 100%);
 
   --secondary: hsl(0 0% 15%);
@@ -206,27 +203,27 @@ body {
 
   --border: hsl(0 0% 18%);
   --input: hsl(0 0% 18%);
-  --ring: hsl(262.1 83.3% 57.8%);
+  --ring: var(--color-blue-500);
 
   /* Sidebar */
   --sidebar: hsl(0 0% 8%);
   --sidebar-foreground: hsl(0 0% 75%);
 
-  --sidebar-primary: hsl(262.1 83.3% 57.8%);
+  --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: hsl(0 0% 100%);
 
   --sidebar-accent: hsl(0 0% 14%);
   --sidebar-accent-foreground: hsl(0 0% 90%);
 
   --sidebar-border: hsl(0 0% 16%);
-  --sidebar-ring: hsl(262.1 83.3% 57.8%);
+  --sidebar-ring: var(--color-blue-500);
 
   /* Logo */
   --logo-back: 262.1 83.3% 57.8%;
   --logo-front: 263.4 70% 50.4%;
 
   /* Charts */
-  --chart-1: hsl(262.1 83.3% 57.8%);
+  --chart-1: var(--color-blue-500);
   --chart-2: hsl(142 71% 35%);
   --chart-3: hsl(221 83% 53%);
   --chart-4: hsl(38 92% 40%);
@@ -258,11 +255,13 @@ body {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
     overflow: hidden !important;
     height: 100% !important;
   }
@@ -280,7 +279,7 @@ body {
   }
 
   html {
-    @apply font-sans;
+    font-family: var(--font-sans);
   }
 }
 

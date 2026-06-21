@@ -1,10 +1,10 @@
-interface CoverImageProps {
+interface NoteCoverImageProps {
   cover: string;
   onChangeCover: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onRemoveCover: () => void;
 }
 
-export function CoverImage({ cover, onChangeCover, onRemoveCover }: CoverImageProps) {
+export function NoteCoverImage({ cover, onChangeCover, onRemoveCover }: NoteCoverImageProps) {
   return (
     <div className="group relative w-full h-[30vh] min-h-[200px] max-h-[280px] shrink-0">
       <div

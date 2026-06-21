@@ -297,7 +297,7 @@ const EMOJI_KEYWORDS: Record<string, string[]> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-interface EmojiPickerProps {
+interface NotesEmojiPickerProps {
   isOpen: boolean;
   onSelect: (emoji: string) => void;
   onClose: () => void;
@@ -305,7 +305,7 @@ interface EmojiPickerProps {
   theme?: string;
 }
 
-export function EmojiPicker({ isOpen, onSelect, onClose, triggerRef, theme }: EmojiPickerProps) {
+export function NotesEmojiPicker({ isOpen, onSelect, onClose, triggerRef, theme }: NotesEmojiPickerProps) {
   const [search, setSearch] = useState("");
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
   const [isVisible, setIsVisible] = useState(false);

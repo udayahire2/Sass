@@ -81,7 +81,7 @@ const GRADIENT_PRESETS: GradientPreset[] = [
 
 type TabId = "gallery" | "link";
 
-interface CoverPickerProps {
+interface NotesCoverPickerProps {
   isOpen: boolean;
   onSelect: (coverUrl: string) => void;
   onRemove: () => void;
@@ -90,14 +90,14 @@ interface CoverPickerProps {
   theme?: string;
 }
 
-export function CoverPicker({
+export function NotesCoverPicker({
   isOpen,
   onSelect,
   onRemove,
   onClose,
   triggerRef,
   theme,
-}: CoverPickerProps) {
+}: NotesCoverPickerProps) {
   const [activeTab, setActiveTab] = useState<TabId>("gallery");
   const [linkUrl, setLinkUrl] = useState("");
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);

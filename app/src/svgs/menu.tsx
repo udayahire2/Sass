@@ -1,5 +1,5 @@
 
-const Menu = () => {
+const Menu1 = () => {
   return (
     <>
     <svg
@@ -20,4 +20,4 @@ const Menu = () => {
   )
 }
 
-export default Menu
+export default Menu1

@@ -1,18 +1,18 @@
 import { FileText, Plus, Menu } from "lucide-react";
 
-interface EmptyStateProps {
+interface NotesEmptyStateProps {
   sidebarVisible: boolean;
   notesCount: number;
   onCreateNote: () => void;
   onToggleSidebar: () => void;
 }
 
-export function EmptyState({
+export function NotesEmptyState({
   sidebarVisible,
   notesCount,
   onCreateNote,
   onToggleSidebar,
-}: EmptyStateProps) {
+}: NotesEmptyStateProps) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 bg-background text-center">
       {!sidebarVisible && (

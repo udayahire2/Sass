@@ -1,4 +1,5 @@
-const { all, get } = require('./dbService');
+const crypto = require('node:crypto');
+const { all, get, run, createTimestamps } = require('./dbService');
 
 function extractYoutubeVideoId(videoUrl) {
     if (!videoUrl) {
@@ -115,6 +116,72 @@ function getSubjectsByBranchSemester(branch, semester) {
     return rows.map(formatSubject);
 }
 
+function getSubjectById(subjectId) {
+    const row = get(
+        `SELECT
+            s.*,
+            COUNT(DISTINCT u.id) AS unit_count,
+            COUNT(DISTINCT t.id) AS topic_count
+         FROM subjects s
+         LEFT JOIN units u
+            ON u.subject_id = s.id
+           AND u.deleted_at IS NULL
+         LEFT JOIN topics t
+            ON t.unit_id = u.id
+           AND t.deleted_at IS NULL
+         WHERE s.id = ?
+           AND s.deleted_at IS NULL
+         GROUP BY s.id`,
+        [subjectId]
+    );
+
+    return row ? formatSubject(row) : null;
+}
+
+function createSubject(data) {
+    const { title, code, branch, semester, credits, description } = data;
+    const timestamps = createTimestamps();
+    const id = crypto.randomUUID();
+
+    run(
+        `INSERT INTO subjects (id, code, title, branch, semester, credits, description, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, code, title, branch, Number(semester), Number(credits) || 0, description || null, timestamps.createdAt, timestamps.updatedAt]
+    );
+
+    return getSubjectById(id);
+}
+
+function updateSubject(subjectId, data) {
+    const { title, code, branch, semester, credits, description } = data;
+    const timestamps = createTimestamps();
+    const updates = [];
+    const params = [];
+
+    if (title !== undefined) { updates.push('title = ?'); params.push(title); }
+    if (code !== undefined) { updates.push('code = ?'); params.push(code); }
+    if (branch !== undefined) { updates.push('branch = ?'); params.push(branch); }
+    if (semester !== undefined) { updates.push('semester = ?'); params.push(Number(semester)); }
+    if (credits !== undefined) { updates.push('credits = ?'); params.push(Number(credits)); }
+    if (description !== undefined) { updates.push('description = ?'); params.push(description); }
+
+    if (updates.length > 0) {
+        updates.push('updated_at = ?');
+        params.push(timestamps.updatedAt);
+        params.push(subjectId);
+        
+        run(`UPDATE subjects SET ${updates.join(', ')} WHERE id = ? AND deleted_at IS NULL`, params);
+    }
+
+    return getSubjectById(subjectId);
+}
+
+function deleteSubject(subjectId) {
+    const timestamps = createTimestamps();
+    run(`UPDATE subjects SET deleted_at = ? WHERE id = ?`, [timestamps.updatedAt, subjectId]);
+    return true;
+}
+
 function getUnitsBySubject(subjectId) {
     const unitRows = all(
         `SELECT *
@@ -135,6 +202,58 @@ function getUnitsBySubject(subjectId) {
 
         return formatUnit(unit, topicRows.map(formatTopic));
     });
+}
+
+function getUnitById(unitId) {
+    const unit = get(
+        `SELECT * FROM units WHERE id = ? AND deleted_at IS NULL`,
+        [unitId]
+    );
+    if (!unit) return null;
+
+    const topicRows = all(
+        `SELECT * FROM topics WHERE unit_id = ? AND deleted_at IS NULL ORDER BY title ASC`,
+        [unit.id]
+    );
+
+    return formatUnit(unit, topicRows.map(formatTopic));
+}
+
+function createUnit(subjectId, data) {
+    const { title, description, unit_number } = data;
+    const timestamps = createTimestamps();
+    const id = crypto.randomUUID();
+
+    run(
+        `INSERT INTO units (id, subject_id, unit_number, title, description, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, subjectId, Number(unit_number), title, description || null, timestamps.createdAt]
+    );
+
+    return getUnitById(id);
+}
+
+function updateUnit(unitId, data) {
+    const { title, description, unit_number } = data;
+    const updates = [];
+    const params = [];
+
+    if (title !== undefined) { updates.push('title = ?'); params.push(title); }
+    if (description !== undefined) { updates.push('description = ?'); params.push(description); }
+    if (unit_number !== undefined) { updates.push('unit_number = ?'); params.push(Number(unit_number)); }
+
+    if (updates.length > 0) {
+        params.push(unitId);
+        run(`UPDATE units SET ${updates.join(', ')} WHERE id = ? AND deleted_at IS NULL`, params);
+    }
+
+    return getUnitById(unitId);
+}
+
+function deleteUnit(unitId) {
+    const timestamps = createTimestamps();
+    run(`UPDATE units SET deleted_at = ? WHERE id = ?`, [timestamps.updatedAt, unitId]);
+    return true;
 }
 
 function getTopicById(topicId) {
@@ -205,9 +324,39 @@ function updateTopic(topicId, data) {
     return getTopicById(topicId);
 }
 
+function createTopic(unitId, data) {
+    const { title, content_markdown, video_url } = data;
+    const timestamps = createTimestamps();
+    const id = crypto.randomUUID();
+
+    run(
+        `INSERT INTO topics (id, unit_id, title, content_markdown, video_url, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [id, unitId, title, content_markdown || '', video_url || null, timestamps.createdAt]
+    );
+
+    return getTopicById(id);
+}
+
+function deleteTopic(topicId) {
+    const timestamps = createTimestamps();
+    run(`UPDATE topics SET deleted_at = ? WHERE id = ?`, [timestamps.updatedAt, topicId]);
+    return true;
+}
+
 module.exports = {
     getSubjectsByBranchSemester,
+    getSubjectById,
+    createSubject,
+    updateSubject,
+    deleteSubject,
     getTopicById,
     getUnitsBySubject,
+    getUnitById,
+    createUnit,
+    updateUnit,
+    deleteUnit,
     updateTopic,
+    createTopic,
+    deleteTopic,
 };

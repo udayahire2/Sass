@@ -159,10 +159,10 @@ export default function ResourceCollectionPage({
                     </TableCell>
                     <TableCell>{resource.author}</TableCell>
                     <TableCell className="text-right">
-                      <Button asChild size="sm" variant="outline">
+                      <Button   size="sm" variant="outline">
+                          <ExternalLink className="ml-2 h-3.5 w-3.5" />
                         <a href={resource.url} target="_blank" rel="noreferrer">
                           Open
-                          <ExternalLink className="ml-2 h-3.5 w-3.5" />
                         </a>
                       </Button>
                     </TableCell>

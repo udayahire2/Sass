@@ -1,7 +1,7 @@
 import Login from "@/components/auth/Login";
 import { Logo } from "@/components/ui/logo";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import backgroundImage from "@/assets/images/loginpage.png";
+import backgroundImage from "@/assets/loginpage.png";
 
 export default function LoginPage() {
   return (

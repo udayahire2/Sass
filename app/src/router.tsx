@@ -26,6 +26,8 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import StudentsPage from "./pages/admin/StudentsPage";
 import ResourceManagerPage from "./pages/admin/ResourceManagerPage";
 import SyllabusManagerPage from "./pages/admin/SyllabusManagerPage";
+import SubjectManagerPage from "./pages/admin/SubjectManagerPage";
+import SubjectDetailPage from "./pages/admin/SubjectDetailPage";
 import ImpQuestionsManagerPage from "./pages/admin/ImpQuestionsManagerPage";
 import SamplePapersManagerPage from "./pages/admin/SamplePapersManagerPage";
 import FacultyManager from "./pages/admin/FacultyManager";
@@ -163,6 +165,14 @@ export const router = createBrowserRouter([
                     {
                         path: "syllabus",
                         element: <SyllabusManagerPage />,
+                    },
+                    {
+                        path: "subjects",
+                        element: <SubjectManagerPage />,
+                    },
+                    {
+                        path: "subjects/:subjectId",
+                        element: <SubjectDetailPage />,
                     },
                     {
                         path: "resources",

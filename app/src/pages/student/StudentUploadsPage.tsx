@@ -45,9 +45,9 @@ export default function StudentUploadsPage() {
             </CardTitle>
             <CardDescription className="mt-1.5">Track the approval status of study materials you have contributed.</CardDescription>
           </div>
-          <Button asChild className="shrink-0 shadow-sm">
-            <Link to="/dashboard/student/add-content">
+          <Button >
               <UploadCloud className="mr-2 h-4 w-4" />
+            <Link to="/dashboard/student/add-content">
               Upload New
             </Link>
           </Button>
@@ -69,19 +69,19 @@ export default function StudentUploadsPage() {
               <EmptyMedia variant="icon" className="bg-secondary/20">
                 <FileText className="h-6 w-6 text-muted-foreground" />
               </EmptyMedia>
-              <EmptyTitle className="mt-4">No Uploads Yet</EmptyTitle>
+            <EmptyTitle >No Uploads Yet</EmptyTitle>
               <EmptyDescription className="max-w-md mx-auto">Get started by sharing your notes, sample papers, or study content with the community.</EmptyDescription>
             </EmptyHeader>
-            <Button variant="outline" className="mt-4" asChild>
-              <Link to="/dashboard/student/add-content">
+            <Button variant="outline" className="mt-4" >
                 <UploadCloud className="mr-2 h-4 w-4" />
+              <Link to="/dashboard/student/add-content">
                 Start Uploading
               </Link>
             </Button>
           </Empty>
         ) : (
           <div className="w-full">
-            <Table className="min-w-[600px]">
+            <Table className="min-w-150">
               <TableHeader className="bg-secondary/30">
                 <TableRow className="hover:bg-transparent border-border/30">
                   <TableHead className="w-[45%] pl-6 text-xs uppercase tracking-wider font-semibold text-muted-foreground">Content</TableHead>

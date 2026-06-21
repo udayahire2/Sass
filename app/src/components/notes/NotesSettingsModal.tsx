@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X, Palette, Settings, Sparkles, Sliders } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface SettingsModalProps {
+interface NotesSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   editorTheme: string;
@@ -13,7 +13,7 @@ interface SettingsModalProps {
   onPreferenceChange: (key: string, value: boolean) => void;
 }
 
-export function SettingsModal({
+export function NotesSettingsModal({
   isOpen,
   onClose,
   editorTheme,
@@ -22,7 +22,7 @@ export function SettingsModal({
   spellcheck,
   pasteImageLink,
   onPreferenceChange,
-}: SettingsModalProps) {
+}: NotesSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<"appearance" | "preferences">("appearance");
 
   if (!isOpen) return null;

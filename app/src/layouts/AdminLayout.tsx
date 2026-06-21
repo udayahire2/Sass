@@ -54,6 +54,7 @@ const navSections = [
   {
     label: "Content",
     items: [
+      { icon: BookOpen, label: "Subjects", path: "/admin/subjects" },
       { icon: BookOpen, label: "Syllabus", path: "/admin/syllabus" },
       { icon: BookOpen, label: "Resources", path: "/admin/resources" },
       { icon: FileQuestion, label: "IMP Questions", path: "/admin/imp-questions" },

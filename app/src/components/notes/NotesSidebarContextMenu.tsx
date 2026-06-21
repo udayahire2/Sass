@@ -4,7 +4,7 @@ import { Pencil, Star, Copy, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NoteWithMeta } from "./types";
 
-interface SidebarContextMenuProps {
+interface NotesSidebarContextMenuProps {
   note: NoteWithMeta;
   position: { x: number; y: number };
   onClose: () => void;
@@ -15,7 +15,7 @@ interface SidebarContextMenuProps {
   theme?: string;
 }
 
-export function SidebarContextMenu({
+export function NotesSidebarContextMenu({
   note,
   position,
   onClose,
@@ -24,7 +24,7 @@ export function SidebarContextMenu({
   onToggleFavorite,
   onTrash,
   theme,
-}: SidebarContextMenuProps) {
+}: NotesSidebarContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Position viewport check

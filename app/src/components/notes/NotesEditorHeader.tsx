@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import type { NoteMetadata, PageFont } from "@/lib/notesMetadata";
 import type { NoteWithMeta } from "./types";
 
-interface EditorHeaderProps {
+interface NotesEditorHeaderProps {
   title: string;
   metadata: NoteMetadata;
   ancestors: NoteWithMeta[];
@@ -28,7 +28,7 @@ interface EditorHeaderProps {
   onOpenCoverPicker: () => void;
 }
 
-export function EditorHeader({
+export function NotesEditorHeader({
   title,
   metadata,
   ancestors,
@@ -41,7 +41,7 @@ export function EditorHeader({
   onSetFont,
   onDuplicate,
   onTrash,
-}: EditorHeaderProps) {
+}: NotesEditorHeaderProps) {
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const optionsMenuRef = useRef<HTMLDivElement>(null);
 

@@ -14,19 +14,26 @@ import {
   type PageFont,
 } from "@/lib/notesMetadata";
 import {
-  NotesPageSidebar,
-  EditorHeader,
-  CoverImage,
-  PageCanvas,
-  EmptyState,
-  SettingsModal,
-  SidebarContextMenu,
+  NotesSidebar,
+  NotesEditorHeader,
+  NoteEditorCanvas,
+  NotesEmptyState,
+  NotesSettingsModal,
+  NotesSidebarContextMenu,
   type NoteWithMeta,
 } from "@/components/notes";
 import { buildTree, getAncestors } from "@/components/notes/helpers";
-import { EmojiPicker } from "@/components/notes/EmojiPicker";
-import { CoverPicker } from "@/components/notes/CoverPicker";
+import { NotesEmojiPicker } from "@/components/notes/NotesEmojiPicker";
+import { NotesCoverPicker } from "@/components/notes/NotesCoverPicker";
 import { cn } from "@/lib/utils";
+
+function normalizeEditorTheme(theme: string | null | undefined): string {
+  if (theme === "dark" || theme === "sepia" || theme === "nord") {
+    return theme;
+  }
+  return "light";
+}
+
 export default function NotesPage() {
   // ── Core State ──
   const [notes, setNotes] = useState<NoteWithMeta[]>([]);
@@ -64,17 +71,43 @@ export default function NotesPage() {
 
   // ── Settings & Theme State ──
   const [showSettings, setShowSettings] = useState(false);
-  const [editorTheme, setEditorTheme] = useState("light");
-  const [showWordCount, setShowWordCount] = useState(true);
-  const [spellcheck, setSpellcheck] = useState(false);
-  const [pasteImageLink, setPasteImageLink] = useState(true);
+  const [editorTheme, setEditorTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      const localTheme = localStorage.getItem("editor-theme");
+      if (localTheme) {
+        return normalizeEditorTheme(localTheme);
+      }
+      const globalTheme = localStorage.getItem("vite-ui-theme");
+      if (globalTheme === "dark") return "dark";
+      if (globalTheme === "light") return "light";
 
-  const normalizeEditorTheme = useCallback((theme: string | null | undefined) => {
-    if (theme === "dark" || theme === "sepia" || theme === "nord") {
-      return theme;
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        return "dark";
+      }
     }
     return "light";
-  }, []);
+  });
+  const [showWordCount, setShowWordCount] = useState(() => {
+    if (typeof window !== "undefined") {
+      const localVal = localStorage.getItem("pref-show-word-count");
+      return localVal !== null ? localVal === "true" : true;
+    }
+    return true;
+  });
+  const [spellcheck, setSpellcheck] = useState(() => {
+    if (typeof window !== "undefined") {
+      const localVal = localStorage.getItem("pref-spellcheck");
+      return localVal !== null ? localVal === "true" : false;
+    }
+    return false;
+  });
+  const [pasteImageLink, setPasteImageLink] = useState(() => {
+    if (typeof window !== "undefined") {
+      const localVal = localStorage.getItem("pref-paste-image-link");
+      return localVal !== null ? localVal === "true" : true;
+    }
+    return true;
+  });
 
   useEffect(() => {
     import("@/services/api").then(({ getApiOrigin }) => {
@@ -117,7 +150,7 @@ export default function NotesPage() {
         setPasteImageLink(localStorage.getItem("pref-paste-image-link") !== "false");
       });
     });
-  }, [normalizeEditorTheme]);
+  }, []);
 
   const handleThemeChange = (newTheme: string) => {
     const normalizedTheme = normalizeEditorTheme(newTheme);
@@ -601,7 +634,13 @@ export default function NotesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className={cn(
+        "fixed inset-0 z-50 flex h-screen w-screen items-center justify-center bg-background",
+        editorTheme === "light" && "theme-light-editor",
+        editorTheme === "dark" && "theme-dark-editor",
+        editorTheme === "sepia" && "theme-sepia-editor",
+        editorTheme === "nord" && "theme-nord-editor"
+      )}>
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/60" />
           <span className="text-xs text-muted-foreground/50">Loading...</span>
@@ -638,7 +677,7 @@ export default function NotesPage() {
       )}
 
       {/* ═══════════════ SIDEBAR ═══════════════ */}
-      <NotesPageSidebar
+      <NotesSidebar
         isSidebarPinned={isSidebarPinned}
         sidebarHovered={sidebarHovered}
         onSidebarHover={setSidebarHovered}
@@ -681,7 +720,7 @@ export default function NotesPage() {
       <div className="flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative bg-background text-foreground transition-all duration-300">
         {activeNote && !activeNote.meta.trash ? (
           <>
-            <EditorHeader
+            <NotesEditorHeader
               title={title}
               metadata={metadata}
               ancestors={ancestors}
@@ -701,7 +740,7 @@ export default function NotesPage() {
               onOpenCoverPicker={() => setShowCoverPicker(true)}
             />
 
-            <PageCanvas
+            <NoteEditorCanvas
               title={title}
               metadata={metadata}
               bodyMarkdown={bodyMarkdown}
@@ -723,7 +762,7 @@ export default function NotesPage() {
             />
           </>
         ) : (
-          <EmptyState
+          <NotesEmptyState
             sidebarVisible={sidebarVisible}
             notesCount={notes.length}
             onCreateNote={() => handleCreateNote()}
@@ -732,7 +771,7 @@ export default function NotesPage() {
         )}
       </div>
 
-      <EmojiPicker
+      <NotesEmojiPicker
         isOpen={showEmojiPicker}
         onSelect={(emoji) => {
           updateMetadataField("icon", emoji);
@@ -743,7 +782,7 @@ export default function NotesPage() {
         theme={editorTheme}
       />
 
-      <CoverPicker
+      <NotesCoverPicker
         isOpen={showCoverPicker}
         onSelect={(cover) => {
           updateMetadataField("cover", cover);
@@ -758,7 +797,7 @@ export default function NotesPage() {
         theme={editorTheme}
       />
 
-      <SettingsModal
+      <NotesSettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         editorTheme={editorTheme}
@@ -770,7 +809,7 @@ export default function NotesPage() {
       />
 
       {sidebarMenu && (
-        <SidebarContextMenu
+        <NotesSidebarContextMenu
           note={sidebarMenu.note}
           position={{ x: sidebarMenu.x, y: sidebarMenu.y }}
           onClose={() => setSidebarMenu(null)}

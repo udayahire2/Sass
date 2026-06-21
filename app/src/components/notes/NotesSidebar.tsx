@@ -15,7 +15,7 @@ import { SidebarTreeNode } from "./SidebarTreeNode";
 import type { NoteWithMeta, TreeNode } from "./types";
 import { useNavigate } from "react-router-dom";
 
-interface NotesPageSidebarProps {
+interface NotesSidebarProps {
   isSidebarPinned: boolean;
   sidebarHovered: boolean;
   onSidebarHover: (hovered: boolean) => void;
@@ -51,7 +51,7 @@ interface NotesPageSidebarProps {
   onContextMenu?: (note: NoteWithMeta, e: React.MouseEvent) => void;
 }
 
-export function NotesPageSidebar({
+export function NotesSidebar({
   isSidebarPinned,
   sidebarHovered,
   onSidebarHover,
@@ -85,7 +85,7 @@ export function NotesPageSidebar({
   onToggleFavorite,
   onOpenSettings,
   onContextMenu,
-}: NotesPageSidebarProps) {
+}: NotesSidebarProps) {
   const navigate = useNavigate();
   const sidebarVisible = isSidebarPinned || sidebarHovered;
 
@@ -103,20 +103,20 @@ export function NotesPageSidebar({
       }}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 min-h-[46px]">
+      <div className="flex items-center justify-between px-3 py-3 min-h-[48px] group/header">
         <button
           onClick={() => navigate("/dashboard/student")}
-          className="flex items-center gap-2 rounded-[4px] px-2 py-1 text-sm font-medium text-[color:var(--sidebar-foreground)] hover:bg-sidebar-accent transition-colors truncate max-w-[180px]"
+          className="flex items-center gap-2.5 rounded-[4px] px-2 py-1 text-sm font-medium text-[color:var(--sidebar-foreground)] hover:bg-sidebar-accent transition-colors truncate max-w-[180px]"
         >
-          <div className="h-5 w-5 rounded-[4px] bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground shrink-0">
+          <div className="h-[22px] w-[22px] rounded-[4px] bg-foreground text-background flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm">
             S
           </div>
-          <span className="truncate text-[13px]">Study Notes</span>
+          <span className="truncate text-[14px] font-semibold tracking-tight">Study Notes</span>
         </button>
         <button
           onClick={onTogglePin}
-          className="rounded-[4px] p-1 text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all"
-          title={isSidebarPinned ? "Collapse sidebar" : "Pin sidebar"}
+          className="rounded-[4px] p-1.5 text-[color:var(--sidebar-foreground)] opacity-0 group-hover/header:opacity-60 hover:!opacity-100 hover:bg-sidebar-accent transition-all"
+          title={isSidebarPinned ? "Close sidebar" : "Keep open"}
         >
           <ChevronsLeft
             className={cn(
@@ -128,15 +128,15 @@ export function NotesPageSidebar({
       </div>
 
       {/* Search */}
-      <div className="px-2 pb-1">
-        <div className="flex items-center gap-2 rounded-lg hover:bg-sidebar-accent px-2.5 py-[5px] text-[color:var(--sidebar-foreground)] transition-colors">
-          <Search className="h-3.5 w-3.5 opacity-50 shrink-0" />
+      <div className="px-3 pb-2 mt-1">
+        <div className="flex items-center gap-2 rounded-[6px] hover:bg-sidebar-accent px-2 py-1.5 text-[color:var(--sidebar-foreground)] transition-colors cursor-pointer group/search">
+          <Search className="h-[14px] w-[14px] opacity-40 shrink-0 group-hover/search:opacity-70 transition-opacity" />
           <input
             type="text"
             placeholder="Search"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="flex-1 bg-transparent border-none text-[13px] outline-none placeholder:opacity-40"
+            className="flex-1 bg-transparent border-none text-[13px] outline-none placeholder:opacity-40 font-medium"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange("")}>

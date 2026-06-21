@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 
 import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
 
 export type FeatureIcon = ComponentType<{
   className?: string;
@@ -59,8 +58,11 @@ const FEATURE_ITEMS: FeatureItem[] = [
 
 export function FeatureGrid() {
   return (
-    <section className="py-20">
-      <div className="mx-auto max-w-4xl px-4">
+    <section className="relative py-20 md:py-24 dark:bg-[radial-gradient(35%_128px_at_50%_0%,--theme(--color-foreground/.04),transparent)]">
+      {/* Top Divider & Decoration */}
+      <div className="absolute top-0 right-1/2 left-1/2 h-px w-full max-w-5xl -translate-x-1/2 bg-linear-to-r via-border/60" />
+
+      <div className="relative mx-auto max-w-5xl px-6 md:px-8">
         {/* Header Section */}
         <div className="mb-16 space-y-4 max-w-2xl">
           <div className="text-[10px] font-bold text-primary uppercase tracking-widest">
@@ -74,18 +76,18 @@ export function FeatureGrid() {
           </p>
         </div>
 
-        {/* Minimal Grid Layout with thin borders */}
-        <div className="grid grid-cols-1 border-t border-l border-border/60 sm:grid-cols-2">
+        {/* Minimal Grid Layout with thin borders and rounded corners */}
+        <div className="grid grid-cols-1 border-t border-l border-border/40 sm:grid-cols-2 rounded-2xl overflow-hidden">
           {FEATURE_ITEMS.map((feature) => (
             <Link
               key={feature.id}
               to={feature.href}
-              className="group block border-r border-b border-border/60 p-8 transition-colors duration-200 hover:bg-muted/10"
+              className="group block border-r border-b border-border/40 p-8 transition-colors duration-250 hover:bg-muted/30"
             >
               <div className="flex h-full flex-col justify-between space-y-8">
                 {/* Icon & Arrow */}
                 <div className="flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/80 bg-muted/10 text-muted-foreground transition-colors duration-200 group-hover:bg-primary/5 group-hover:text-primary group-hover:border-primary/20">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/80 bg-muted/15 text-muted-foreground transition-all duration-250 group-hover:bg-primary/8 group-hover:text-primary group-hover:border-primary/30 shadow-xs">
                     <feature.icon className="h-4.5 w-4.5" />
                   </div>
                   <div className="opacity-0 transition-opacity duration-200 group-hover:opacity-100">

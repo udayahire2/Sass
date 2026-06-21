@@ -1,7 +1,7 @@
 import SignUp from "@/components/auth/SignUp";
 import { Logo } from "@/components/ui/logo";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import backgroundImage from "@/assets/images/loginpage.png"; // reuse same background image
+import backgroundImage from "@/assets/loginpage.png"; // reuse same background image
 
 export default function SignUpPage() {
   return (

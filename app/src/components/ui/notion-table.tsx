@@ -107,14 +107,15 @@ export function NotionTable({
   const [hoveredColHandleIndex, setHoveredColHandleIndex] = useState<number | null>(null);
   const [hoveredRowHandleIndex, setHoveredRowHandleIndex] = useState<number | null>(null);
 
-  // Toggle for showing structural layout controls (double click)
-  const [showControls, setShowControls] = useState(false);
-
   // Custom Floating Popover State (directly attached to grabbed pills)
   const [activeMenu, setActiveMenu] = useState<{
     type: 'col' | 'row';
     index: number;
   } | null>(null);
+
+  // Toggle for showing structural layout controls
+  const [isHovered, setIsHovered] = useState(false);
+  const showControls = isHovered || focusedCell !== null || activeMenu !== null;
 
   // Global Table Width state
   const [tableWidth, setTableWidth] = useState<number | string>('100%');
@@ -151,7 +152,6 @@ export function NotionTable({
         setActiveMenu(null);
         setHoveredColHandleIndex(null);
         setHoveredRowHandleIndex(null);
-        setShowControls(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -219,21 +219,6 @@ export function NotionTable({
     if (clickTimeoutRef.current) {
       window.clearTimeout(clickTimeoutRef.current);
     }
-
-    clickTimeoutRef.current = window.setTimeout(() => {
-      setShowControls(false);
-      clickTimeoutRef.current = null;
-    }, 200);
-  };
-
-  const handleCellDoubleClick = (rowIndex: number, colIndex: number) => {
-    if (!editable) return;
-    if (clickTimeoutRef.current) {
-      window.clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-    setFocusedCell({ rowIndex, colIndex });
-    setShowControls(prev => !prev);
   };
 
   const handleCellChange = (rowIndex: number, colIndex: number, val: string) => {
@@ -430,7 +415,6 @@ export function NotionTable({
     setActiveMenu(null);
     setHoveredColHandleIndex(null);
     setHoveredRowHandleIndex(null);
-    setShowControls(false);
   };
 
   // ── Grab Pill Selection Click Handlers ──
@@ -453,8 +437,10 @@ export function NotionTable({
   return (
     <div 
       ref={containerRef}
-      className={cn("relative select-none font-sans text-sm text-foreground my-3 group/table-container max-w-full", className)}
+      className={cn("relative select-none font-sans text-sm text-foreground my-3 group/table-container max-w-full mr-auto ml-0", className)}
       onKeyDown={handleKeyDown}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       tabIndex={0}
       style={{ width: tableWidth }}
     >
@@ -485,7 +471,6 @@ export function NotionTable({
                       isColHighlighted && "bg-violet-500/10 dark:bg-violet-950/30"
                     )}
                     onClick={() => handleCellClick(-1, colIndex)}
-                    onDoubleClick={() => handleCellDoubleClick(-1, colIndex)}
                     onMouseEnter={() => setHoveredColIndex(colIndex)}
                   >
                     <div className="flex items-center justify-between px-3.5 h-full relative">
@@ -588,7 +573,6 @@ export function NotionTable({
                       <TableCell
                         key={`${rowIndex}-${colIndex}`}
                         onClick={() => handleCellClick(rowIndex, colIndex)}
-                        onDoubleClick={() => handleCellDoubleClick(rowIndex, colIndex)}
                         onMouseEnter={() => setHoveredColIndex(colIndex)}
                         className={cn(
                           "relative border-r border-border p-2.5 h-10 align-top select-text whitespace-pre-wrap outline-none font-sans text-sm transition-all text-foreground break-words last:border-r-0 bg-transparent rounded-none",

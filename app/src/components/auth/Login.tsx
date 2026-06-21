@@ -117,7 +117,7 @@ const Login = () => {
       {/* Social Logins */}
       <div className="w-full flex flex-col gap-3.5">
         <Button variant="outline" className="w-full flex gap-2">
-          <Google />
+          <Google/>
           Continue with Google
         </Button>
 

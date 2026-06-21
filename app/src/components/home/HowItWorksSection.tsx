@@ -1,66 +1,86 @@
 import { useState, useEffect, useRef } from "react";
-import { BookOpen, CheckCircle2, FileText, Search, Upload, Filter, Share2, Layers } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle2,
+  FileText,
+  Search,
+  Upload,
+  Filter,
+  Share2,
+  Layers,
+} from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import gsap from "gsap";
 
 const roleSteps = {
   students: [
     {
-      id: "01", 
-      title: "Choose branch",
-      description: "Select your engineering branch and semester to view a filtered subject list.",
+      id: "01",
+      title: "Choose Branch",
+      description:
+        "Select your engineering branch and semester to instantly access relevant study materials.",
       icon: Layers,
     },
     {
       id: "02",
-      title: "Pick subject",
-      description: "Access curated notes, previous papers, and syllabus relevant to that subject.",
+      title: "Pick Subject",
+      description:
+        "Browse notes, previous year papers, practicals, syllabus and important resources.",
       icon: BookOpen,
     },
     {
       id: "03",
-      title: "Start studying",
-      description: "Read documents with our centered viewer and review peer ratings.",
+      title: "Start Learning",
+      description:
+        "Study directly inside the platform with a distraction-free reading experience.",
       icon: CheckCircle2,
     },
   ],
+
   uploaders: [
     {
       id: "01",
-      title: "Prepare material",
-      description: "Format your notes, previous question papers, or syllabus files.",
+      title: "Prepare Material",
+      description:
+        "Create clean notes, question papers, practical files or academic resources.",
       icon: FileText,
     },
     {
       id: "02",
-      title: "Submit for review",
-      description: "Upload via your dashboard. The content enters the moderation queue.",
+      title: "Submit Review",
+      description:
+        "Upload your content through the contributor dashboard for moderation.",
       icon: Upload,
     },
     {
       id: "03",
-      title: "Publish to hub",
-      description: "Once approved by administrators, your contribution goes live.",
+      title: "Publish Resource",
+      description:
+        "After approval, your material becomes available to thousands of students.",
       icon: Share2,
     },
   ],
+
   searchers: [
     {
       id: "01",
-      title: "Instant query",
-      description: "Use global search (Ctrl+K) to find topics or subjects instantly.",
+      title: "Search Instantly",
+      description:
+        "Use global search to quickly find subjects, topics or study documents.",
       icon: Search,
     },
     {
       id: "02",
-      title: "Filter contents",
-      description: "Narrow results down by document type, branch, or semester.",
+      title: "Apply Filters",
+      description:
+        "Filter by branch, semester, document type or specific academic category.",
       icon: Filter,
     },
     {
       id: "03",
-      title: "Direct access",
-      description: "Jump straight into the document view without navigating hierarchies.",
+      title: "Open & Study",
+      description:
+        "Jump directly into the document without navigating multiple pages.",
       icon: CheckCircle2,
     },
   ],
@@ -68,119 +88,208 @@ const roleSteps = {
 
 export function HowItWorksSection() {
   const roles = Object.keys(roleSteps);
-  const [activeTab, setActiveTab] = useState(roles[0]);
+
+  const [activeTab, setActiveTab] = useState("students");
+
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // GSAP stagger entry animation
   useEffect(() => {
-    if (containerRef.current) {
-      const stepCards = containerRef.current.querySelectorAll(".gsap-step-card");
-      
-      gsap.killTweensOf(stepCards);
-      gsap.set(stepCards, { opacity: 0, y: 10 });
-      
-      gsap.to(stepCards, {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        stagger: 0.1,
-        ease: "power2.out",
-        overwrite: "auto"
-      });
-    }
+    if (!containerRef.current) return;
+
+    const cards =
+      containerRef.current.querySelectorAll(".workflow-card");
+
+    gsap.killTweensOf(cards);
+
+    gsap.set(cards, {
+      opacity: 0,
+      y: 20,
+    });
+
+    gsap.to(cards, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      stagger: 0.12,
+      ease: "power2.out",
+    });
   }, [activeTab]);
 
-  // Automated tab rotation
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveTab((currentTab) => {
-        const currentIndex = roles.indexOf(currentTab);
-        const nextIndex = (currentIndex + 1) % roles.length;
-        return roles[nextIndex];
+      setActiveTab((current) => {
+        const currentIndex = roles.indexOf(current);
+        return roles[(currentIndex + 1) % roles.length];
       });
-    }, 4500); // 4.5 seconds rotation threshold for relaxed reading
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <section className="py-20 bg-background">
-      <div className="container px-4 mx-auto max-w-4xl">
-        
+    <section className="relative py-20 md:py-24 dark:bg-[radial-gradient(35%_128px_at_50%_0%,--theme(--color-foreground/.04),transparent)]">
+      {/* Top Divider & Decoration */}
+      <div className="absolute top-0 right-1/2 left-1/2 h-px w-full max-w-5xl -translate-x-1/2 bg-linear-to-r via-border/60" />
+
+      <div className="relative mx-auto max-w-5xl px-6 md:px-8">
         {/* Header */}
-        <div className="mb-14 space-y-4 max-w-2xl">
-          <div className="text-[10px] font-bold text-primary uppercase tracking-widest">
+        <div className="mx-auto mb-16 max-w-3xl text-center">
+          <div className="inline-flex items-center rounded-full border border-border bg-muted/50 px-4 py-1.5 text-xs font-medium text-primary">
             Platform Workflow
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Simple, automated steps.
+
+          <h2 className="mt-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+            How Study Mate Works
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            We've eliminated complicated steps. Pick a tab below to see how different users navigate and utilize StudyHub.
+
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            Access notes, previous year papers, practical files and study
+            resources through a simple and structured workflow designed for
+            engineering students.
           </p>
         </div>
 
-        <Tabs 
-          value={activeTab} 
-          onValueChange={setActiveTab} 
-          className="w-full space-y-12"
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
         >
-          {/* Minimalist Tabs List */}
-          <div className="flex border-b border-border/60">
-            <TabsList className="flex bg-transparent rounded-none p-0 h-auto gap-6 sm:gap-10">
-              <TabsTrigger 
-                value="students" 
-                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground rounded-none border-b-2 border-transparent px-1 pb-4 pt-0 text-xs font-semibold text-muted-foreground transition-all duration-200 cursor-pointer shadow-none"
+          {/* Tabs */}
+          <div className="mb-14 flex justify-center">
+            <TabsList className="h-auto rounded-xl border border-border bg-card p-1 shadow-sm">
+              <TabsTrigger
+                value="students"
+                className="
+                  rounded-lg
+                  px-6
+                  py-2.5
+                  text-sm
+                  font-medium
+                  transition-all
+                  data-[state=active]:bg-primary
+                  data-[state=active]:text-white
+                "
               >
-                For Students
+                Students
               </TabsTrigger>
-              <TabsTrigger 
-                value="uploaders" 
-                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground rounded-none border-b-2 border-transparent px-1 pb-4 pt-0 text-xs font-semibold text-muted-foreground transition-all duration-200 cursor-pointer shadow-none"
+
+              <TabsTrigger
+                value="uploaders"
+                className="
+                  rounded-lg
+                  px-6
+                  py-2.5
+                  text-sm
+                  font-medium
+                  transition-all
+                  data-[state=active]:bg-primary
+                  data-[state=active]:text-white
+                "
               >
-                For Contributors
+                Contributors
               </TabsTrigger>
-              <TabsTrigger 
-                value="searchers" 
-                className="data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground rounded-none border-b-2 border-transparent px-1 pb-4 pt-0 text-xs font-semibold text-muted-foreground transition-all duration-200 cursor-pointer shadow-none"
+
+              <TabsTrigger
+                value="searchers"
+                className="
+                  rounded-lg
+                  px-6
+                  py-2.5
+                  text-sm
+                  font-medium
+                  transition-all
+                  data-[state=active]:bg-primary
+                  data-[state=active]:text-white
+                "
               >
-                For Searchers
+                Searchers
               </TabsTrigger>
             </TabsList>
           </div>
 
-          {/* Steps */}
           <div ref={containerRef}>
             {Object.entries(roleSteps).map(([role, steps]) => (
-              <TabsContent key={role} value={role} className="mt-0 outline-none">
-                <div className="grid gap-8 sm:grid-cols-3">
-                  {steps.map((step) => {
+              <TabsContent
+                key={role}
+                value={role}
+                className="mt-0"
+              >
+                <div className="grid gap-6 md:grid-cols-3">
+                  {steps.map((step, index) => {
                     const Icon = step.icon;
 
                     return (
                       <div
                         key={step.title}
-                        className="gsap-step-card group flex flex-col space-y-4 will-change-transform"
+                        className="
+                          workflow-card
+                          group
+                          relative
+                          rounded-2xl
+                          border
+                          border-border
+                          bg-card
+                          p-7
+                          transition-all
+                          duration-300
+                          hover:-translate-y-0.5
+                          hover:border-primary/30
+                          hover:shadow-lg
+                        "
                       >
-                        {/* Number & Icon Wrapper */}
-                        <div className="flex items-center justify-between pb-3 border-b border-border/40 group-hover:border-primary/30 transition-colors duration-200">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border/80 bg-muted/10 text-muted-foreground transition-colors duration-200 group-hover:text-primary group-hover:border-primary/20">
-                            <Icon className="h-4 w-4" />
+                        {/* connector */}
+                        {index !== steps.length - 1 && (
+                          <div
+                            className="
+                              absolute
+                              left-full
+                              top-10
+                              hidden
+                              h-px
+                              w-6
+                              bg-border/60
+                              md:block
+                            "
+                          />
+                        )}
+
+                        {/* top */}
+                        <div className="mb-6 flex items-center justify-between">
+                          <div
+                            className="
+                              flex
+                              h-12
+                              w-12
+                              items-center
+                              justify-center
+                              rounded-xl
+                              bg-primary/10
+                              text-primary
+                            "
+                          >
+                            <Icon className="h-5 w-5" />
                           </div>
-                          <span className="text-xl font-light font-mono text-muted-foreground/30 group-hover:text-primary/30 transition-colors duration-200">
+
+                          <span
+                            className="
+                              text-4xl
+                              font-bold
+                              text-primary/15
+                              select-none
+                            "
+                          >
                             {step.id}
                           </span>
                         </div>
 
-                        {/* Text Content */}
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-bold text-foreground">
-                            {step.title}
-                          </h3>
-                          <p className="text-xs leading-relaxed text-muted-foreground">
-                            {step.description}
-                          </p>
-                        </div>
+                        {/* content */}
+                        <h3 className="mb-2 text-lg font-semibold text-foreground">
+                          {step.title}
+                        </h3>
+
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {step.description}
+                        </p>
                       </div>
                     );
                   })}

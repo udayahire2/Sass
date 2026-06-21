@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Search, Upload, X } from "lucide-react";
+import {
+  BookOpen,
+  Search,
+  FileText,
+  GraduationCap,
+  X,
+  ArrowRight,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -10,18 +17,22 @@ export function OnboardingModal() {
   const { user } = useLocalAuth();
 
   useEffect(() => {
-    // Only show to students or unauthenticated users, and only once
-    const hasSeenOnboarding = localStorage.getItem("has_seen_onboarding");
+    const hasSeenOnboarding = localStorage.getItem(
+      "has_seen_onboarding"
+    );
+
     if (!hasSeenOnboarding && (!user || user.role === "student")) {
-      // Small delay for better UX
-      const timer = setTimeout(() => setIsOpen(true), 1500);
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+      }, 1200);
+
       return () => clearTimeout(timer);
     }
   }, [user]);
 
   const handleDismiss = () => {
-    setIsOpen(false);
     localStorage.setItem("has_seen_onboarding", "true");
+    setIsOpen(false);
   };
 
   return (
@@ -29,85 +40,264 @@ export function OnboardingModal() {
       {isOpen && (
         <>
           {/* Backdrop */}
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleDismiss}
-            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md"
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="pointer-events-auto relative w-full max-w-lg overflow-hidden rounded-2xl border border-border/50 bg-background shadow-2xl"
-            >
-              <div className="absolute right-4 top-4 z-10">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full bg-muted/50 text-muted-foreground hover:bg-muted"
-                  onClick={handleDismiss}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
 
-              {/* Header Image/Pattern */}
-              <div className="h-32 w-full bg-gradient-to-br from-primary/20 via-primary/5 to-background p-6 flex items-end">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background shadow-sm ring-1 ring-border/50">
-                  <BookOpen className="h-6 w-6 text-primary" />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{
+                opacity: 0,
+                scale: 0.96,
+                y: 24,
+              }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                scale: 0.96,
+                y: 24,
+              }}
+              transition={{
+                duration: 0.25,
+                ease: "easeOut",
+              }}
+              className="
+                pointer-events-auto
+                relative
+                w-full
+                max-w-xl
+                overflow-hidden
+                rounded-3xl
+                border
+                border-border
+                bg-card
+                shadow-2xl
+              "
+            >
+              {/* Close */}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDismiss}
+                className="
+                  absolute
+                  right-4
+                  top-4
+                  z-10
+                  h-8
+                  w-8
+                  rounded-full
+                  text-muted-foreground
+                "
+              >
+                <X className="h-4 w-4" />
+              </Button>
+
+              {/* Top Section */}
+
+              <div className="relative overflow-hidden border-b border-border">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent" />
+
+                <div className="relative p-8">
+                  <div
+                    className="
+                      mb-5
+                      flex
+                      h-14
+                      w-14
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-primary/10
+                      text-primary
+                    "
+                  >
+                    <GraduationCap className="h-7 w-7" />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div
+                      className="
+                        inline-flex
+                        items-center
+                        rounded-full
+                        border
+                        border-border
+                        bg-background/70
+                        px-3
+                        py-1
+                        text-xs
+                        font-medium
+                        text-primary
+                      "
+                    >
+                      Welcome to Study Mate
+                    </div>
+
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                      Everything you need for your semester.
+                    </h2>
+
+                    <p className="max-w-lg text-muted-foreground">
+                      Access notes, previous year question papers,
+                      practical files and syllabus resources organized
+                      by branch and semester.
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6 sm:p-8">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground">
-                  Before you start...
-                </h2>
-                <p className="mt-2 text-muted-foreground">
-                  Welcome to NMU Study Hub! Here's everything you need to know to get the most out of the platform.
-                </p>
+              {/* Features */}
 
-                <div className="mt-8 space-y-6">
+              <div className="p-8">
+                <div className="space-y-5">
                   <div className="flex gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
+                    <div
+                      className="
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-primary/10
+                        text-primary
+                      "
+                    >
                       <Search className="h-5 w-5" />
                     </div>
+
                     <div>
-                      <h3 className="font-semibold text-foreground">Find exactly what you need</h3>
+                      <h3 className="font-semibold text-foreground">
+                        Find resources instantly
+                      </h3>
+
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Search syllabus by subject code (e.g., EC-101). Use bookmarks to save materials for later.
+                        Search subjects, notes and materials in
+                        seconds using our fast search experience.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10 text-green-500">
-                      <Upload className="h-5 w-5" />
+                    <div
+                      className="
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-primary/10
+                        text-primary
+                      "
+                    >
+                      <BookOpen className="h-5 w-5" />
                     </div>
+
                     <div>
-                      <h3 className="font-semibold text-foreground">Share and help others</h3>
+                      <h3 className="font-semibold text-foreground">
+                        Semester-wise organization
+                      </h3>
+
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Upload notes, papers, or study guides. They'll be reviewed within 24-48 hours.
+                        Browse study materials neatly organized by
+                        branch, semester and subject.
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {["Computer", "IT", "Civil", "Mechanical", "Electrical"].map(branch => (
-                          <span key={branch} className="inline-flex items-center rounded-md bg-muted/50 px-2 py-1 text-[10px] font-medium text-muted-foreground">
-                            {branch}
-                          </span>
-                        ))}
-                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div
+                      className="
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-xl
+                        bg-primary/10
+                        text-primary
+                      "
+                    >
+                      <FileText className="h-5 w-5" />
+                    </div>
+
+                    <div>
+                      <h3 className="font-semibold text-foreground">
+                        Community powered
+                      </h3>
+
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Students and contributors upload notes,
+                        papers and practical files to help others.
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-border/40">
-                  <Button className="w-full" size="lg" onClick={handleDismiss}>
-                    Got it, let's start
+                {/* Quick Stats */}
+
+                <div
+                  className="
+                    mt-8
+                    grid
+                    grid-cols-3
+                    gap-3
+                    rounded-2xl
+                    border
+                    border-border
+                    bg-muted/30
+                    p-4
+                  "
+                >
+                  <div className="text-center">
+                    <div className="text-lg font-bold">Notes</div>
+                    <div className="text-xs text-muted-foreground">
+                      Study Material
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="text-lg font-bold">PYQs</div>
+                    <div className="text-xs text-muted-foreground">
+                      Previous Papers
+                    </div>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="text-lg font-bold">Free</div>
+                    <div className="text-xs text-muted-foreground">
+                      For Students
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+
+                <div className="mt-8">
+                  <Button
+                    size="lg"
+                    className="w-full gap-2"
+                    onClick={handleDismiss}
+                  >
+                    Start Exploring
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

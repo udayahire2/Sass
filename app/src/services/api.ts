@@ -201,7 +201,7 @@ export const fetchTopicById = async (topicId: string): Promise<Topic | null> => 
     return requestApiData<Topic | null>(`/topics/${topicId}`, null, 'Failed to fetch topic');
 };
 
-export const updateTopic = async (topicId: string, data: { title?: string; content_markdown?: string }): Promise<Topic> => {
+export const updateTopic = async (topicId: string, data: { title?: string; content_markdown?: string; video_url?: string }): Promise<Topic> => {
     const response = await fetch(buildApiUrl(`/topics/${topicId}`), {
         method: 'PUT',
         headers: {
@@ -213,6 +213,88 @@ export const updateTopic = async (topicId: string, data: { title?: string; conte
     const payload = await response.json();
     if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to update topic'));
     return parseApiData<Topic>(payload, {} as Topic);
+};
+
+export const createSubject = async (data: Partial<Subject>): Promise<Subject> => {
+    const response = await fetch(buildApiUrl('/subjects'), {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to create subject'));
+    return parseApiData<Subject>(payload, {} as Subject);
+};
+
+export const updateSubject = async (subjectId: string, data: Partial<Subject>): Promise<Subject> => {
+    const response = await fetch(buildApiUrl(`/subjects/${subjectId}`), {
+        method: 'PUT',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to update subject'));
+    return parseApiData<Subject>(payload, {} as Subject);
+};
+
+export const deleteSubject = async (subjectId: string): Promise<void> => {
+    const response = await fetch(buildApiUrl(`/subjects/${subjectId}`), {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to delete subject'));
+};
+
+export const createUnit = async (subjectId: string, data: Partial<Unit>): Promise<Unit> => {
+    const response = await fetch(buildApiUrl(`/subjects/${subjectId}/units`), {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to create unit'));
+    return parseApiData<Unit>(payload, {} as Unit);
+};
+
+export const updateUnit = async (unitId: string, data: Partial<Unit>): Promise<Unit> => {
+    const response = await fetch(buildApiUrl(`/units/${unitId}`), {
+        method: 'PUT',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to update unit'));
+    return parseApiData<Unit>(payload, {} as Unit);
+};
+
+export const deleteUnit = async (unitId: string): Promise<void> => {
+    const response = await fetch(buildApiUrl(`/units/${unitId}`), {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to delete unit'));
+};
+
+export const createTopic = async (unitId: string, data: Partial<Topic>): Promise<Topic> => {
+    const response = await fetch(buildApiUrl(`/units/${unitId}/topics`), {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to create topic'));
+    return parseApiData<Topic>(payload, {} as Topic);
+};
+
+export const deleteTopic = async (topicId: string): Promise<void> => {
+    const response = await fetch(buildApiUrl(`/topics/${topicId}`), {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to delete topic'));
 };
 
 // --- Notes API ---

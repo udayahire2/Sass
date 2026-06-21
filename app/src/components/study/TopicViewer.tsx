@@ -68,7 +68,6 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
   useEffect(() => {
     setIsVideoLoading(true);
     setHasVideoError(false);
-    // Scroll to top on topic change
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [topic.id]);
 
@@ -78,11 +77,9 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       ([entry]) => setShowStickyBar(!entry.isIntersecting),
       { threshold: 0, rootMargin: "-48px 0px 0px 0px" }
     );
-    
     if (heroRef.current) {
       observer.observe(heroRef.current);
     }
-    
     return () => observer.disconnect();
   }, [topic.id]);
 
@@ -91,10 +88,8 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
     if (!subject) {
       return { prevTopic: null, nextTopic: null, currentIndex: 0, totalTopics: 0 };
     }
-
     const allTopics = subject.units.flatMap((u) => u.topics);
     const idx = allTopics.findIndex((t) => t.id === topic.id);
-
     return {
       prevTopic: idx > 0 ? allTopics[idx - 1] : null,
       nextTopic: idx < allTopics.length - 1 ? allTopics[idx + 1] : null,
@@ -113,10 +108,8 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
 
   const handleMarkComplete = useCallback(async () => {
     if (isCompleted || isMarkingComplete) return;
-    
     setIsMarkingComplete(true);
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 700));
       await markComplete();
       onComplete?.();
@@ -128,7 +121,6 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
   const handleRetryVideo = useCallback(() => {
     setIsVideoLoading(true);
     setHasVideoError(false);
-    // Force iframe reload by updating key
     const iframe = videoContainerRef.current?.querySelector("iframe");
     if (iframe) {
       const src = iframe.src;
@@ -150,99 +142,51 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-3xl px-4 pb-24 sm:px-6 sm:pb-20"
+      className="mx-auto w-full max-w-3xl px-3 pb-28 sm:px-6 sm:pb-20"
     >
-      {/* ── Back Link ── */}
-      <div className="mb-6">
-        <Link
-          to={`/resources/${branch}/${semester}/${subjectId}`}
-          className="group inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-muted-foreground transition-all hover:bg-muted/60 hover:text-foreground -ml-2 focus:outline-none focus:ring-2 focus:ring-primary/20"
-          aria-label="Back to subject"
-        >
-          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-          {subjectData?.name || "Back to subject"}
-        </Link>
-      </div>
-
-      {/* ── Page Header (Hero) ── */}
-      <header ref={heroRef} className="mb-8 space-y-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <BookOpen className="h-7 w-7" strokeWidth={1.8} />
+      {/* ── Compact Header ── */}
+      <header ref={heroRef} className="mb-5 space-y-3">
+        {/* Back + Title row */}
+        <div className="flex items-start gap-2">
+          <Link
+            to={`/resources/${branch}/${semester}/${subjectId}`}
+            className="mt-0.5 rounded-full p-2 -ml-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+            aria-label="Back to subject"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
+              {topic.title}
+            </h1>
+            {topic.description && (
+              <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                {topic.description}
+              </p>
+            )}
+          </div>
         </div>
 
-        <h1 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-          {topic.title}
-        </h1>
-
-        {topic.description && (
-          <p className="text-base leading-relaxed text-muted-foreground">
-            {topic.description}
-          </p>
-        )}
-
-        {/* ── Page Properties ── */}
-        <div className="flex flex-col gap-2 border-y border-border/40 py-3 sm:gap-2">
-          {topic.estimatedTime && (
-            <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
-                Duration
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-foreground">
-                <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                {topic.estimatedTime}
-              </span>
+        {/* Progress bar + status */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>Progress</span>
+              <span>{currentIndex} / {totalTopics}</span>
             </div>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
-              Includes
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {hasVideo && (
-                <Badge variant="secondary" className="gap-1 bg-violet-500/10 text-violet-600 dark:text-violet-400">
-                  <Video className="h-3 w-3" /> Lecture
-                </Badge>
-              )}
-              {hasNotes && (
-                <Badge variant="secondary" className="gap-1 bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                  <BookOpen className="h-3 w-3" /> Notes
-                </Badge>
-              )}
-              {hasSummary && (
-                <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                  <Lightbulb className="h-3 w-3" /> Key Points
-                </Badge>
-              )}
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <motion.div
+                className="h-full rounded-full bg-primary"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercentage}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              />
             </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
-              Progress
-            </span>
-            <div className="flex flex-1 items-center gap-3">
-              <div className="h-1.5 flex-1 max-w-[200px] overflow-hidden rounded-full bg-muted">
-                <motion.div
-                  className="h-full rounded-full bg-primary"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPercentage}%` }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                />
-              </div>
-              <span className="text-xs text-muted-foreground whitespace-nowrap">
-                {currentIndex} of {totalTopics}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="w-28 shrink-0 text-muted-foreground/70 font-medium">
-              Status
-            </span>
+          <div className="shrink-0">
             {isCompleted ? (
-              <Badge variant="default" className="gap-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-3 w-3" /> Completed
+              <Badge variant="default" className="gap-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs">
+                <CheckCircle2 className="h-3 w-3" /> Done
               </Badge>
             ) : (
               <Button
@@ -250,61 +194,66 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
                 size="sm"
                 onClick={handleMarkComplete}
                 disabled={isMarkingComplete}
-                className="h-auto gap-1.5 px-2.5 py-1 text-xs"
-                aria-label="Mark topic as complete"
+                className="h-8 gap-1.5 px-3 text-xs"
               >
                 {isMarkingComplete ? (
-                  <>
-                    <Loader2 className="h-3 w-3 animate-spin" /> Saving...
-                  </>
+                  <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
-                  "Mark complete"
+                  <>Mark done</>
                 )}
               </Button>
             )}
           </div>
         </div>
+
+        {/* Metadata chips – scrollable horizontally on mobile */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide [-webkit-overflow-scrolling:touch]">
+          {topic.estimatedTime && (
+            <Badge variant="outline" className="shrink-0 gap-1 text-xs font-normal">
+              <Clock className="h-3 w-3" /> {topic.estimatedTime}
+            </Badge>
+          )}
+          {hasVideo && (
+            <Badge variant="secondary" className="shrink-0 gap-1 bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs">
+              <Video className="h-3 w-3" /> Video
+            </Badge>
+          )}
+          {hasNotes && (
+            <Badge variant="secondary" className="shrink-0 gap-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs">
+              <BookOpen className="h-3 w-3" /> Notes
+            </Badge>
+          )}
+          {hasSummary && (
+            <Badge variant="secondary" className="shrink-0 gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs">
+              <Lightbulb className="h-3 w-3" /> Key points
+            </Badge>
+          )}
+        </div>
       </header>
 
       {/* ── Video Section ── */}
       {hasVideo && (
-        <section className="mb-8">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">
-              Video Lecture
-            </h2>
-          </div>
-
-          <div
-            ref={videoContainerRef}
-            className="relative aspect-video w-full overflow-hidden rounded-xl bg-black/5 ring-1 ring-border/40"
-          >
+        <section className="mb-6">
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black/5 ring-1 ring-border/40">
             {isVideoLoading && !hasVideoError && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                  <span className="text-xs text-muted-foreground">Loading video...</span>
+                  <span className="text-xs text-muted-foreground">Loading video…</span>
                 </div>
               </div>
             )}
-
             {hasVideoError ? (
               <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-muted/20 p-6 text-center">
                 <AlertCircle className="h-8 w-8 text-muted-foreground/60" />
                 <div>
                   <p className="text-sm font-medium text-foreground">Video unavailable</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    The video failed to load. Please try again or continue with the notes.
+                    Please try again or continue with the notes.
                   </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRetryVideo}
-                  className="gap-2"
-                >
-                  <RefreshCw className="h-3.5 w-3.5" />
-                  Retry
+                <Button variant="outline" size="sm" onClick={handleRetryVideo} className="gap-2">
+                  <RefreshCw className="h-3.5 w-3.5" /> Retry
                 </Button>
               </div>
             ) : (
@@ -313,7 +262,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
                 width="100%"
                 height="100%"
                 src={`https://www.youtube.com/embed/${topic.youtubeVideoId}?rel=0&modestbranding=1&playsinline=1`}
-                title={`Video lesson: ${topic.title}`}
+                title={`Video: ${topic.title}`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="absolute inset-0"
@@ -330,17 +279,17 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         </section>
       )}
 
-      {/* ── Key Points Section ── */}
+      {/* ── Key Points – highlighted for quick grasp ── */}
       {hasSummary && topic.summaryPoints && (
-        <section className="mb-8">
-          <div className="rounded-xl border border-amber-200/50 bg-amber-50/50 p-5 dark:border-amber-500/20 dark:bg-amber-500/[0.06]">
-            <div className="mb-3 flex items-center gap-2">
+        <section className="mb-6">
+          <div className="rounded-xl border border-amber-200/50 bg-amber-50/50 p-4 dark:border-amber-500/20 dark:bg-amber-500/[0.06]">
+            <div className="mb-2 flex items-center gap-2">
               <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-300">
-                Key Points — Quick Revision
+                Key Takeaways
               </h3>
             </div>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {topic.summaryPoints.map((point, i) => (
                 <li
                   key={i}
@@ -355,17 +304,10 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         </section>
       )}
 
-      {/* ── Topic Content Section ── */}
-      <section className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary/80" strokeWidth={1.8} />
-            Topic Content
-          </h2>
-        </div>
-
+      {/* ── Topic Content ── */}
+      <section className="mb-6">
         {hasNotes ? (
-          <div className="rounded-xl border border-border/40 bg-background p-4 overflow-hidden transition-shadow duration-200 hover:shadow-sm sm:p-5">
+          <div className="rounded-xl border border-border/40 bg-background p-3 sm:p-5 overflow-hidden transition-shadow hover:shadow-sm">
             <RichTextEditor
               content={topic.contentMarkdown || topic.markdownContent || ""}
               onChange={() => {}}
@@ -373,29 +315,29 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
             />
           </div>
         ) : (
-          <div className="rounded-xl border border-dashed border-border/50 bg-muted/10 p-8 text-center">
+          <div className="rounded-xl border border-dashed border-border/50 bg-muted/10 p-6 text-center">
             <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/30" />
-            <p className="mt-3 text-sm font-medium text-foreground">Content is not available yet</p>
+            <p className="mt-3 text-sm font-medium text-foreground">Content not available yet</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Continue with the video lecture for this topic.
+              Watch the video lecture above.
             </p>
           </div>
         )}
       </section>
 
       {/* ── Navigation ── */}
-      <nav className="border-t border-border/40 pt-8 pb-4">
+      <nav className="border-t border-border/40 pt-6">
         <div className="grid gap-3 sm:grid-cols-2">
           {prevTopic ? (
             <Link
               to={getTopicUrl(prevTopic.id)}
-              className="group flex items-center gap-3 rounded-xl border border-border/50 bg-background p-4 transition-all duration-200 hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="group flex items-center gap-3 rounded-xl border border-border/50 bg-background p-3 transition-all hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
-                <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                <ChevronLeft className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   Previous
                 </span>
                 <span className="block truncate text-sm font-medium text-foreground">
@@ -410,34 +352,34 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
           {nextTopic ? (
             <Link
               to={getTopicUrl(nextTopic.id)}
-              className="group flex items-center justify-end gap-3 rounded-xl border border-border/50 bg-background p-4 text-right transition-all duration-200 hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="group flex items-center justify-end gap-3 rounded-xl border border-border/50 bg-background p-3 text-right transition-all hover:border-primary/30 hover:bg-primary/[0.02] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <div className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   Next
                 </span>
                 <span className="block truncate text-sm font-medium text-foreground">
                   {nextTopic.title}
                 </span>
               </div>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
-                <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                <ChevronRight className="h-4 w-4" />
               </div>
             </Link>
           ) : (
             <Link
               to={`/resources/${branch}/${semester}/${subjectId}`}
-              className="group flex items-center justify-end gap-3 rounded-xl border border-dashed border-border/50 bg-muted/10 p-4 text-right transition-all duration-200 hover:border-primary/30 hover:bg-primary/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="group flex items-center justify-end gap-3 rounded-xl border border-dashed border-border/50 bg-muted/10 p-3 text-right transition-all hover:border-primary/30 hover:bg-primary/[0.02] focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
               <div className="min-w-0 flex-1">
-                <span className="block text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   All done
                 </span>
                 <span className="block truncate text-sm font-medium text-foreground">
                   Back to Dashboard
                 </span>
               </div>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                 <ArrowLeft className="h-4 w-4" />
               </div>
             </Link>
@@ -445,7 +387,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         </div>
       </nav>
 
-      {/* ── Floating Sticky Bottom Bar ── */}
+      {/* ── Floating Sticky Bar (mobile-friendly) ── */}
       <AnimatePresence>
         {showStickyBar && !isCompleted && (
           <motion.div
@@ -453,20 +395,20 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 500, damping: 35 }}
-            className="fixed inset-x-0 bottom-0 z-50 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 sm:bottom-6 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:rounded-2xl sm:border sm:shadow-lg sm:max-w-md sm:w-auto"
+            className="fixed inset-x-0 bottom-0 z-50 border-t border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 sm:bottom-6 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:rounded-2xl sm:border sm:shadow-lg sm:max-w-md"
           >
-            <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5">
-              <div className="min-w-0">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">{topic.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  {currentIndex} of {totalTopics} topics
+                  {currentIndex} of {totalTopics}
                 </p>
               </div>
               <Button
                 size="sm"
                 onClick={handleMarkComplete}
                 disabled={isMarkingComplete}
-                className="gap-2"
+                className="gap-2 shrink-0"
               >
                 {isMarkingComplete ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
