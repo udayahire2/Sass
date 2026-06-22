@@ -16,9 +16,10 @@ import { NotionTableNode } from './NotionTableNode';
 
 import { markdownToHtml, htmlToMarkdown } from './markdownUtils';
 import BubbleToolbar from './BubbleToolbar';
-import ContextMenu from './ContextMenu';
+import EditorContextMenu from './ContextMenu';
 import SlashMenu, { ALL_SLASH_ITEMS } from './SlashMenu';
 import { cn } from '@/lib/utils';
+import { ContextMenu, ContextMenuTrigger } from '@/components/ui/contex-menu';
 import './editor.css';
 
 // Shiki highlighting is handled natively via ShikiCodeBlock Prosemirror plugin.
@@ -49,7 +50,6 @@ export default function RichTextEditor({
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Context menu state
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const isInternalUpdate = useRef(false);
 
@@ -261,28 +261,6 @@ export default function RichTextEditor({
 
   // Shiki code block rendering is managed natively by ShikiCodeBlock extension NodeView.
 
-  // Handle right-click context menu
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    if (!editor || !editable) return;
-
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
-  }, [editor, editable]);
-
-  // Close context menu on click outside
-  useEffect(() => {
-    const handleClick = () => setContextMenu(null);
-    const handleScroll = () => setContextMenu(null);
-    if (contextMenu) {
-      document.addEventListener('click', handleClick);
-      document.addEventListener('scroll', handleScroll, true);
-      return () => {
-        document.removeEventListener('click', handleClick);
-        document.removeEventListener('scroll', handleScroll, true);
-      };
-    }
-  }, [contextMenu]);
-
   // Close slash menu on click outside editor
   useEffect(() => {
     if (!slashMenuOpen) return;
@@ -339,13 +317,14 @@ export default function RichTextEditor({
   const characterCount = editor.storage.characterCount.characters();
 
   return (
-    <div
-      ref={editorWrapperRef}
-      className={cn("w-full flex flex-col group relative", className)}
-      onContextMenu={handleContextMenu}
-    >
-      <div className="w-full text-foreground transition-all duration-200 bg-transparent border-none">
-        <EditorContent
+    <ContextMenu>
+      <div
+        ref={editorWrapperRef}
+        className={cn("w-full flex flex-col group relative", className)}
+      >
+        <ContextMenuTrigger className="contents">
+          <div className="w-full text-foreground transition-all duration-200 bg-transparent border-none">
+            <EditorContent
           editor={editor}
           className="w-full text-base focus:outline-none focus:ring-0"
         />
@@ -365,23 +344,19 @@ export default function RichTextEditor({
             }}
           />
         )}
+          </div>
 
-        {editable && contextMenu && (
-          <ContextMenu
-            editor={editor}
-            position={contextMenu}
-            onClose={() => setContextMenu(null)}
-          />
-        )}
+          {editable && showWordCount && (
+            <div className="flex justify-start text-xs text-muted-foreground/40 pt-16 pb-8 select-none font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
+              <span className="mx-2">·</span>
+              <span>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</span>
+            </div>
+          )}
+        </ContextMenuTrigger>
       </div>
 
-      {editable && showWordCount && (
-        <div className="flex justify-start text-xs text-muted-foreground/40 pt-16 pb-8 select-none font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
-          <span className="mx-2">·</span>
-          <span>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</span>
-        </div>
-      )}
-    </div>
+      {editable && <EditorContextMenu editor={editor} />}
+    </ContextMenu>
   );
 }
