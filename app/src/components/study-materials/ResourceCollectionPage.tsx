@@ -17,6 +17,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fetchResources, type ResourceCategory, type ResourceItem } from "@/services/resource-service";
+import { PageContainer } from "./layout/PageContainer";
+import { PageHeader } from "./layout/PageHeader";
+import { EmptyState } from "./layout/EmptyState";
 
 type ResourceCollectionPageProps = {
   category: ResourceCategory;
@@ -45,7 +48,7 @@ export default function ResourceCollectionPage({
 
   useEffect(() => {
     let mounted = true;
-
+    setLoading(true);
     fetchResources({ category })
       .then((items) => {
         if (mounted) setResources(items);
@@ -63,32 +66,28 @@ export default function ResourceCollectionPage({
     const query = search.trim().toLowerCase();
     if (!query) return resources;
 
-    return resources.filter((resource) =>
-      [resource.title, resource.subject, resource.branch, resource.semester, resource.author]
-        .join(" ")
-        .toLowerCase()
-        .includes(query),
-    );
+    return resources.filter((resource) => {
+      return (
+        resource.title.toLowerCase().includes(query) ||
+        resource.subject.toLowerCase().includes(query) ||
+        (resource.branch && resource.branch.toLowerCase().includes(query)) ||
+        (resource.semester && resource.semester.toLowerCase().includes(query)) ||
+        resource.author.toLowerCase().includes(query)
+      );
+    });
   }, [resources, search]);
 
   return (
-    <div className="mx-auto w-full max-w-270 space-y-8 px-4 py-8 sm:px-6 md:py-12">
-      <div className="flex flex-col gap-5">
-        <nav className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 text-[13px] font-medium text-muted-foreground">
+    <PageContainer>
+      <PageHeader 
+        title={title} 
+        description={description} 
+        badge={
           <Badge variant="secondary" className="rounded-[6px] bg-primary/10 text-primary">
             Study Material
           </Badge>
-        </nav>
-        <div className="flex flex-col gap-3">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {title}
-          </h1>
-          <p className="max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-            {description}
-          </p>
-        </div>
-        <div className="h-px w-full bg-border/40" />
-      </div>
+        } 
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <InputGroup className="w-full sm:max-w-sm">
@@ -107,10 +106,10 @@ export default function ResourceCollectionPage({
 
       <div className="overflow-hidden rounded-lg border">
         <div className="overflow-x-auto">
-          <Table className="min-w-190">
+          <Table className="min-w-[760px]">
             <TableHeader className="bg-muted/30">
               <TableRow>
-                <TableHead className="w-90">Title</TableHead>
+                <TableHead className="w-[360px]">Title</TableHead>
                 <TableHead>Subject</TableHead>
                 <TableHead>Branch / Semester</TableHead>
                 <TableHead>Author</TableHead>
@@ -124,14 +123,24 @@ export default function ResourceCollectionPage({
                     <Loader2 className="mx-auto h-7 w-7 animate-spin text-muted-foreground" />
                   </TableCell>
                 </TableRow>
-              ) : filtered.length === 0 ? (
+              ) : resources.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-64 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center gap-2">
-                      <FileText className="h-9 w-9 opacity-50" />
-                      <p className="font-medium text-foreground">{emptyTitle}</p>
-                      <p className="max-w-sm text-sm">{emptyDescription}</p>
-                    </div>
+                  <TableCell colSpan={5} className="p-8">
+                    <EmptyState 
+                      title={emptyTitle} 
+                      description={emptyDescription} 
+                      icon={FileText} 
+                    />
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                 <TableRow>
+                  <TableCell colSpan={5} className="p-8">
+                    <EmptyState 
+                      title="No matching results" 
+                      description="Try adjusting your search query." 
+                      icon={Search} 
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -153,15 +162,15 @@ export default function ResourceCollectionPage({
                     <TableCell>{resource.subject}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
-                        <span>{resource.branch}</span>
-                        <span className="text-xs text-muted-foreground">{resource.semester}</span>
+                        <span>{resource.branch || "—"}</span>
+                        <span className="text-xs text-muted-foreground">{resource.semester || ""}</span>
                       </div>
                     </TableCell>
                     <TableCell>{resource.author}</TableCell>
                     <TableCell className="text-right">
-                      <Button   size="sm" variant="outline">
-                          <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                      <Button size="sm" variant="outline" asChild>
                         <a href={resource.url} target="_blank" rel="noreferrer">
+                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
                           Open
                         </a>
                       </Button>
@@ -173,6 +182,6 @@ export default function ResourceCollectionPage({
           </Table>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
