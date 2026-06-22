@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sun,
@@ -30,6 +31,7 @@ import { NAV_LINKS } from "@/config/nav-config";
 import { useTheme } from "@/components/theme-provider";
 import { type User as AuthUser, useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
+import { Drawer, DrawerTrigger, DrawerPopup, DrawerHeader, DrawerPanel } from "@/components/ui/drawer";
 
 function getDashboardPath(user: AuthUser | null) {
   if (user?.role === "admin") return "/admin/dashboard";
@@ -46,42 +48,88 @@ function GsapDropdown({
   children,
   panelClassName,
   wrapperClassName,
+  lockScroll = false,
 }: {
-  trigger: (props: { open: boolean; toggle: () => void }) => React.ReactNode;
+  trigger: (props: {
+    open: boolean;
+    toggle: () => void;
+  }) => React.ReactNode;
   children: (close: () => void) => React.ReactNode;
   panelClassName?: string;
   wrapperClassName?: string;
+  lockScroll?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
 
-  const close = () => setOpen(false);
-  const toggle = () => setOpen((prev) => !prev);
+  const location = useLocation();
 
+  const close = () => setOpen(false);
+
+  const toggle = () => {
+    setOpen((prev) => !prev);
+  };
+
+  // Auto close on route change
+  useEffect(() => {
+    setOpen(false);
+  }, [location.pathname]);
+
+  // Lock page scroll (use only for mobile menu)
+  useEffect(() => {
+    if (!lockScroll || !open) return;
+
+    const bodyOverflow = document.body.style.overflow;
+    const htmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = bodyOverflow;
+      document.documentElement.style.overflow = htmlOverflow;
+    };
+  }, [open, lockScroll]);
+
+  // Animation
   useEffect(() => {
     const panel = panelRef.current;
+
     if (!panel) return;
 
     if (isInitialMount.current) {
       isInitialMount.current = false;
-      // hide the panel initially without animation
-      gsap.set(panel, { autoAlpha: 0, scale: 0.96, y: -8 });
+
+      gsap.set(panel, {
+        autoAlpha: 0,
+        scale: 0.96,
+        y: -8,
+        force3D: true,
+      });
+
       return;
     }
 
     gsap.killTweensOf(panel);
 
     if (open) {
+      panel.style.pointerEvents = "auto";
+
       gsap.fromTo(
         panel,
-        { autoAlpha: 0, scale: 0.96, y: -6 },
+        {
+          autoAlpha: 0,
+          scale: 0.96,
+          y: -8,
+        },
         {
           autoAlpha: 1,
           scale: 1,
           y: 0,
-          duration: 0.3,
+          duration: 0.25,
           ease: "power3.out",
         },
       );
@@ -90,28 +138,32 @@ function GsapDropdown({
         autoAlpha: 0,
         scale: 0.97,
         y: -4,
-        duration: 0.2,
-        ease: "power2.inOut",
-        onStart: () => {
-          if (panel) panel.style.pointerEvents = "none";
-        },
+        duration: 0.18,
+        ease: "power2.out",
         onComplete: () => {
-          if (panel) panel.style.pointerEvents = "";
+          panel.style.pointerEvents = "none";
         },
       });
     }
   }, [open]);
 
-  // Dismiss on outside click & Escape
+  // Outside click + ESC
   useEffect(() => {
     const handlePointerDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) close();
+      if (!rootRef.current?.contains(e.target as Node)) {
+        close();
+      }
     };
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
+      if (e.key === "Escape") {
+        close();
+      }
     };
+
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
@@ -119,19 +171,28 @@ function GsapDropdown({
   }, []);
 
   return (
-    <div ref={rootRef} className="relative">
-      {trigger({ open, toggle })}
+    <div
+      ref={rootRef}
+      className="relative"
+    >
+      {trigger({
+        open,
+        toggle,
+      })}
+
       <div
         className={cn(
           "absolute top-full z-50 mt-1",
-          open ? "visible pointer-events-auto" : "invisible pointer-events-none select-none",
-          wrapperClassName || "right-0"
+          open
+            ? "visible"
+            : "invisible pointer-events-none",
+          wrapperClassName ?? "right-0",
         )}
       >
         <div
           ref={panelRef}
           className={cn(
-            "min-w-48 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#1f1f1f] p-1 shadow-xl shadow-black/5 dark:shadow-black/30",
+            "min-w-48 overflow-hidden overscroll-contain rounded-xl border border-neutral-200 bg-white shadow-xl shadow-black/5 dark:border-neutral-800 dark:bg-[#1f1f1f] dark:shadow-black/30",
             panelClassName,
           )}
         >
@@ -588,33 +649,29 @@ function PopoverMobileMenu() {
   const location = useLocation();
   const { user, logout, getInitials } = useLocalAuth();
   const { theme, setTheme } = useTheme();
+  const [open, setOpen] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
-  const supportLinks = user && user.role !== "admin"
-    ? [
-      { path: "/feedback", label: "Feedback" },
-      { path: "/how-to-use", label: "How to use" },
-    ]
-    : [];
+  const supportLinks =
+    user && user.role !== "admin"
+      ? [
+          { path: "/feedback", label: "Feedback" },
+          { path: "/how-to-use", label: "How to use" },
+        ]
+      : [];
 
-  const closeDropdownRef = useRef<() => void>(() => { });
-  useEffect(() => {
-    closeDropdownRef.current();
-  }, [location.pathname]);
+  const close = () => setOpen(false);
 
   return (
-    <GsapDropdown
-      wrapperClassName="right-0 mt-2"
-      panelClassName="w-68 p-2 bg-white dark:bg-[#1f1f1f]"
-      trigger={({ open, toggle }) => (
+    <Drawer open={open} onOpenChange={setOpen} position="right">
+      <DrawerTrigger render={
         <Button
           variant="ghost"
           size="icon"
-          onClick={toggle}
           className={cn(
             "h-9 w-9 rounded-md bg-transparent hover:bg-muted/50 lg:hidden border border-transparent cursor-pointer",
             open && "bg-muted text-foreground border-border/40",
@@ -623,223 +680,273 @@ function PopoverMobileMenu() {
         >
           <Menu />
         </Button>
-      )}
-    >
-      {(close) => {
-        closeDropdownRef.current = close;
-        return (
-          <div className="space-y-1.5">
-            {/* Home */}
-            <Link
-              to="/"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive("/")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Home className="h-4 w-4" />
-              Home
-            </Link>
+      } />
+      <DrawerPopup showCloseButton className="w-[300px] sm:w-[360px] bg-background border-l border-border/40">
+        <DrawerHeader className="border-b border-border/40 pb-4">
+          <div className="flex items-center gap-2">
+            <Logo />
+          </div>
+        </DrawerHeader>
+        <DrawerPanel className="p-4 flex flex-col gap-6">
+          {/* Mobile Search button */}
+          <Link
+            to="/search"
+            onClick={close}
+            className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/20 px-3.5 py-2.5 text-sm text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
+          >
+            <Search className="h-4 w-4" />
+            <span>Search courses & materials...</span>
+          </Link>
 
-            {/* Study section */}
-            <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              Study Hub
-            </div>
-            
-            {/* Library */}
-            <Link
-              to="/study-stock"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive("/study-stock")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Library className="h-4 w-4 text-blue-500" />
-              Digital Library
-            </Link>
-
-            {/* Syllabus */}
-            <Link
-              to="/syllabus"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive("/syllabus")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Compass className="h-4 w-4 text-emerald-500" />
-              Course Syllabus
-            </Link>
-
-            {/* Study Material heading */}
-            <div className="pl-3 py-1 text-[10px] font-semibold text-muted-foreground/75 uppercase tracking-wider">
-              Materials
+          {/* Nav Categories */}
+          <div className="space-y-4">
+            {/* General */}
+            <div className="space-y-1">
+              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                General
+              </div>
+              <Link
+                to="/"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  isActive("/")
+                    ? "bg-muted text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+              >
+                <Home className="h-4.5 w-4.5" />
+                Home
+              </Link>
             </div>
 
-            {/* Browse All */}
-            <Link
-              to="/resources"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
-                isActive("/resources") && !location.pathname.includes("/study-material/")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <FolderOpen className="h-4 w-4 text-amber-500" />
-              Browse All
-            </Link>
+            {/* Study Hub */}
+            <div className="space-y-1">
+              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                Study Hub
+              </div>
+              <Link
+                to="/study-stock"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  isActive("/study-stock")
+                    ? "bg-muted text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-500/10 bg-blue-500/5 text-blue-500">
+                  <Library className="h-4 w-4" />
+                </div>
+                Digital Library
+              </Link>
+              <Link
+                to="/syllabus"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  isActive("/syllabus")
+                    ? "bg-muted text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/10 bg-emerald-500/5 text-emerald-500">
+                  <Compass className="h-4 w-4" />
+                </div>
+                Course Syllabus
+              </Link>
+            </div>
 
-            {/* Question Bank */}
-            <Link
-              to="/study-material/imp-questions"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
-                isActive("/study-material/imp-questions")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <Sparkles className="h-4 w-4 text-purple-500" />
-              Question Bank
-            </Link>
+            {/* Materials */}
+            <div className="space-y-1">
+              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                Materials
+              </div>
+              <Link
+                to="/resources"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  isActive("/resources") && !location.pathname.includes("/study-material/")
+                    ? "bg-muted text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/10 bg-amber-500/5 text-amber-500">
+                  <FolderOpen className="h-4 w-4" />
+                </div>
+                Browse All Resources
+              </Link>
+              <Link
+                to="/study-material/imp-questions"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  isActive("/study-material/imp-questions")
+                    ? "bg-muted text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-purple-500/10 bg-purple-500/5 text-purple-500">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                Question Bank
+              </Link>
+              <Link
+                to="/study-material/sample-papers"
+                onClick={close}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  isActive("/study-material/sample-papers")
+                    ? "bg-muted text-foreground shadow-2xs"
+                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                )}
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-rose-500/10 bg-rose-500/5 text-rose-500">
+                  <FileText className="h-4 w-4" />
+                </div>
+                Past Papers
+              </Link>
+            </div>
 
-            {/* Past Papers */}
-            <Link
-              to="/study-material/sample-papers"
-              onClick={close}
-              className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-sm transition-colors",
-                isActive("/study-material/sample-papers")
-                  ? "bg-muted text-foreground font-semibold"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              <FileText className="h-4 w-4 text-rose-500" />
-              Past Papers
-            </Link>
-
-            {/* Support section (only for non‑admin) */}
+            {/* Support */}
             {supportLinks.length > 0 && (
-              <>
-                <div className="px-3 pt-2 pb-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              <div className="space-y-1">
+                <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
                   Support
                 </div>
-                {/* Feedback */}
                 <Link
                   to="/feedback"
                   onClick={close}
                   className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
                     isActive("/feedback")
-                      ? "bg-muted text-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                      ? "bg-muted text-foreground shadow-2xs"
+                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
                   )}
                 >
-                  <MessageSquare className="h-4 w-4 text-pink-500" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-pink-500/10 bg-pink-500/5 text-pink-500">
+                    <MessageSquare className="h-4 w-4" />
+                  </div>
                   Give Feedback
                 </Link>
-
-                {/* How to use */}
                 <Link
                   to="/how-to-use"
                   onClick={close}
                   className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
                     isActive("/how-to-use")
-                      ? "bg-muted text-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                      ? "bg-muted text-foreground shadow-2xs"
+                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
                   )}
                 >
-                  <HelpCircle className="h-4 w-4 text-cyan-500" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-cyan-500">
+                    <HelpCircle className="h-4 w-4" />
+                  </div>
                   How to Use
                 </Link>
-              </>
+              </div>
             )}
+          </div>
 
-            <div className="my-2 border-t border-border/40" />
+          <div className="my-1 border-t border-border/40" />
 
-            {/* User section */}
+          {/* Theme & User actions */}
+          <div className="space-y-4">
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground cursor-pointer transition-all"
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-muted/30">
+                {theme === "dark" ? (
+                  <Sun className="h-4 w-4 text-amber-500" />
+                ) : (
+                  <Moon className="h-4 w-4 text-blue-500" />
+                )}
+              </div>
+              <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+            </button>
+
             {user ? (
-              <>
-                <div className="px-3 py-2 flex items-center gap-2 bg-muted/30 rounded-lg">
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-3 rounded-xl bg-muted/30 border border-border/40 p-3">
                   {user.avatar ? (
-                    <Avatar className="h-7 w-7">
+                    <Avatar className="h-9 w-9 border border-border">
                       <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                      <AvatarFallback className="text-xs">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
                     </Avatar>
                   ) : (
-                    <DefaultAvatar name={user.name} size={28} />
+                    <DefaultAvatar name={user.name} size={36} />
                   )}
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-semibold">{user.name}</p>
-                    <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold leading-none">{user.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground mt-1">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
-                <Link
-                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"}
-                  onClick={close}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                >
-                  <User className="h-4 w-4" />
-                  {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
-                </Link>
-                <Link
-                  to="/notes"
-                  onClick={close}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                >
-                  <FileText className="h-4 w-4" />
-                  My Notes
-                </Link>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    to={
+                      user.role === "admin"
+                        ? "/admin/dashboard"
+                        : user.role === "faculty"
+                          ? "/dashboard/faculty"
+                          : "/dashboard/student"
+                    }
+                    onClick={close}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
+                  >
+                    <User className="h-3.5 w-3.5" />
+                    Profile
+                  </Link>
+
+                  <Link
+                    to="/notes"
+                    onClick={close}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    My Notes
+                  </Link>
+                </div>
+
                 <button
-                  onClick={() => { close(); logout(); }}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
+                  onClick={() => {
+                    close();
+                    logout();
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 border border-destructive/20 px-3 py-2.5 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-3.5 w-3.5" />
                   Log out
                 </button>
-              </>
+              </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 p-1">
+              <div className="grid grid-cols-2 gap-2">
                 <Link
                   to="/login"
                   onClick={close}
-                  className="flex items-center justify-center rounded-lg border border-border/40 px-3 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all"
+                  className="flex items-center justify-center rounded-xl border border-border/40 px-3 py-2.5 text-xs font-semibold text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/signup"
                   onClick={close}
-                  className="flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
+                  className="flex items-center justify-center rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90"
                 >
                   Get started
                 </Link>
               </div>
             )}
-            
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4 text-amber-500" /> : <Moon className="h-4 w-4 text-blue-500" />}
-              {theme === "dark" ? "Light mode" : "Dark mode"}
-            </button>
           </div>
-        );
-      }}
-    </GsapDropdown>
+        </DrawerPanel>
+      </DrawerPopup>
+    </Drawer>
   );
 }
 
