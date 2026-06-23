@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
@@ -47,6 +46,13 @@ import {
 } from "@/services/study-service";
 import { buildApiUrl, parseApiData } from "@/services/api";
 import { cn } from "@/lib/utils";
+import {
+  DashboardActionList,
+  DashboardEmptyState,
+  DashboardLinkButton,
+  DashboardStatCard,
+  DashboardStatusBadge,
+} from "@/components/dashboard/dashboard-ui";
 
 const DASHBOARD_PAGE_SIZE = 50;
 
@@ -259,16 +265,22 @@ export default function DashboardPage() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Button variant="ghost">
-                <Link to="/admin/approvals" className="flex gap-2 align-middle items-center">
-                  Review submissions
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button  variant="ghost" className="flex gap-2 align-middle items-center">
-                <Link to="/admin/students">Manage students</Link>
-                  <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <DashboardLinkButton
+                icon={ArrowRight}
+                iconPosition="end"
+                to="/admin/approvals"
+                variant="ghost"
+              >
+                Review submissions
+              </DashboardLinkButton>
+              <DashboardLinkButton
+                icon={ArrowRight}
+                iconPosition="end"
+                to="/admin/students"
+                variant="ghost"
+              >
+                Manage students
+              </DashboardLinkButton>
             </div>
           </CardContent>
         </Card>
@@ -278,22 +290,13 @@ export default function DashboardPage() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {statCards.map((stat) => (
-          <Card key={stat.title} className="border-border/70">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <CardDescription>{stat.title}</CardDescription>
-                  <CardTitle className="mt-2 text-3xl">{stat.value}</CardTitle>
-                </div>
-                <div className="rounded-xl border border-border/70 bg-secondary p-2.5">
-                  <stat.icon className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-sm text-muted-foreground">{stat.detail}</p>
-            </CardContent>
-          </Card>
+          <DashboardStatCard
+            description={stat.detail}
+            icon={stat.icon}
+            key={stat.title}
+            label={stat.title}
+            value={stat.value}
+          />
         ))}
       </section>
 
@@ -408,20 +411,23 @@ export default function DashboardPage() {
                 Access primary administration tools.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <QuickLink
-                description="Approve or reject pending study materials."
-                to="/admin/approvals"
-              >
-                Manage Approvals
-              </QuickLink>
-              <QuickLink
-                description="Manage student accounts and access."
-                to="/admin/students"
-              >
-                Manage Students
-              </QuickLink>
-            </CardContent>
+            <DashboardActionList
+              actions={[
+                {
+                  description: "Approve or reject pending study materials.",
+                  icon: CheckCircle2,
+                  label: "Manage Approvals",
+                  to: "/admin/approvals",
+                },
+                {
+                  description: "Manage student accounts and access.",
+                  icon: Users,
+                  label: "Manage Students",
+                  to: "/admin/students",
+                },
+              ]}
+              framed={false}
+            />
           </Card>
         </div>
       </section>
@@ -555,33 +561,6 @@ function MetricRow({
   );
 }
 
-function QuickLink({
-  children,
-  description,
-  to,
-}: {
-  children: string;
-  description: string;
-  to: string;
-}) {
-  return (
-    <Link
-      className="block rounded-2xl border border-border/70 bg-background/80 px-4 py-3 transition-colors hover:bg-secondary/70"
-      to={to}
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium">{children}</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            {description}
-          </p>
-        </div>
-        <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-      </div>
-    </Link>
-  );
-}
-
 function MaterialTable({
   materials,
   showActions,
@@ -607,10 +586,12 @@ function MaterialTable({
 }) {
   if (materials.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border/70 px-6 py-12 text-center">
-        <EmptyIcon className="mx-auto h-8 w-8 text-muted-foreground" />
-        <p className="mt-3 text-sm text-muted-foreground">{emptyMessage}</p>
-      </div>
+      <DashboardEmptyState
+        className="rounded-lg border border-dashed"
+        description={emptyMessage}
+        icon={EmptyIcon}
+        title="No content found"
+      />
     );
   }
 
@@ -740,27 +721,7 @@ const MaterialTableRow = memo(function MaterialTableRow({
 });
 
 function StatusBadge({ status }: { status: StudyMaterial["status"] }) {
-  if (status === "approved") {
-    return (
-      <Badge className="rounded-full px-2" variant="success">
-        Approved
-      </Badge>
-    );
-  }
-
-  if (status === "rejected") {
-    return (
-      <Badge className="rounded-full px-2" variant="error">
-        Rejected
-      </Badge>
-    );
-  }
-
-  return (
-    <Badge className="rounded-full px-2" variant="warning">
-      Pending
-    </Badge>
-  );
+  return <DashboardStatusBadge status={status} />;
 }
 
 function formatValue(value: number) {

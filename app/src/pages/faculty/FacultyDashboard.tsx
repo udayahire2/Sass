@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowRight,
@@ -45,6 +45,13 @@ import {
   fetchMaterialFeedback,
 } from "@/services/faculty-service";
 import { cn } from "@/lib/utils";
+import {
+  DashboardEmptyState,
+  DashboardLinkButton,
+  DashboardPageHeader,
+  DashboardStatCard,
+  DashboardStatusBadge,
+} from "@/components/dashboard/dashboard-ui";
 
 // ----------------------------------------------------------------------
 // Types
@@ -117,19 +124,7 @@ function StarRating({
 // ----------------------------------------------------------------------
 
 function StatusBadge({ status }: { status: StudyMaterial["status"] }) {
-  const config = {
-    approved:
-      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400",
-    rejected:
-      "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400",
-    pending:
-      "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400",
-  };
-  return (
-    <Badge variant="outline" className={config[status]}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </Badge>
-  );
+  return <DashboardStatusBadge status={status} />;
 }
 
 
@@ -244,8 +239,9 @@ function FeedbackPanel({
           <div className="flex flex-wrap items-center gap-2">
             <p className="truncate text-sm font-medium">{material.title}</p>
             {myFeedback && (
-              <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
-                <CheckCircle2 className="mr-1 h-3 w-3" /> Reviewed
+              <Badge variant="success">
+                <CheckCircle2 aria-hidden="true" />
+                Reviewed
               </Badge>
             )}
           </div>
@@ -376,165 +372,78 @@ export default function FacultyDashboard() {
     : user.name;
 
   return (
-    <div className="space-y-8 pb-10">
-      {/* Header */}
-      <section className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-primary/25 bg-primary/5 text-primary text-xs font-medium px-2.5 py-0.5 rounded-full">
-                Faculty Workspace
-              </Badge>
+    <div className="flex flex-col gap-8 pb-10">
+      <section className="flex flex-col gap-4">
+        <DashboardPageHeader
+          actions={
+            <>
               {user.isApproved ? (
-                <Badge variant="outline" className="border-emerald-500/25 bg-emerald-500/5 text-emerald-500 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Approved & Active
+                <DashboardLinkButton
+                  icon={Upload}
+                  to="/dashboard/faculty/upload"
+                >
+                  Upload Material
+                </DashboardLinkButton>
+              ) : (
+                <Button disabled>
+                  <Upload aria-hidden="true" />
+                  Upload Material
+                </Button>
+              )}
+              <DashboardLinkButton
+                icon={ArrowRight}
+                iconPosition="end"
+                to="/dashboard/faculty/profile"
+                variant="outline"
+              >
+                View Profile
+              </DashboardLinkButton>
+            </>
+          }
+          badge={
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">Faculty Workspace</Badge>
+              {user.isApproved ? (
+                <Badge variant="success">
+                  <CheckCircle2 aria-hidden="true" />
+                  Approved & Active
                 </Badge>
               ) : (
-                <Badge variant="outline" className="border-amber-500/25 bg-amber-500/5 text-amber-500 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  <AlertTriangle className="mr-1 h-3.5 w-3.5" /> Pending Approval
+                <Badge variant="warning">
+                  <AlertTriangle aria-hidden="true" />
+                  Pending Approval
                 </Badge>
               )}
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-              Welcome back, {displayName}
-            </h1>
-            <p className="text-muted-foreground text-sm max-w-2xl">
-              {[user.department, user.collegeName].filter(Boolean).join(" · ") || "Manage your academic resources and student feedback."}
-            </p>
-          </div>
+          }
+          description={
+            [user.department, user.collegeName].filter(Boolean).join(" · ") ||
+            "Manage your academic resources and student feedback."
+          }
+          title={<>Welcome back, {displayName}</>}
+        />
 
-          <div className="flex flex-wrap gap-3">
-            {user.isApproved ? (
-              <Button asChild>
-                <Link to="/dashboard/faculty/upload">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Material
-                </Link>
-              </Button>
-            ) : (
-              <Button disabled className="opacity-60 cursor-not-allowed">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Material
-              </Button>
-            )}
-            <Button variant="outline" asChild>
-              <Link to="/dashboard/faculty/profile">
-                View Profile
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* Warning notification banner if not approved */}
         {!user.isApproved && (
-          <div className="flex items-start gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-600 dark:text-amber-400">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
-            <div className="space-y-1">
+          <div className="flex items-start gap-3 rounded-lg border bg-warning/8 p-4 text-sm text-warning-foreground">
+            <AlertTriangle aria-hidden="true" className="mt-0.5 shrink-0" />
+            <div className="flex flex-col gap-1">
               <p className="font-semibold">Account Pending Admin Verification</p>
-              <p className="text-muted-foreground/80">Your profile is currently under review by the administration. You will have full access to upload materials and give feedback once your account has been approved.</p>
+              <p className="text-muted-foreground">
+                Your profile is under review. Upload and feedback access will
+                become available after approval.
+              </p>
             </div>
           </div>
         )}
       </section>
 
-      {/* Stats Cards */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Uploads</p>
-                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.total_uploaded}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Materials shared</p>
-              </div>
-              <FileText className="h-5 w-5 text-muted-foreground/70" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Approved</p>
-                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.approved_count}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Active in library</p>
-              </div>
-              <CheckCircle2 className="h-5 w-5 text-emerald-500/90" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.pending_count}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Awaiting review</p>
-              </div>
-              <Clock3 className="h-5 w-5 text-amber-500/90" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Rejected</p>
-                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.rejected_count}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Requires attention</p>
-              </div>
-              <XCircle className="h-5 w-5 text-red-500/90" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Feedback Given</p>
-                <h2 className="mt-2 text-3xl font-semibold text-foreground tracking-tight">{stats.feedback_given_count}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">Reviews submitted</p>
-              </div>
-              <MessageSquarePlus className="h-5 w-5 text-blue-500/90" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-md transition-all duration-300 border-border/40">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">My Profile</p>
-                <h2 className="mt-2 text-base font-semibold leading-tight text-foreground truncate max-w-[130px]" title={user.designation || "Faculty"}>
-                  {user.designation || "Faculty"}
-                </h2>
-                <p className="text-[10px] text-muted-foreground truncate max-w-[130px]" title={user.department || "No Department"}>
-                  {user.department || "No Department"}
-                </p>
-                {user.subjects && user.subjects.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {user.subjects.slice(0, 2).map((s) => (
-                      <Badge key={s} variant="secondary" className="text-[9px] px-1.5 py-0 rounded-full font-normal">
-                        {s}
-                      </Badge>
-                    ))}
-                    {user.subjects.length > 2 && (
-                      <span className="text-[9px] text-muted-foreground self-center">
-                        +{user.subjects.length - 2}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <User className="h-5 w-5 text-muted-foreground/70" />
-            </div>
-          </CardContent>
-        </Card>
+        <DashboardStatCard description="Materials shared" icon={FileText} label="Total Uploads" value={stats.total_uploaded} />
+        <DashboardStatCard description="Active in library" icon={CheckCircle2} label="Approved" value={stats.approved_count} />
+        <DashboardStatCard description="Awaiting review" icon={Clock3} label="Pending" value={stats.pending_count} />
+        <DashboardStatCard description="Requires attention" icon={XCircle} label="Rejected" value={stats.rejected_count} />
+        <DashboardStatCard description="Reviews submitted" icon={MessageSquarePlus} label="Feedback Given" value={stats.feedback_given_count} />
+        <DashboardStatCard description={user.department || "No department"} icon={User} label="My Profile" value={user.designation || "Faculty"} />
       </section>
 
       {/* My Uploads Table */}
@@ -545,32 +454,33 @@ export default function FacultyDashboard() {
             <p className="text-sm text-muted-foreground">Your shared study materials and their approval status.</p>
           </div>
           {user.isApproved && (
-            <Button size="sm" asChild>
-              <Link to="/dashboard/faculty/upload">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload New
-              </Link>
-            </Button>
+            <DashboardLinkButton
+              icon={Upload}
+              to="/dashboard/faculty/upload"
+            >
+              Upload New
+            </DashboardLinkButton>
           )}
         </div>
 
         <Card className="border-border/40 overflow-hidden">
           <CardContent className="p-0">
             {myUploads.length === 0 ? (
-              <div className="p-12 text-center">
-                <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/45" />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  No uploads yet.{" "}
-                  {user.isApproved && (
-                    <Link
+              <DashboardEmptyState
+                action={
+                  user.isApproved ? (
+                    <DashboardLinkButton
+                      icon={Upload}
                       to="/dashboard/faculty/upload"
-                      className="font-medium text-foreground underline underline-offset-2"
                     >
-                      Upload your first material
-                    </Link>
-                  )}
-                </p>
-              </div>
+                      Upload Material
+                    </DashboardLinkButton>
+                  ) : undefined
+                }
+                description="Share your first study material to start building your library."
+                icon={BookOpen}
+                title="No uploads yet"
+              />
             ) : (
               <ScrollArea className="h-[400px] w-full">
                 <Table>
@@ -631,12 +541,11 @@ export default function FacultyDashboard() {
         <Card className="border-border/40">
           <CardContent className="p-6">
             {approvedMaterials.length === 0 ? (
-              <div className="p-8 text-center">
-                <BookOpen className="mx-auto h-8 w-8 text-muted-foreground/45" />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  No approved materials available for review yet.
-                </p>
-              </div>
+              <DashboardEmptyState
+                description="Approved study materials will appear here when they are ready for review."
+                icon={BookOpen}
+                title="Nothing to review"
+              />
             ) : (
               <ScrollArea className="h-[500px] w-full pr-2">
                 <div className="space-y-4">
