@@ -118,6 +118,8 @@ export default function RichTextEditor({
     }
   }, [slashMenuOpen]);
 
+  const editorRef = useRef<any>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -171,6 +173,7 @@ export default function RichTextEditor({
       handlePaste: (view, event) => {
         if (!pasteImageLinkRef.current) return false;
         const text = event.clipboardData?.getData('text/plain');
+        const html = event.clipboardData?.getData('text/html');
         if (!text) return false;
         
         const isImageUrl = text.match(/\.(jpeg|jpg|gif|png|webp|svg)(?:\?.*)?$/i) || 
@@ -183,6 +186,18 @@ export default function RichTextEditor({
           view.dispatch(transaction);
           return true;
         }
+
+        // Check if the clipboard lacks rich HTML and looks like markdown
+        const isRichHtml = html && /<(h[1-6]|ul|ol|table|strong|em|a|pre|blockquote)[>\s]/i.test(html);
+        const isMarkdown = /^(#{1,6}\s|\* |- |> |\d+\.\s|```|\[.*\]\(.*\))/m.test(text) || /(\*\*|__)[^\s].*[^\s](\*\*|__)/.test(text) || /`[^`]+`/.test(text);
+
+        if (!isRichHtml && isMarkdown && editorRef.current) {
+          event.preventDefault();
+          const htmlContent = markdownToHtml(text);
+          editorRef.current.commands.insertContent(htmlContent);
+          return true;
+        }
+
         return false;
       },
       handleKeyDown: (view, event) => {
@@ -258,6 +273,10 @@ export default function RichTextEditor({
       checkSlashMenu(editor);
     },
   });
+
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
 
   // Shiki code block rendering is managed natively by ShikiCodeBlock extension NodeView.
 

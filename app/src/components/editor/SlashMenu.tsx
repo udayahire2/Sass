@@ -282,8 +282,8 @@ export default function SlashMenu({
     if (items.length === 0) return null;
     return (
       <div key={label}>
-        <div className="px-3 py-1.5 mt-1 first:mt-0 select-none">
-          <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-widest">{label}</span>
+        <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs select-none">
+          {label}
         </div>
         <div className="space-y-0.5">
           {items.map((item) => {
@@ -299,9 +299,9 @@ export default function SlashMenu({
                   item.action(editor);
                 }}
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-all cursor-pointer focus:outline-none select-none",
+                  "flex w-full min-h-8 cursor-default select-none items-center gap-2 rounded-sm px-2 py-1 text-sm text-foreground outline-none text-left transition-all cursor-pointer sm:min-h-7 [&>svg]:pointer-events-none [&>svg]:shrink-0",
                   currentIndex === selectedIndex
-                    ? "bg-primary/10 text-primary font-semibold"
+                    ? "bg-accent text-accent-foreground font-semibold"
                     : "text-foreground/80 hover:bg-muted/70"
                 )}
               >
@@ -334,7 +334,7 @@ export default function SlashMenu({
       ref={menuRef}
       data-slash-menu
       className={cn(
-        "fixed rounded-xl border border-border/50 bg-popover/95 backdrop-blur-xl text-popover-foreground py-1.5 shadow-2xl shadow-black/10 h-[320px] w-64 overflow-hidden z-[9999] flex flex-col select-none",
+        "fixed rounded-lg border bg-popover not-dark:bg-clip-padding shadow-lg/5 outline-none before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus:outline-none dark:before:shadow-[0_-1px_--theme(--color-white/6%)] h-[320px] w-64 overflow-hidden z-[9999] flex flex-col select-none",
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
       )}
       style={{

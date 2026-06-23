@@ -29,6 +29,7 @@ import {
   ContextMenuSub,
   ContextMenuSubTrigger,
   ContextMenuSubPopup,
+  ContextMenuGroup,
   ContextMenuGroupLabel,
   ContextMenuShortcut,
 } from '@/components/ui/contex-menu';
@@ -72,17 +73,19 @@ export default function EditorContextMenu({ editor }: EditorContextMenuProps) {
   if (!hasSelection) {
     return (
       <ContextMenuPopup className="w-56">
-        <ContextMenuGroupLabel>History</ContextMenuGroupLabel>
-        <ContextMenuItem onClick={() => editor.chain().focus().undo().run()}>
-          <Undo />
-          <span>Undo</span>
-          <ContextMenuShortcut>Ctrl+Z</ContextMenuShortcut>
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => editor.chain().focus().redo().run()}>
-          <Redo />
-          <span>Redo</span>
-          <ContextMenuShortcut>Ctrl+Y</ContextMenuShortcut>
-        </ContextMenuItem>
+        <ContextMenuGroup>
+          <ContextMenuGroupLabel>History</ContextMenuGroupLabel>
+          <ContextMenuItem onClick={() => editor.chain().focus().undo().run()}>
+            <Undo />
+            <span>Undo</span>
+            <ContextMenuShortcut>Ctrl+Z</ContextMenuShortcut>
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => editor.chain().focus().redo().run()}>
+            <Redo />
+            <span>Redo</span>
+            <ContextMenuShortcut>Ctrl+Y</ContextMenuShortcut>
+          </ContextMenuItem>
+        </ContextMenuGroup>
         
         <ContextMenuSeparator />
         
@@ -113,54 +116,56 @@ export default function EditorContextMenu({ editor }: EditorContextMenuProps) {
 
   return (
     <ContextMenuPopup className="w-64">
-      <ContextMenuGroupLabel>Format</ContextMenuGroupLabel>
-      <div className="flex items-center gap-0.5 px-2 py-1">
-        <ContextFormatButton
-          icon={BoldIcon}
-          isActive={editor.isActive('bold')}
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          title="Bold"
-        />
-        <ContextFormatButton
-          icon={ItalicIcon}
-          isActive={editor.isActive('italic')}
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          title="Italic"
-        />
-        <ContextFormatButton
-          icon={UnderlineIcon}
-          isActive={editor.isActive('underline')}
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          title="Underline"
-        />
-        <ContextFormatButton
-          icon={StrikeIcon}
-          isActive={editor.isActive('strike')}
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          title="Strikethrough"
-        />
-        <ContextFormatButton
-          icon={CodeIcon}
-          isActive={editor.isActive('code')}
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          title="Code"
-        />
-        <ContextFormatButton
-          icon={LinkIcon}
-          isActive={editor.isActive('link')}
-          onClick={() => {
-            const url = window.prompt('Enter URL:', editor.getAttributes('link').href || '');
-            if (url !== null) {
-              if (url.trim() === '') {
-                editor.chain().focus().extendMarkRange('link').unsetLink().run();
-              } else {
-                editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run();
+      <ContextMenuGroup>
+        <ContextMenuGroupLabel>Format</ContextMenuGroupLabel>
+        <div className="flex items-center gap-0.5 px-2 py-1">
+          <ContextFormatButton
+            icon={BoldIcon}
+            isActive={editor.isActive('bold')}
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            title="Bold"
+          />
+          <ContextFormatButton
+            icon={ItalicIcon}
+            isActive={editor.isActive('italic')}
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            title="Italic"
+          />
+          <ContextFormatButton
+            icon={UnderlineIcon}
+            isActive={editor.isActive('underline')}
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            title="Underline"
+          />
+          <ContextFormatButton
+            icon={StrikeIcon}
+            isActive={editor.isActive('strike')}
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            title="Strikethrough"
+          />
+          <ContextFormatButton
+            icon={CodeIcon}
+            isActive={editor.isActive('code')}
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            title="Code"
+          />
+          <ContextFormatButton
+            icon={LinkIcon}
+            isActive={editor.isActive('link')}
+            onClick={() => {
+              const url = window.prompt('Enter URL:', editor.getAttributes('link').href || '');
+              if (url !== null) {
+                if (url.trim() === '') {
+                  editor.chain().focus().extendMarkRange('link').unsetLink().run();
+                } else {
+                  editor.chain().focus().extendMarkRange('link').setLink({ href: url.trim() }).run();
+                }
               }
-            }
-          }}
-          title="Link"
-        />
-      </div>
+            }}
+            title="Link"
+          />
+        </div>
+      </ContextMenuGroup>
 
       <ContextMenuSeparator />
 
