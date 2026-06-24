@@ -14,7 +14,8 @@ import {
   Minus,
   Image,
   Code,
-  type LucideIcon
+  type LucideIcon,
+  Heading4
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -89,6 +90,18 @@ export const ALL_SLASH_ITEMS: SlashItem[] = [
       clearSlashAndRun(editor, (chain) => chain.toggleHeading({ level: 3 }).run());
     }
   },
+  {
+    id: 'h4',
+    label: 'Heading 4',
+    description: 'Extra Small section heading.',
+    shortcut: '####',
+    icon: Heading4,
+    category: 'basic',
+    action: (editor: Editor) => {
+      clearSlashAndRun(editor, (chain) => chain.toggleHeading({ level: 4 }).run());
+    }
+  },
+  
   {
     id: 'bullet-list',
     label: 'Bulleted List',
@@ -299,7 +312,7 @@ export default function SlashMenu({
                   item.action(editor);
                 }}
                 className={cn(
-                  "flex w-full min-h-8 cursor-default select-none items-center gap-2 rounded-sm px-2 py-1 text-sm text-foreground outline-none text-left transition-all cursor-pointer sm:min-h-7 [&>svg]:pointer-events-none [&>svg]:shrink-0",
+                  "flex w-full min-h-8 cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1 text-sm text-foreground outline-none text-left transition-all cursor-pointer sm:min-h-7 [&>svg]:pointer-events-none [&>svg]:shrink-0",
                   currentIndex === selectedIndex
                     ? "bg-accent text-accent-foreground font-semibold"
                     : "text-foreground/80 hover:bg-muted/70"
