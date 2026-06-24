@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  Bell,
   BookOpen,
   ChevronRight,
   ClipboardCheck,
@@ -10,9 +9,10 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Search,
+  SearchIcon,
   Users,
 } from "lucide-react";
+
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { NavbarThemeToggle } from "@/components/layout/navbar/navbar-theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,15 +32,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Logo } from "@/components/ui/logo";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { Logo } from "@/components/ui/logo";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 
 const navSections = [
   {
@@ -57,7 +57,11 @@ const navSections = [
       { icon: BookOpen, label: "Subjects", path: "/admin/subjects" },
       { icon: BookOpen, label: "Syllabus", path: "/admin/syllabus" },
       { icon: BookOpen, label: "Resources", path: "/admin/resources" },
-      { icon: FileQuestion, label: "IMP Questions", path: "/admin/imp-questions" },
+      {
+        icon: FileQuestion,
+        label: "IMP Questions",
+        path: "/admin/imp-questions",
+      },
       { icon: Files, label: "Sample Papers", path: "/admin/sample-papers" },
       { icon: Users, label: "Faculty", path: "/admin/faculty" },
       { icon: Users, label: "Feedback", path: "/admin/feedback" },
@@ -96,8 +100,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen w-full max-w-400">
-        {/* Mobile overlay */}
+      <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl">
         <div
           aria-hidden="true"
           className={cn(
@@ -107,7 +110,6 @@ export default function AdminLayout() {
           onClick={() => setSidebarOpen(false)}
         />
 
-        {/* Sidebar */}
         <aside
           className={cn(
             "fixed inset-y-0 left-0 z-50 w-70 border-r bg-background transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0",
@@ -115,7 +117,6 @@ export default function AdminLayout() {
           )}
         >
           <div className="flex h-full flex-col">
-            {/* Sidebar header */}
             <div className="flex h-16 items-center justify-between px-4">
               <Link className="min-w-0" to="/admin/dashboard">
                 <Logo />
@@ -125,15 +126,14 @@ export default function AdminLayout() {
 
             <Separator />
 
-
-            {/* Navigation */}
             <ScrollArea className="flex-1 px-3 pb-3">
-              <div className="space-y-5">
+              <div className="space-y-5 py-3">
                 {navSections.map((section) => (
                   <div key={section.label} className="space-y-2">
                     <div className="px-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       {section.label}
                     </div>
+
                     <div className="space-y-1">
                       {section.items.map((item) => {
                         const isActive =
@@ -155,6 +155,7 @@ export default function AdminLayout() {
                                 <item.icon className="h-4 w-4" />
                                 <span>{item.label}</span>
                               </div>
+
                               <ChevronRight
                                 className={cn(
                                   "h-4 w-4 transition-opacity",
@@ -171,7 +172,6 @@ export default function AdminLayout() {
               </div>
             </ScrollArea>
 
-            {/* User footer */}
             <div className="border-t p-3">
               <div className="rounded-lg border p-3">
                 <div className="flex items-center gap-3">
@@ -179,6 +179,7 @@ export default function AdminLayout() {
                     <AvatarImage src={user?.avatar} />
                     <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
                   </Avatar>
+
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">
                       {displayName}
@@ -188,6 +189,7 @@ export default function AdminLayout() {
                     </p>
                   </div>
                 </div>
+
                 <Button
                   className="mt-3 w-full justify-start"
                   onClick={logout}
@@ -201,9 +203,7 @@ export default function AdminLayout() {
           </div>
         </aside>
 
-        {/* Main content */}
-        <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
-          {/* Header */}
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-hidden">
           <header className="sticky top-0 z-30 border-b bg-background">
             <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
               <Button
@@ -229,34 +229,26 @@ export default function AdminLayout() {
                 </Breadcrumb>
               </div>
 
-              <InputGroup className="hidden w-full max-w-xs lg:inline-flex">
-                <InputGroupAddon>
-                  <Search aria-hidden="true" className="h-4 w-4 text-foreground/50" />
-                </InputGroupAddon>
+              <InputGroup className="w-fit">
                 <InputGroupInput
+                  aria-label="Search"
                   placeholder="Search students, approvals, resources..."
                   type="search"
                 />
+                <InputGroupAddon>
+                  <SearchIcon aria-hidden="true" />
+                </InputGroupAddon>
               </InputGroup>
-
               <NavbarThemeToggle />
 
-              <Button className="relative" size="icon" variant="outline">
-                <Bell className="h-4 w-4" />
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-amber-500" />
-              </Button>
-
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="rounded-full">
-                    <Avatar className="h-7 w-7">
-                      <AvatarImage src={user?.avatar} />
-                      <AvatarFallback>
-                        {getInitials(displayName)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
+                <DropdownMenuTrigger className="rounded-full border p-0 outline-none ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user?.avatar} />
+                    <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+                  </Avatar>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>
                     <div className="space-y-1">
@@ -266,6 +258,7 @@ export default function AdminLayout() {
                       </p>
                     </div>
                   </DropdownMenuLabel>
+
                   <DropdownMenuItem
                     onClick={logout}
                     className="text-destructive"
@@ -278,7 +271,6 @@ export default function AdminLayout() {
             </div>
           </header>
 
-          {/* Main page content */}
           <ScrollArea className="flex-1">
             <main className="px-4 py-6 sm:px-6 lg:px-8">
               <div className="mx-auto w-full max-w-6xl">
