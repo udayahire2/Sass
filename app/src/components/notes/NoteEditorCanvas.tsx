@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { Smile, ImageIcon, X, BookOpen, ChevronsRight } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Smile, ImageIcon, X, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,51 +35,90 @@ export function NoteEditorCanvas({
   showWordCount = true,
   spellcheck = false,
 }: NoteEditorCanvasProps) {
-  const [isOutlineOpen, setIsOutlineOpen] = useState(false);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
+  const [collapsedHeadings, setCollapsedHeadings] = useState<Set<string>>(
+    new Set(),
+  );
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Extract headings
   const headings = useMemo(() => {
     if (!bodyMarkdown) return [];
-    const lines = bodyMarkdown.split('\n');
+    const lines = bodyMarkdown.split("\n");
     const items: { text: string; level: number; id: string }[] = [];
-    lines.forEach((line, index) => {
-      const match = line.match(/^(#{1,3})\s+(.+)$/);
+    lines.forEach((line) => {
+      const match = line.match(/^(#{1,4})\s+(.+)$/);
       if (match) {
         items.push({
-          text: match[2].replace(/[_*`[\]]/g, '').trim(),
+          text: match[2].replace(/[_*`[\]]/g, "").trim(),
           level: match[1].length,
-          id: `heading-${index}`,
+          id: `heading-${items.length}`,
         });
       }
     });
     return items;
   }, [bodyMarkdown]);
 
-  const scrollToHeading = (text: string) => {
-    const editorEl = document.querySelector('.ProseMirror');
-    if (!editorEl) return;
-    const headingEls = editorEl.querySelectorAll('h1, h2, h3');
-    for (const el of headingEls) {
-      if (el.textContent?.trim() === text.trim()) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        break;
+  // Tree computation: Determine which items are visible and which have children
+  const treeNodes = useMemo(() => {
+    const nodes = [];
+    let currentCollapsedLevel = Infinity;
+
+    for (let i = 0; i < headings.length; i++) {
+      const h = headings[i];
+
+      // Reset collapse threshold if we move back up the tree (e.g., hit a new H1)
+      if (h.level <= currentCollapsedLevel) {
+        currentCollapsedLevel = Infinity;
       }
+
+      // Skip this node if it's trapped under a collapsed parent
+      if (currentCollapsedLevel < h.level) {
+        continue;
+      }
+
+      const hasChildren =
+        i + 1 < headings.length && headings[i + 1].level > h.level;
+      const isCollapsed = collapsedHeadings.has(h.id);
+
+      if (isCollapsed) {
+        currentCollapsedLevel = h.level;
+      }
+
+      nodes.push({ ...h, hasChildren, isCollapsed, originalIndex: i });
     }
-    if (window.innerWidth < 768) setIsOutlineOpen(false); // auto-close on mobile after click
+    return nodes;
+  }, [headings, collapsedHeadings]);
+
+  const toggleCollapse = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setCollapsedHeadings((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
-  // Scroll sync
+  const scrollToHeading = (headingIndex: number) => {
+    const editorEl = scrollAreaRef.current?.querySelector(".ProseMirror");
+    if (!editorEl) return;
+    const headingEl = editorEl.querySelectorAll("h1, h2, h3, h4")[headingIndex];
+    if (headingEl) {
+      headingEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   useEffect(() => {
     const scrollArea = scrollAreaRef.current;
     if (!scrollArea) return;
-    const viewport = scrollArea.querySelector('[data-slot="scroll-area-viewport"]');
+    const viewport = scrollArea.querySelector(
+      '[data-slot="scroll-area-viewport"]',
+    );
     if (!viewport) return;
     const handleScroll = () => {
-      const editorEl = scrollArea.querySelector('.ProseMirror');
+      const editorEl = scrollArea.querySelector(".ProseMirror");
       if (!editorEl) return;
-      const headingEls = editorEl.querySelectorAll('h1, h2, h3');
+      const headingEls = editorEl.querySelectorAll("h1, h2, h3, h4");
       let activeId = null;
       let closest = Infinity;
       headingEls.forEach((el, idx) => {
@@ -93,16 +132,16 @@ export function NoteEditorCanvas({
       });
       setActiveHeadingId(activeId || (headingEls.length ? `heading-0` : null));
     };
-    viewport.addEventListener('scroll', handleScroll, { passive: true });
+    viewport.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    return () => viewport.removeEventListener('scroll', handleScroll);
+    return () => viewport.removeEventListener("scroll", handleScroll);
   }, [headings]);
 
   return (
-    <main className="flex-1 overflow-hidden flex flex-row relative">
-      {/* Main Editor Area */}
+    <main className="flex-1 overflow-hidden flex flex-row relative bg-background antialiased selection:bg-blue-200/60 dark:selection:bg-blue-500/30">
       <div className="flex-1 min-w-0 flex flex-col">
         <ScrollArea ref={scrollAreaRef} className="flex-1">
+          {/* ... [KEEP EXISTING METADATA/TITLE/EDITOR CODE EXACTLY THE SAME] ... */}
           {metadata.cover && (
             <NoteCoverImage
               cover={metadata.cover}
@@ -110,17 +149,32 @@ export function NoteEditorCanvas({
               onRemoveCover={onRemoveCover}
             />
           )}
-          <div className={cn(
-            "mx-auto px-12 md:px-24 transition-all duration-200",
-            metadata.fullWidth ? "max-w-[1400px]" : "max-w-[900px]"
-          )}>
-            {/* Icon + Title (same as before) */}
-            <div className={cn("relative group/title", metadata.cover ? (metadata.icon ? "mt-0" : "mt-8") : "mt-16")}>
+
+          <div
+            className={cn(
+              "mx-auto px-12 sm:px-16 md:px-24",
+              metadata.fullWidth
+                ? "max-w-none w-full"
+                : "max-w-[900px] lg:max-w-[708px] px-4 sm:px-0",
+            )}
+          >
+            <div
+              className={cn(
+                "relative group/title flex flex-col",
+                metadata.cover ? "mt-0" : "mt-[8vh]",
+              )}
+            >
+              {!metadata.cover && !metadata.icon && <div className="h-8" />}
               {metadata.icon && (
-                <div className={cn("relative inline-block group/emoji", metadata.cover ? "-mt-10 mb-2 z-10" : "mb-2")}>
+                <div
+                  className={cn(
+                    "relative inline-block group/emoji w-fit",
+                    metadata.cover ? "-mt-12 mb-4 z-10" : "mb-4",
+                  )}
+                >
                   <button
                     onClick={onOpenEmojiPicker}
-                    className="text-[78px] leading-[86px] cursor-pointer hover:opacity-80 focus:outline-none"
+                    className="text-[78px] leading-[1.1] cursor-pointer hover:bg-accent/50 rounded-lg transition-colors focus:outline-none"
                   >
                     {metadata.icon}
                   </button>
@@ -129,21 +183,32 @@ export function NoteEditorCanvas({
                       e.stopPropagation();
                       onRemoveIcon();
                     }}
-                    className="absolute -top-1 -right-1 opacity-0 group-hover/emoji:opacity-100 bg-background border border-border hover:bg-accent text-muted-foreground hover:text-foreground rounded-full p-0.5 shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center h-5 w-5 z-20"
+                    className="absolute top-0 right-0 opacity-0 group-hover/emoji:opacity-100 bg-muted border border-border text-muted-foreground hover:text-foreground rounded-full p-1 shadow-sm cursor-pointer flex items-center justify-center transition-opacity z-20"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
               )}
-              <div className={cn("flex gap-2 opacity-0 group-hover/title:opacity-100 mb-2", !metadata.icon && !metadata.cover && "mt-2")}>
+              <div
+                className={cn(
+                  "flex gap-3 opacity-0 group-hover/title:opacity-100 transition-opacity duration-200 mb-2 h-8 items-center",
+                  metadata.icon && "absolute -top-8 left-0",
+                )}
+              >
                 {!metadata.icon && (
-                  <button onClick={onOpenEmojiPicker} className="flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground/60 hover:text-foreground hover:bg-muted/50">
-                    <Smile className="h-3.5 w-3.5" /> Add icon
+                  <button
+                    onClick={onOpenEmojiPicker}
+                    className="flex items-center gap-1.5 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground/70 hover:text-foreground hover:bg-accent/60 transition-colors"
+                  >
+                    <Smile className="h-4 w-4" /> Add icon
                   </button>
                 )}
                 {!metadata.cover && (
-                  <button onClick={onOpenCoverPicker} className="flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground/60 hover:text-foreground hover:bg-muted/50">
-                    <ImageIcon className="h-3.5 w-3.5" /> Add cover
+                  <button
+                    onClick={onOpenCoverPicker}
+                    className="flex items-center gap-1.5 rounded-sm px-2 py-1 text-sm font-medium text-muted-foreground/70 hover:text-foreground hover:bg-accent/60 transition-colors"
+                  >
+                    <ImageIcon className="h-4 w-4" /> Add cover
                   </button>
                 )}
               </div>
@@ -153,15 +218,19 @@ export function NoteEditorCanvas({
                 onChange={onTitleChange}
                 placeholder="Untitled"
                 spellCheck={false}
-                className={cn("w-full bg-transparent px-0 font-bold tracking-normal text-foreground placeholder:text-muted-foreground/25 focus:outline-none", fontClass, "text-[40px] leading-[1.2]")}
+                className={cn(
+                  "w-full bg-transparent px-0 font-bold text-foreground placeholder:text-muted-foreground/30 focus:outline-none transition-colors",
+                  fontClass,
+                  "text-[40px] leading-[1.2] tracking-[-0.03em]",
+                )}
               />
             </div>
-            <div className={cn("mt-1 pb-32", fontClass)}>
+            <div className={cn("mt-2 pb-[30vh] text-base", fontClass)}>
               <RichTextEditor
                 content={bodyMarkdown}
                 onChange={onBodyChange}
                 editable={true}
-                placeholder="Press '/' for commands..."
+                placeholder="Press '/' for commands"
                 showWordCount={showWordCount}
                 spellcheck={spellcheck}
               />
@@ -170,85 +239,90 @@ export function NoteEditorCanvas({
         </ScrollArea>
       </div>
 
-      {/* Outline Sidebar */}
-      {headings.length > 0 && (
+      {/* Floating Collapsible Table of Contents */}
+      {treeNodes.length > 0 && (
         <div
-          className={cn(
-            "h-full transition-all duration-300 ease-in-out bg-background flex-shrink-0 z-10",
-            isOutlineOpen ? "w-[280px] border-l border-border/40 shadow-sm" : "w-10 cursor-pointer hover:bg-accent/50 border-l border-border/10"
-          )}
-          onClick={() => !isOutlineOpen && setIsOutlineOpen(true)}
+          className="group/toc absolute right-5 top-1/2 z-30 hidden -translate-y-1/2 lg:block"
+          aria-label="Table of contents"
         >
-          {isOutlineOpen ? (
-            <div className="flex flex-col h-full w-full">
-              <div className="flex items-center justify-between px-4 py-3 shrink-0">
-                <span className="text-[12px] font-medium text-muted-foreground flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Table of contents
-                </span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setIsOutlineOpen(false); }}
-                  className="rounded-[4px] p-1 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </button>
-              </div>
-              <ScrollArea className="flex-1 px-2 pb-4">
-                <div className="flex flex-col gap-[2px]">
-                  {headings.map((h) => (
-                    <button
+          <div className="relative min-h-45 w-18.5">
+            {/* Visual Indicators */}
+            <div className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-col items-end gap-2.5 rounded-sm px-3 py-4 group-hover/toc:hidden group-focus-within/toc:hidden transition-all duration-300">
+              {treeNodes.slice(0, 6).map((h) => (
+                <div
+                  key={h.id}
+                  className={cn(
+                    "h-1 rounded-full transition-all duration-300",
+                    activeHeadingId === h.id
+                      ? "w-6 bg-primary"
+                      : "w-3 bg-muted-foreground/20",
+                    h.level > 2 && "w-2",
+                  )}
+                />
+              ))}
+            </div>
+
+            {/* Popover Card */}
+            <nav className="absolute right-8 top-1/2 max-h-[min(400px,calc(100vh-96px))] w-[280px] -translate-y-1/2 opacity-0 pointer-events-none group-hover/toc:opacity-100 group-hover/toc:pointer-events-auto group-focus-within/toc:opacity-100 group-focus-within/toc:pointer-events-auto transition-opacity duration-200 overflow-hidden rounded-xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-xl">
+              <ScrollArea
+                className="max-h-[calc(min(400px,100vh-96px)-16px)]"
+                disableLenis
+              >
+                <div className="flex flex-col gap-0.5">
+                  {treeNodes.map((h) => (
+                    <div
                       key={h.id}
-                      onClick={() => scrollToHeading(h.text)}
                       className={cn(
-                        "text-left rounded-[4px] px-2.5 py-1.5 text-[13px] transition-colors focus:outline-none",
+                        "group/item flex items-center w-full rounded-md transition-colors",
                         activeHeadingId === h.id
-                          ? "text-foreground font-medium bg-accent/60"
-                          : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
-                        h.level === 1 && "ml-0 w-full",
-                        h.level === 2 && "ml-3 w-[calc(100%-12px)]",
-                        h.level === 3 && "ml-6 w-[calc(100%-24px)]"
+                          ? "bg-accent/60"
+                          : "hover:bg-accent/40",
+                        h.level === 1 && "mt-1",
+                        h.level === 2 && "pl-4",
+                        h.level === 3 && "pl-8",
+                        h.level >= 4 && "pl-12",
                       )}
                     >
-                      <span className="truncate block leading-snug">{h.text}</span>
-                    </button>
+                      {/* Arrow Toggle Button */}
+                      <div className="flex items-center justify-center w-5 h-5 shrink-0 ml-1">
+                        {h.hasChildren ? (
+                          <button
+                            onClick={(e) => toggleCollapse(e, h.id)}
+                            className="p-0.5 rounded-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none"
+                          >
+                            <ChevronRight
+                              className={cn(
+                                "h-3.5 w-3.5 transition-transform duration-200",
+                                !h.isCollapsed && "rotate-90",
+                              )}
+                            />
+                          </button>
+                        ) : (
+                          <span className="w-3.5 h-3.5" />
+                        )}
+                      </div>
+
+                      {/* Main Heading Text Button */}
+                      <button
+                        type="button"
+                        onClick={() => scrollToHeading(h.originalIndex)}
+                        className={cn(
+                          "flex-1 truncate text-left px-1.5 py-1.5 focus-visible:outline-none",
+                          activeHeadingId === h.id
+                            ? "text-foreground font-medium"
+                            : "text-muted-foreground group-hover/item:text-foreground",
+                          h.level === 1 && "text-sm",
+                          h.level > 1 && "text-[13px]",
+                        )}
+                      >
+                        {h.text}
+                      </button>
+                    </div>
                   ))}
                 </div>
               </ScrollArea>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-start gap-2 py-3 h-full w-full select-none">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOutlineOpen(true);
-                }}
-                className="rounded-[4px] p-1.5 text-muted-foreground/50 hover:text-foreground hover:bg-accent mb-2 cursor-pointer transition-colors"
-                title="Table of contents"
-              >
-                <ChevronsRight className="h-4 w-4 rotate-180" />
-              </button>
-
-              {headings.map((h) => (
-                <div key={h.id} className="group/dash relative flex items-center justify-center w-full py-0.5">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      scrollToHeading(h.text);
-                    }}
-                    className={cn(
-                      "transition-all duration-200 rounded-full cursor-pointer",
-                      activeHeadingId === h.id
-                        ? "w-4 h-1 bg-primary/70"
-                        : "w-2.5 h-1 bg-muted-foreground/30 hover:bg-muted-foreground/60 hover:w-3.5"
-                    )}
-                  />
-                  <div className="absolute right-full mr-3 px-2 py-1 bg-popover/95 backdrop-blur-sm border border-border/40 text-foreground text-[11px] font-medium rounded shadow-sm opacity-0 scale-95 group-hover/dash:opacity-100 group-hover/dash:scale-100 pointer-events-none transition-all duration-150 translate-x-1 group-hover/dash:translate-x-0 whitespace-nowrap z-50">
-                    {h.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+            </nav>
+          </div>
         </div>
       )}
     </main>
