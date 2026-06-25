@@ -146,10 +146,10 @@ export function SidebarNoteItem({
       <div
         ref={itemRef}
         className={cn(
-          "group/item relative flex items-center rounded-[4px] mx-1 transition-all duration-150 cursor-pointer",
+          "group/item relative flex items-center rounded-lg mx-1 transition-all duration-150 cursor-pointer",
           isActive
-            ? "bg-sidebar-accent text-[color:var(--sidebar-foreground)] font-medium"
-            : "text-[color:var(--sidebar-foreground)] opacity-80 hover:opacity-100 hover:bg-sidebar-accent"
+            ? "bg-sidebar-accent text-sidebar-foreground font-medium"
+            : "text-sidebar-foreground opacity-80 hover:opacity-100 hover:bg-sidebar-accent"
         )}
         style={{ paddingLeft: `${depth * 18 + 4}px` }}
         onClick={() => !isRenaming && onSelect()}
@@ -202,7 +202,7 @@ export function SidebarNoteItem({
               if (e.key === "Escape") cancelRename();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="flex-1 min-w-0 rounded-[4px] border border-primary/30 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none"
+            className="flex-1 min-w-0 rounded-lg border border-primary/30 bg-background px-1 py-0.5 text-[13px] text-foreground outline-none"
             aria-label="Rename note"
           />
         ) : (

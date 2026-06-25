@@ -6,7 +6,7 @@ interface NoteCoverImageProps {
 
 export function NoteCoverImage({ cover, onChangeCover, onRemoveCover }: NoteCoverImageProps) {
   return (
-    <div className="group relative w-full h-[30vh] min-h-[200px] max-h-[280px] shrink-0">
+    <div className="group relative w-full h-[25vh] min-h-[160px] max-h-[240px] shrink-0">
       <div
         className="absolute inset-0"
         style={

@@ -155,7 +155,7 @@ export function NoteEditorCanvas({
               "mx-auto px-12 sm:px-16 md:px-24",
               metadata.fullWidth
                 ? "max-w-none w-full"
-                : "max-w-[900px] lg:max-w-[708px] px-4 sm:px-0",
+                : "max-w-255 lg:max-w-177 px-4 sm:px-0",
             )}
           >
             <div
@@ -263,7 +263,7 @@ export function NoteEditorCanvas({
             </div>
 
             {/* Popover Card */}
-            <nav className="absolute right-8 top-1/2 max-h-[min(400px,calc(100vh-96px))] w-[280px] -translate-y-1/2 opacity-0 pointer-events-none group-hover/toc:opacity-100 group-hover/toc:pointer-events-auto group-focus-within/toc:opacity-100 group-focus-within/toc:pointer-events-auto transition-opacity duration-200 overflow-hidden rounded-xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-xl">
+            <nav className="absolute right-8 top-1/2 max-h-[min(400px,calc(100vh-96px))] w-70 -translate-y-1/2 opacity-0 pointer-events-none group-hover/toc:opacity-100 group-hover/toc:pointer-events-auto group-focus-within/toc:opacity-100 group-focus-within/toc:pointer-events-auto transition-opacity duration-200 overflow-hidden rounded-xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-xl">
               <ScrollArea
                 className="max-h-[calc(min(400px,100vh-96px)-16px)]"
                 disableLenis
