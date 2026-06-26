@@ -6,10 +6,13 @@ import {
   Settings2,
   Star,
   Trash2,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NoteMetadata, PageFont } from "@/lib/notesMetadata";
 import type { NoteWithMeta } from "./types";
+import { useTheme } from "@/components/theme-provider";
 
 interface NotesEditorHeaderProps {
   title: string;
@@ -27,6 +30,7 @@ interface NotesEditorHeaderProps {
   onTrash: () => void;
   onOpenEmojiPicker: () => void;
   onOpenCoverPicker: () => void;
+  onToggleTheme: () => void;
 }
 
 export function NotesEditorHeader({
@@ -42,9 +46,11 @@ export function NotesEditorHeader({
   onSetFont,
   onDuplicate,
   onTrash,
+  onToggleTheme,
 }: NotesEditorHeaderProps) {
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const optionsMenuRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
   return (
     <header className="relative z-40 flex h-10 shrink-0 select-none items-center justify-between border-b border-transparent bg-background/80 px-1.5 backdrop-blur-sm md:px-2">
@@ -103,6 +109,16 @@ export function NotesEditorHeader({
         <span className="mr-1 hidden text-[11px] text-muted-foreground/45 md:inline">
           {isSaving ? "Saving..." : "Saved"}
         </span>
+
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          className="grid size-7 place-items-center rounded-[4px] text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground dark:hover:bg-white/5"
+          title="Toggle color theme"
+          aria-label="Toggle color theme"
+        >
+          {theme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+        </button>
 
         <button
           type="button"

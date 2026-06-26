@@ -26,6 +26,7 @@ import { buildTree, getAncestors } from "@/components/notes/helpers";
 import { NotesEmojiPicker } from "@/components/notes/NotesEmojiPicker";
 import { NotesCoverPicker } from "@/components/notes/NotesCoverPicker";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme-provider";
 
 function normalizeEditorTheme(theme: string | null | undefined): string {
   if (theme === "dark" || theme === "sepia" || theme === "nord") {
@@ -71,22 +72,7 @@ export default function NotesPage() {
 
   // ── Settings & Theme State ──
   const [showSettings, setShowSettings] = useState(false);
-  const [editorTheme, setEditorTheme] = useState(() => {
-    if (typeof window !== "undefined") {
-      const localTheme = localStorage.getItem("editor-theme");
-      if (localTheme) {
-        return normalizeEditorTheme(localTheme);
-      }
-      const globalTheme = localStorage.getItem("vite-ui-theme");
-      if (globalTheme === "dark") return "dark";
-      if (globalTheme === "light") return "light";
-
-      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        return "dark";
-      }
-    }
-    return "light";
-  });
+  const { theme: editorTheme, setTheme } = useTheme();
   const [showWordCount, setShowWordCount] = useState(() => {
     if (typeof window !== "undefined") {
       const localVal = localStorage.getItem("pref-show-word-count");
@@ -118,9 +104,15 @@ export default function NotesPage() {
       }).then(r => r.json()).then(payload => {
         const prefs = payload?.data?.preferences || {};
         if (prefs.editorTheme) {
-          setEditorTheme(normalizeEditorTheme(prefs.editorTheme));
+          const prefTheme = normalizeEditorTheme(prefs.editorTheme);
+          if (prefTheme === "light" || prefTheme === "dark") {
+            setTheme(prefTheme);
+          }
         } else {
-          setEditorTheme(normalizeEditorTheme(localStorage.getItem("editor-theme")));
+          const localTheme = normalizeEditorTheme(localStorage.getItem("editor-theme"));
+          if (localTheme === "light" || localTheme === "dark") {
+            setTheme(localTheme);
+          }
         }
 
         if (prefs.showWordCount !== undefined) {
@@ -144,7 +136,10 @@ export default function NotesPage() {
           setPasteImageLink(localVal !== null ? localVal === "true" : true);
         }
       }).catch(() => {
-        setEditorTheme(normalizeEditorTheme(localStorage.getItem("editor-theme")));
+        const localTheme = normalizeEditorTheme(localStorage.getItem("editor-theme"));
+        if (localTheme === "light" || localTheme === "dark") {
+          setTheme(localTheme);
+        }
         setShowWordCount(localStorage.getItem("pref-show-word-count") !== "false");
         setSpellcheck(localStorage.getItem("pref-spellcheck") === "true");
         setPasteImageLink(localStorage.getItem("pref-paste-image-link") !== "false");
@@ -152,12 +147,12 @@ export default function NotesPage() {
     });
   }, []);
 
-  const handleThemeChange = (newTheme: string) => {
-    const normalizedTheme = normalizeEditorTheme(newTheme);
-    setEditorTheme(normalizedTheme);
-    localStorage.setItem("editor-theme", normalizedTheme);
+  const handleToggleTheme = () => {
+    const nextTheme = editorTheme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    localStorage.setItem("editor-theme", nextTheme);
     import("@/services/api").then(({ updatePreferences }) => {
-      updatePreferences({ editorTheme: normalizedTheme }).catch(console.error);
+      updatePreferences({ editorTheme: nextTheme }).catch(console.error);
     });
   };
 
@@ -738,6 +733,7 @@ export default function NotesPage() {
               onTrash={() => handleMoveToTrash(activeNoteId!)}
               onOpenEmojiPicker={() => setShowEmojiPicker(true)}
               onOpenCoverPicker={() => setShowCoverPicker(true)}
+              onToggleTheme={handleToggleTheme}
             />
 
             <NoteEditorCanvas
@@ -800,8 +796,6 @@ export default function NotesPage() {
       <NotesSettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
-        editorTheme={editorTheme}
-        onThemeChange={handleThemeChange}
         showWordCount={showWordCount}
         spellcheck={spellcheck}
         pasteImageLink={pasteImageLink}
