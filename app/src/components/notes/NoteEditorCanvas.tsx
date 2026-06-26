@@ -247,23 +247,77 @@ export function NoteEditorCanvas({
         >
           <div className="relative min-h-45 w-18.5">
             {/* Visual Indicators */}
-            <div className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-col items-end gap-2.5 rounded-sm px-3 py-4 group-hover/toc:hidden group-focus-within/toc:hidden transition-all duration-300">
-              {treeNodes.slice(0, 6).map((h) => (
-                <div
-                  key={h.id}
-                  className={cn(
-                    "h-1 rounded-full transition-all duration-300",
-                    activeHeadingId === h.id
-                      ? "w-6 bg-primary"
-                      : "w-3 bg-muted-foreground/20",
-                    h.level > 2 && "w-2",
-                  )}
-                />
-              ))}
-            </div>
+            {(() => {
+              const visibleNodes = treeNodes.slice(0, 8);
+              const nodeCount = visibleNodes.length;
+              if (nodeCount === 0) return null;
+              const spacing = 20;
+              const padding = 10;
+              const height = (nodeCount - 1) * spacing + padding * 2;
+              const activeIndex = visibleNodes.findIndex((h) => h.id === activeHeadingId);
+              const activeY = activeIndex !== -1 ? padding + activeIndex * spacing : padding;
+
+              return (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 flex items-center justify-center group-hover/toc:opacity-0 group-hover/toc:pointer-events-none group-focus-within/toc:opacity-0 group-focus-within/toc:pointer-events-none transition-all duration-300">
+                  <svg width="20" height={height} viewBox={`0 0 20 ${height}`} className="overflow-visible">
+                    {/* Track */}
+                    <line
+                      x1="10"
+                      y1={padding}
+                      x2="10"
+                      y2={height - padding}
+                      stroke="currentColor"
+                      className="text-muted-foreground/15"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    
+                    {/* Dots for each heading */}
+                    {visibleNodes.map((h, i) => {
+                      const y = padding + i * spacing;
+                      const isMain = h.level === 1;
+                      const size = isMain ? 3.5 : 2.5;
+                      return (
+                        <circle
+                          key={h.id}
+                          cx="10"
+                          cy={y}
+                          r={size}
+                          className={cn(
+                            "fill-muted-foreground/30 transition-all duration-300 hover:fill-muted-foreground/75 cursor-pointer",
+                            activeHeadingId === h.id && "fill-primary"
+                          )}
+                          onClick={() => scrollToHeading(h.originalIndex)}
+                        />
+                      );
+                    })}
+
+                    {/* Smooth glowing active indicator circle */}
+                    {activeIndex !== -1 && (
+                      <g className="transition-all duration-300 ease-out" style={{ transform: `translateY(${activeY - padding}px)` }}>
+                        {/* Glow element */}
+                        <circle
+                          cx="10"
+                          cy={padding}
+                          r="6"
+                          className="fill-primary/20 animate-pulse"
+                        />
+                        {/* Main active dot */}
+                        <circle
+                          cx="10"
+                          cy={padding}
+                          r="3.5"
+                          className="fill-primary"
+                        />
+                      </g>
+                    )}
+                  </svg>
+                </div>
+              );
+            })()}
 
             {/* Popover Card */}
-            <nav className="absolute right-8 top-1/2 max-h-[min(400px,calc(100vh-96px))] w-70 -translate-y-1/2 opacity-0 pointer-events-none group-hover/toc:opacity-100 group-hover/toc:pointer-events-auto group-focus-within/toc:opacity-100 group-focus-within/toc:pointer-events-auto transition-opacity duration-200 overflow-hidden rounded-xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-xl">
+            <nav className="absolute right-8 top-1/2 max-h-[min(400px,calc(100vh-96px))] w-70 -translate-y-1/2 opacity-0 scale-95 pointer-events-none group-hover/toc:opacity-100 group-hover/toc:scale-100 group-hover/toc:pointer-events-auto group-focus-within/toc:opacity-100 group-focus-within/toc:scale-100 group-focus-within/toc:pointer-events-auto transition-all duration-300 ease-out origin-right overflow-hidden rounded-xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-xl">
               <ScrollArea
                 className="max-h-[calc(min(400px,100vh-96px)-16px)]"
                 disableLenis
