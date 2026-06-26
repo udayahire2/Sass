@@ -14,7 +14,7 @@ const {
 const { loadAuthenticatedUser } = require('../middlewares/authMiddleware');
 const { createRateLimiter } = require('../middlewares/rateLimit');
 const { validate } = require('../middlewares/validate');
-const { loginSchema, registerSchema, updateProfileSchema, verifyOtpSchema } = require('../validation/schemas');
+const { loginSchema, registerSchema, updateProfileSchema, verifyOtpSchema, updatePreferencesSchema } = require('../validation/schemas');
 
 const router = express.Router();
 
@@ -40,7 +40,7 @@ router.post('/logout', logout);
 router.get('/me', loadAuthenticatedUser, getMe);
 router.put('/updatedetails', loadAuthenticatedUser, validate(updateProfileSchema), updateDetails);
 router.put('/updateavatar', loadAuthenticatedUser, updateAvatar);
-router.patch('/preferences', loadAuthenticatedUser, updatePreferences);
+router.patch('/preferences', loadAuthenticatedUser, validate(updatePreferencesSchema), updatePreferences);
 router.get('/faculty/profile', loadAuthenticatedUser, getFacultyProfile);
 
 module.exports = router;

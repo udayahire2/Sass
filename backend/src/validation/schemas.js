@@ -60,6 +60,13 @@ const updateProfileSchema = z.object({
     year: yearEnum.optional(),
 });
 
+const updatePreferencesSchema = z.object({
+    preferences: z.object({
+        theme: z.string().trim().optional(),
+        fontFamily: z.string().trim().optional(),
+    }).passthrough(),
+});
+
 const createSyllabusSchema = z.object({
     title: trimmedString(2, 'Title'),
     code: trimmedString(2, 'Code'),
@@ -167,6 +174,7 @@ module.exports = {
     paginationQuerySchema,
     registerSchema,
     updateMaterialStatusSchema,
+    updatePreferencesSchema,
     updateProfileSchema,
     verifyOtpSchema,
 };

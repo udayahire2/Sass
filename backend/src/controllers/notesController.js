@@ -49,9 +49,39 @@ exports.getNoteById = (req, res, next) => {
 // POST /api/v1/notes
 exports.createNote = (req, res, next) => {
     try {
-        const { title, content_markdown, topic_id, icon, cover, is_favorite, is_trash, parent_id, font, full_width } = req.body;
+        const { title, topic_id, icon, cover, is_favorite, is_trash, parent_id, font, full_width } = req.body;
         
-        const finalTitle = title ? title : 'Untitled';
+        const baseTitle = title ? title : 'Untitled';
+        let finalTitle = baseTitle;
+
+        // Auto-generate unique title if it already exists
+        const existingNotes = all(
+            `SELECT title FROM student_notes WHERE user_id = ? AND title LIKE ? AND deleted_at IS NULL`,
+            [req.user.id, `${baseTitle}%`]
+        );
+
+        if (existingNotes.length > 0) {
+            let maxSuffix = 0;
+            let exactMatch = false;
+
+            for (const note of existingNotes) {
+                if (note.title === baseTitle) {
+                    exactMatch = true;
+                } else {
+                    const match = note.title.substring(baseTitle.length).match(/^(\d+)$/);
+                    if (match) {
+                        const num = parseInt(match[1], 10);
+                        if (num > maxSuffix) {
+                            maxSuffix = num;
+                        }
+                    }
+                }
+            }
+
+            if (exactMatch || maxSuffix > 0) {
+                finalTitle = `${baseTitle}${maxSuffix + 1}`;
+            }
+        }
 
         const id = crypto.randomUUID();
         const timestamp = nowIso();
@@ -64,7 +94,7 @@ exports.createNote = (req, res, next) => {
                 req.user.id, 
                 topic_id || null, 
                 finalTitle, 
-                content_markdown || '', 
+                '', // Force empty content to avoid inheriting old data
                 icon || null, 
                 cover || null, 
                 is_favorite ? 1 : 0, 
