@@ -249,7 +249,7 @@ export default function ContentApprovalPage() {
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="overflow-x-auto">
-                            <Table className="min-w-[880px]">
+                            <Table className="min-w-220">
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="pl-6">Content Details</TableHead>
@@ -345,7 +345,7 @@ export default function ContentApprovalPage() {
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="overflow-x-auto">
-                            <Table className="min-w-[720px]">
+                            <Table className="min-w-180">
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="pl-6">Content Details</TableHead>

@@ -302,9 +302,9 @@ export default function SubjectManagerPage() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button asChild variant="outline" size="sm" className="h-8">
-                                                    <Link to={`/admin/subjects/${item.id}`}>
+                                                <Button  variant="ghost" size="sm" className="h-8">
                                                         <BookOpen className="mr-2 h-4 w-4" />
+                                                    <Link to={`/admin/subjects/${item.id}`}>
                                                         Manage Content
                                                     </Link>
                                                 </Button>
