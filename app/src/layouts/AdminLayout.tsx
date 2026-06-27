@@ -99,8 +99,9 @@ export default function AdminLayout() {
   const displayEmail = user?.email || "admin@studyhub.com";
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto flex min-h-screen w-full max-w-screen-2xl">
+    <div className="h-screen bg-background text-foreground">
+      <div className="mx-auto flex h-screen w-full max-w-screen-2xl">
+        {/* Mobile overlay */}
         <div
           aria-hidden="true"
           className={cn(
@@ -110,6 +111,7 @@ export default function AdminLayout() {
           onClick={() => setSidebarOpen(false)}
         />
 
+        {/* Sidebar */}
         <aside
           className={cn(
             "fixed inset-y-0 left-0 z-50 w-70 border-r bg-background transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0",
@@ -203,7 +205,8 @@ export default function AdminLayout() {
           </div>
         </aside>
 
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-hidden">
+        {/* Main content */}
+        <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
           <header className="sticky top-0 z-30 border-b bg-background">
             <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
               <Button
