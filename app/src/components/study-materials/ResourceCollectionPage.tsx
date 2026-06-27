@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { ExternalLink, File, FileText, Loader2, Search, Video } from "lucide-react";
+import {
+  ExternalLink,
+  File,
+  FileText,
+  Loader2,
+  Search,
+  Video,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Frame } from "@/components/ui/frame";
 import {
   InputGroup,
   InputGroupAddon,
@@ -16,7 +24,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { fetchResources, type ResourceCategory, type ResourceItem } from "@/services/resource-service";
+import {
+  fetchResources,
+  type ResourceCategory,
+  type ResourceItem,
+} from "@/services/resource-service";
 import { PageContainer } from "./layout/PageContainer";
 import { PageHeader } from "./layout/PageHeader";
 import { EmptyState } from "./layout/EmptyState";
@@ -71,7 +83,8 @@ export default function ResourceCollectionPage({
         resource.title.toLowerCase().includes(query) ||
         resource.subject.toLowerCase().includes(query) ||
         (resource.branch && resource.branch.toLowerCase().includes(query)) ||
-        (resource.semester && resource.semester.toLowerCase().includes(query)) ||
+        (resource.semester &&
+          resource.semester.toLowerCase().includes(query)) ||
         resource.author.toLowerCase().includes(query)
       );
     });
@@ -79,20 +92,26 @@ export default function ResourceCollectionPage({
 
   return (
     <PageContainer>
-      <PageHeader 
-        title={title} 
-        description={description} 
+      <PageHeader
+        title={title}
+        description={description}
         badge={
-          <Badge variant="secondary" className="rounded-[6px] bg-primary/10 text-primary">
+          <Badge
+            variant="secondary"
+            className="rounded-[6px] bg-primary/10 text-primary"
+          >
             Study Material
           </Badge>
-        } 
+        }
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
         <InputGroup className="w-full sm:max-w-sm">
           <InputGroupAddon>
-            <Search aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+            <Search
+              aria-hidden="true"
+              className="h-4 w-4 text-muted-foreground"
+            />
           </InputGroupAddon>
           <InputGroupInput
             type="search"
@@ -104,84 +123,86 @@ export default function ResourceCollectionPage({
         <p className="text-sm text-muted-foreground">{filtered.length} items</p>
       </div>
 
-      <div className="overflow-hidden rounded-lg border">
-        <div className="overflow-x-auto">
-          <Table className="min-w-[760px]">
-            <TableHeader className="bg-muted/30">
+      <Frame className="w-full">
+        <Table variant="card" className="min-w-[760px]">
+          <TableHeader className="bg-muted/30">
+            <TableRow>
+              <TableHead className="w-[360px]">Title</TableHead>
+              <TableHead>Subject</TableHead>
+              <TableHead>Branch / Semester</TableHead>
+              <TableHead>Author</TableHead>
+              <TableHead className="text-right">Open</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
               <TableRow>
-                <TableHead className="w-[360px]">Title</TableHead>
-                <TableHead>Subject</TableHead>
-                <TableHead>Branch / Semester</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead className="text-right">Open</TableHead>
+                <TableCell colSpan={5} className="h-48 text-center">
+                  <Loader2 className="mx-auto h-7 w-7 animate-spin text-muted-foreground" />
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center">
-                    <Loader2 className="mx-auto h-7 w-7 animate-spin text-muted-foreground" />
-                  </TableCell>
-                </TableRow>
-              ) : resources.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="p-8">
-                    <EmptyState 
-                      title={emptyTitle} 
-                      description={emptyDescription} 
-                      icon={FileText} 
-                    />
-                  </TableCell>
-                </TableRow>
-              ) : filtered.length === 0 ? (
-                 <TableRow>
-                  <TableCell colSpan={5} className="p-8">
-                    <EmptyState 
-                      title="No matching results" 
-                      description="Try adjusting your search query." 
-                      icon={Search} 
-                    />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((resource) => (
-                  <TableRow key={resource._id}>
-                    <TableCell className="py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="rounded-md bg-muted p-2">
-                          {getTypeIcon(resource.type)}
+            ) : resources.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="p-8">
+                  <EmptyState
+                    title={emptyTitle}
+                    description={emptyDescription}
+                    icon={FileText}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="p-8">
+                  <EmptyState
+                    title="No matching results"
+                    description="Try adjusting your search query."
+                    icon={Search}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((resource) => (
+                <TableRow key={resource._id}>
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-md bg-muted p-2">
+                        {getTypeIcon(resource.type)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">
+                          {resource.title}
                         </div>
-                        <div className="min-w-0">
-                          <div className="truncate font-medium">{resource.title}</div>
-                          <div className="line-clamp-1 text-xs text-muted-foreground">
-                            {resource.description}
-                          </div>
+                        <div className="line-clamp-1 text-xs text-muted-foreground">
+                          {resource.description}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>{resource.subject}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-0.5">
-                        <span>{resource.branch || "—"}</span>
-                        <span className="text-xs text-muted-foreground">{resource.semester || ""}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{resource.author}</TableCell>
-                    <TableCell className="text-right">
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={resource.url} target="_blank" rel="noreferrer">
-                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                          Open
-                        </a>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{resource.subject}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <span>{resource.branch || "—"}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {resource.semester || ""}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{resource.author}</TableCell>
+                  <TableCell className="text-right">
+                    <Button size="sm" variant="default">
+                      <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                      <a href={resource.url} target="_blank" rel="noreferrer">
+                        Open
+                      </a>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Frame>
     </PageContainer>
   );
 }

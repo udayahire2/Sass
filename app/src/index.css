@@ -92,7 +92,7 @@ body {
 
 :root {
   --radius: 0.75rem;
-  --background: var(--color-neutral-100);
+  --background: var(--color-neutral-50);
   --foreground: hsl(40 8% 20%);
 
   --card: hsl(0 0% 100%);

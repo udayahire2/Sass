@@ -70,9 +70,9 @@ export default function StudyStockPage() {
             </div>
           </div>
           {user && (
-            <Button variant="outline" asChild>
-              <Link to="/dashboard/student/add-content">
+            <Button variant="outline">
                 <UploadCloud className="h-4 w-4 mr-2" />
+              <Link to="/dashboard/student/add-content">
                 Add Content
               </Link>
             </Button>
@@ -156,7 +156,7 @@ export default function StudyStockPage() {
         )}
 
         {loadingUploads ? (
-          <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-border/50">
+          <div className="flex min-h-50 items-center justify-center rounded-xl border border-border/50">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : materials.length === 0 ? (
@@ -229,10 +229,10 @@ export default function StudyStockPage() {
                         </Button>
                       )}
                       {href && (
-                        <Button size="sm" variant="outline" asChild>
+                        <Button size="sm" variant="outline">
+                            <ExternalLink className="ml-2 h-3.5 w-3.5" />
                           <a href={href} target="_blank" rel="noreferrer">
                             Open
-                            <ExternalLink className="ml-2 h-3.5 w-3.5" />
                           </a>
                         </Button>
                       )}
