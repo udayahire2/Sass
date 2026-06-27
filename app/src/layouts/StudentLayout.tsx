@@ -39,7 +39,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { motion, AnimatePresence } from "framer-motion";
 
 const navSections = [
   {
@@ -102,18 +101,12 @@ export default function StudentLayout() {
       <div className="mx-auto flex min-h-screen w-full overflow-hidden">
         
         {/* Mobile overlay */}
-        <AnimatePresence>
-          {sidebarOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
-        </AnimatePresence>
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden transition-opacity animate-in fade-in duration-200"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
         {/* Sidebar */}
         <aside
@@ -126,7 +119,7 @@ export default function StudentLayout() {
             <Link className="min-w-0 flex items-center gap-2 transition-opacity hover:opacity-80" to="/dashboard/student">
               <Logo />
             </Link>
-            <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 transition-colors border-transparent">
+            <Badge variant="info">
               Student
             </Badge>
             <Button
@@ -158,18 +151,10 @@ export default function StudentLayout() {
                             className={cn(
                               "group relative flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                               isActive
-                                ? "text-primary"
-                                : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                                ? "text-primary bg-primary/10 border border-primary/20"
+                                : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground border border-transparent"
                             )}
                           >
-                            {isActive && (
-                              <motion.div
-                                layoutId="activeNavIndicator"
-                                className="absolute inset-0 rounded-xl bg-primary/10 border border-primary/20"
-                                initial={false}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                              />
-                            )}
                             <div className="relative flex items-center gap-3 z-10">
                               <item.icon className={cn("h-4.5 w-4.5 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
                               <span>{item.label}</span>
@@ -304,14 +289,9 @@ export default function StudentLayout() {
           {/* Main page content */}
           <ScrollArea className="flex-1 bg-muted/10">
             <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8">
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                className="mx-auto w-full max-w-5xl"
-              >
+              <div className="mx-auto w-full max-w-5xl animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <Outlet />
-              </motion.div>
+              </div>
             </main>
           </ScrollArea>
         </div>
