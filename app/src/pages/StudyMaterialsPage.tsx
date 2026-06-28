@@ -132,7 +132,7 @@ export default function StudyMaterialsPage() {
       {/* Content */}
       <div className="min-h-[50vh]">
         {isRoot && (
-          <BranchSemesterSelection
+        <BranchSemesterSelection
             selectedBranch={tempBranch}
             selectedSemester={null}
             onBranchSelect={handleBranchSelect}

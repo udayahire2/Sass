@@ -146,7 +146,7 @@ export default function BubbleToolbar({ editor }: BubbleToolbarProps) {
       className="flex flex-col rounded-md border border-border bg-popover shadow-sm overflow-hidden z-50"
     >
       {/* Main Toolbar Row with horizontal ScrollArea */}
-      <ScrollArea orientation="horizontal" className="w-full">
+      <ScrollArea  className="w-full">
         <div className="flex flex-nowrap items-center gap-0.5 px-1 py-1 min-w-max">
           {/* Turn Into Dropdown */}
           <button
@@ -157,7 +157,7 @@ export default function BubbleToolbar({ editor }: BubbleToolbarProps) {
               activePanel === 'turnInto' && "bg-muted text-foreground"
             )}
           >
-            <span className="truncate max-w-[80px]">{getActiveBlockLabel()}</span>
+            <span className="truncate max-w-20">{getActiveBlockLabel()}</span>
             <ChevronDown className={cn("h-3 w-3 opacity-50 transition-transform", activePanel === 'turnInto' && "rotate-180")} />
           </button>
 
@@ -230,7 +230,7 @@ export default function BubbleToolbar({ editor }: BubbleToolbarProps) {
           <div className="px-2 py-1 select-none">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Turn into</span>
           </div>
-          <ScrollArea className="flex-1 max-h-[280px]">
+          <ScrollArea className="flex-1 max-h-70">
             <div className="p-0.5 space-y-0.5">
               {turnIntoOptions.map((opt) => (
                 <button
@@ -269,7 +269,7 @@ export default function BubbleToolbar({ editor }: BubbleToolbarProps) {
             value={urlValue}
             onChange={(e) => setUrlValue(e.target.value)}
             placeholder="Paste link or type URL..."
-            className="flex-1 bg-transparent border-none text-xs outline-none focus:ring-0 placeholder:text-muted-foreground/50 text-foreground font-medium min-w-[180px]"
+            className="flex-1 bg-transparent border-none text-xs outline-none focus:ring-0 placeholder:text-muted-foreground/50 text-foreground font-medium min-w-45"
             autoFocus
           />
           <div className="flex items-center gap-0.5 shrink-0">

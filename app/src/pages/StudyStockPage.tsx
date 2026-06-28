@@ -217,7 +217,7 @@ export default function StudyStockPage() {
                     <div className="flex items-center gap-2">
                       {user && (
                         <Button
-                          variant={isBookmarked ? "default" : "outline"}
+                          variant={isBookmarked ? "default" : "ghost"}
                           size="icon"
                           className={cn(
                             "rounded-xl h-9 w-9",

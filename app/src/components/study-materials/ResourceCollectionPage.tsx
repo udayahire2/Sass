@@ -124,10 +124,10 @@ export default function ResourceCollectionPage({
       </div>
 
       <Frame className="w-full">
-        <Table variant="card" className="min-w-[760px]">
+        <Table variant="card" className="min-w-190">
           <TableHeader className="bg-muted/30">
             <TableRow>
-              <TableHead className="w-[360px]">Title</TableHead>
+              <TableHead className="w-90">Title</TableHead>
               <TableHead>Subject</TableHead>
               <TableHead>Branch / Semester</TableHead>
               <TableHead>Author</TableHead>
