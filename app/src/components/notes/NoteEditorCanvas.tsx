@@ -36,9 +36,7 @@ export function NoteEditorCanvas({
   spellcheck = false,
 }: NoteEditorCanvasProps) {
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
-  const [collapsedHeadings, setCollapsedHeadings] = useState<Set<string>>(
-    new Set(),
-  );
+  const [collapsedHeadings, setCollapsedHeadings] = useState<Set<string>>(new Set());
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const headings = useMemo(() => {
@@ -58,32 +56,24 @@ export function NoteEditorCanvas({
     return items;
   }, [bodyMarkdown]);
 
-  // Tree computation: Determine which items are visible and which have children
   const treeNodes = useMemo(() => {
     const nodes = [];
     let currentCollapsedLevel = Infinity;
 
     for (let i = 0; i < headings.length; i++) {
       const h = headings[i];
-
-      // Reset collapse threshold if we move back up the tree (e.g., hit a new H1)
       if (h.level <= currentCollapsedLevel) {
         currentCollapsedLevel = Infinity;
       }
-
-      // Skip this node if it's trapped under a collapsed parent
       if (currentCollapsedLevel < h.level) {
         continue;
       }
-
-      const hasChildren =
-        i + 1 < headings.length && headings[i + 1].level > h.level;
+      const hasChildren = i + 1 < headings.length && headings[i + 1].level > h.level;
       const isCollapsed = collapsedHeadings.has(h.id);
 
       if (isCollapsed) {
         currentCollapsedLevel = h.level;
       }
-
       nodes.push({ ...h, hasChildren, isCollapsed, originalIndex: i });
     }
     return nodes;
@@ -111,9 +101,7 @@ export function NoteEditorCanvas({
   useEffect(() => {
     const scrollArea = scrollAreaRef.current;
     if (!scrollArea) return;
-    const viewport = scrollArea.querySelector(
-      '[data-slot="scroll-area-viewport"]',
-    );
+    const viewport = scrollArea.querySelector('[data-slot="scroll-area-viewport"]');
     if (!viewport) return;
     const handleScroll = () => {
       const editorEl = scrollArea.querySelector(".ProseMirror");
@@ -141,7 +129,6 @@ export function NoteEditorCanvas({
     <main className="flex-1 overflow-hidden flex flex-row relative bg-background antialiased selection:bg-blue-200/60 dark:selection:bg-blue-500/30">
       <div className="flex-1 min-w-0 flex flex-col">
         <ScrollArea ref={scrollAreaRef} className="flex-1">
-          {/* ... [KEEP EXISTING METADATA/TITLE/EDITOR CODE EXACTLY THE SAME] ... */}
           {metadata.cover && (
             <NoteCoverImage
               cover={metadata.cover}
@@ -246,78 +233,48 @@ export function NoteEditorCanvas({
           aria-label="Table of contents"
         >
           <div className="relative min-h-45 w-18.5">
-            {/* Visual Indicators */}
+            {/* Visual Indicators - Line Pattern with Spring Animation */}
             {(() => {
               const visibleNodes = treeNodes.slice(0, 8);
               const nodeCount = visibleNodes.length;
               if (nodeCount === 0) return null;
-              const spacing = 20;
-              const padding = 10;
+              const spacing = 22; 
+              const padding = 12;
               const height = (nodeCount - 1) * spacing + padding * 2;
-              const activeIndex = visibleNodes.findIndex((h) => h.id === activeHeadingId);
-              const activeY = activeIndex !== -1 ? padding + activeIndex * spacing : padding;
 
               return (
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 flex items-center justify-center group-hover/toc:opacity-0 group-hover/toc:pointer-events-none group-focus-within/toc:opacity-0 group-focus-within/toc:pointer-events-none transition-all duration-300">
-                  <svg width="20" height={height} viewBox={`0 0 20 ${height}`} className="overflow-visible">
-                    {/* Track */}
-                    <line
-                      x1="10"
-                      y1={padding}
-                      x2="10"
-                      y2={height - padding}
-                      stroke="currentColor"
-                      className="text-muted-foreground/15"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                    
-                    {/* Dots for each heading */}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 w-6 flex items-center justify-center transition-opacity duration-300 ease-in-out group-hover/toc:opacity-0 group-hover/toc:pointer-events-none group-focus-within/toc:opacity-0 group-focus-within/toc:pointer-events-none">
+                  <svg width="24" height={height} viewBox={`0 0 24 ${height}`} className="overflow-visible">
                     {visibleNodes.map((h, i) => {
                       const y = padding + i * spacing;
-                      const isMain = h.level === 1;
-                      const size = isMain ? 3.5 : 2.5;
+                      const isActive = activeHeadingId === h.id;
                       return (
-                        <circle
+                        <rect
                           key={h.id}
-                          cx="10"
-                          cy={y}
-                          r={size}
+                          x={isActive ? 2 : 8}
+                          y={y - 1}
+                          width={isActive ? 20 : 12}
+                          height="2"
+                          rx="1"
                           className={cn(
-                            "fill-muted-foreground/30 transition-all duration-300 hover:fill-muted-foreground/75 cursor-pointer",
-                            activeHeadingId === h.id && "fill-primary"
+                            "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer origin-left",
+                            isActive ? "fill-primary" : "fill-muted-foreground/30 hover:fill-muted-foreground/75"
                           )}
                           onClick={() => scrollToHeading(h.originalIndex)}
                         />
                       );
                     })}
-
-                    {/* Smooth glowing active indicator circle */}
-                    {activeIndex !== -1 && (
-                      <g className="transition-all duration-300 ease-out" style={{ transform: `translateY(${activeY - padding}px)` }}>
-                        {/* Glow element */}
-                        <circle
-                          cx="10"
-                          cy={padding}
-                          r="6"
-                          className="fill-primary/20 animate-pulse"
-                        />
-                        {/* Main active dot */}
-                        <circle
-                          cx="10"
-                          cy={padding}
-                          r="3.5"
-                          className="fill-primary"
-                        />
-                      </g>
-                    )}
                   </svg>
                 </div>
               );
             })()}
 
-            {/* Popover Card */}
-            <nav className="absolute right-8 top-1/2 max-h-[min(400px,calc(100vh-96px))] w-70 -translate-y-1/2 opacity-0 scale-95 pointer-events-none group-hover/toc:opacity-100 group-hover/toc:scale-100 group-hover/toc:pointer-events-auto group-focus-within/toc:opacity-100 group-focus-within/toc:scale-100 group-focus-within/toc:pointer-events-auto transition-all duration-300 ease-out origin-right overflow-hidden rounded-xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur-xl">
+            {/* Popover Card - Upgraded with Cubic Bezier Glide */}
+            <nav className="absolute right-8 top-1/2 max-h-[min(400px,calc(100vh-96px))] w-70 -translate-y-1/2 
+              opacity-0 scale-95 translate-x-2 pointer-events-none 
+              group-hover/toc:opacity-100 group-hover/toc:scale-100 group-hover/toc:translate-x-0 group-hover/toc:pointer-events-auto 
+              group-focus-within/toc:opacity-100 group-focus-within/toc:scale-100 group-focus-within/toc:translate-x-0 group-focus-within/toc:pointer-events-auto 
+              transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] origin-right overflow-hidden rounded-xl border border-border bg-background/95 p-2 shadow-2xl backdrop-blur-xl will-change-transform">
               <ScrollArea
                 className="max-h-[calc(min(400px,100vh-96px)-16px)]"
                 disableLenis
@@ -346,7 +303,7 @@ export function NoteEditorCanvas({
                           >
                             <ChevronRight
                               className={cn(
-                                "h-3.5 w-3.5 transition-transform duration-200",
+                                "h-3.5 w-3.5 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
                                 !h.isCollapsed && "rotate-90",
                               )}
                             />
@@ -361,7 +318,7 @@ export function NoteEditorCanvas({
                         type="button"
                         onClick={() => scrollToHeading(h.originalIndex)}
                         className={cn(
-                          "flex-1 truncate text-left px-1.5 py-1.5 focus-visible:outline-none",
+                          "flex-1 truncate text-left px-1.5 py-1.5 focus-visible:outline-none transition-colors duration-200",
                           activeHeadingId === h.id
                             ? "text-foreground font-medium"
                             : "text-muted-foreground group-hover/item:text-foreground",
