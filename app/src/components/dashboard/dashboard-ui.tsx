@@ -7,7 +7,7 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import {
   Card,
   CardAction,
-  CardContent,
+  CardPanel,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -95,9 +95,9 @@ export function DashboardStatCard({
           </div>
         </CardAction>
       </CardHeader>
-      <CardContent>
+      <CardPanel>
         <p className="text-sm text-muted-foreground">{description}</p>
-      </CardContent>
+      </CardPanel>
     </Card>
   );
 }

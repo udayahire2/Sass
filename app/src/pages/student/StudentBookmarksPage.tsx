@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import {
   Card,
-  CardContent,
+  CardPanel,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -100,7 +100,7 @@ export default function StudentBookmarksPage() {
       {/* Empty State */}
       {bookmarkedMaterials.length === 0 ? (
         <Card>
-          <CardContent className="py-16">
+          <CardPanel className="py-16">
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -117,7 +117,7 @@ export default function StudentBookmarksPage() {
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
-          </CardContent>
+          </CardPanel>
         </Card>
       ) : (
         <Card>
@@ -132,7 +132,7 @@ export default function StudentBookmarksPage() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="p-0">
+          <CardPanel className="p-0">
             <div className="divide-y">
               {bookmarkedMaterials.map((material) => {
                 const href =
@@ -204,7 +204,7 @@ export default function StudentBookmarksPage() {
                 );
               })}
             </div>
-          </CardContent>
+          </CardPanel>
         </Card>
       )}
     </div>

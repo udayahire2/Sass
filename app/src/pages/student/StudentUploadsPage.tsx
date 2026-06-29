@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Clock, CheckCircle2, XCircle, UploadCloud, ChevronRight } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardPanel, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,15 +45,13 @@ export default function StudentUploadsPage() {
             </CardTitle>
             <CardDescription className="mt-1.5">Track the approval status of study materials you have contributed.</CardDescription>
           </div>
-          <Button >
-              <UploadCloud className="mr-2 h-4 w-4" />
-            <Link to="/dashboard/student/add-content">
-              Upload New
-            </Link>
+          <Button render={<Link to="/dashboard/student/add-content" />}>
+            <UploadCloud className="mr-2 h-4 w-4" />
+            Upload New
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardPanel className="p-0">
         {materialsLoading ? (
           <Empty className="py-16">
             <EmptyHeader>
@@ -72,11 +70,9 @@ export default function StudentUploadsPage() {
             <EmptyTitle >No Uploads Yet</EmptyTitle>
               <EmptyDescription className="max-w-md mx-auto">Get started by sharing your notes, sample papers, or study content with the community.</EmptyDescription>
             </EmptyHeader>
-            <Button variant="outline" className="mt-4" >
-                <UploadCloud className="mr-2 h-4 w-4" />
-              <Link to="/dashboard/student/add-content">
-                Start Uploading
-              </Link>
+            <Button variant="outline" className="mt-4" render={<Link to="/dashboard/student/add-content" />}>
+              <UploadCloud className="mr-2 h-4 w-4" />
+              Start Uploading
             </Button>
           </Empty>
         ) : (
@@ -137,7 +133,7 @@ export default function StudentUploadsPage() {
             </Table>
           </div>
         )}
-      </CardContent>
+      </CardPanel>
     </Card>
   );
 }

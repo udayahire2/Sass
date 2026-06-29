@@ -17,14 +17,14 @@ import {
 import { toast } from "sonner";
 import {
   Card,
-  CardContent,
+  CardPanel,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -33,13 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import {
   buildApiUrl,
@@ -47,7 +41,7 @@ import {
   getErrorMessage,
   parseApiData,
 } from "@/services/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 
 // ------------------------------------------------------------
 // Cropping utilities
@@ -251,7 +245,7 @@ export default function StudentProfilePage() {
       {/* Profile Header */}{" "}
       <Card>
         {" "}
-        <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
+        <CardPanel className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
           {" "}
           <div
             className="relative cursor-pointer"
@@ -291,7 +285,7 @@ export default function StudentProfilePage() {
             <p className="text-sm text-muted-foreground"> {user?.email} </p>{" "}
             <Badge variant="secondary"> Student Account </Badge>{" "}
           </div>{" "}
-        </CardContent>{" "}
+        </CardPanel>{" "}
       </Card>{" "}
       {/* Personal Information */}{" "}
       <Card>
@@ -304,25 +298,25 @@ export default function StudentProfilePage() {
             Update your academic profile details.{" "}
           </CardDescription>{" "}
         </CardHeader>{" "}
-        <CardContent>
+        <CardPanel>
           {" "}
           <form onSubmit={handleUpdate} className="space-y-6">
             {" "}
             <div className="grid gap-5 md:grid-cols-3">
               {" "}
-              <div className="space-y-2">
+              <Field>
                 {" "}
-                <Label htmlFor="name"> Full Name </Label>{" "}
+                <FieldLabel htmlFor="name"> Full Name </FieldLabel>{" "}
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />{" "}
-              </div>{" "}
-              <div className="space-y-2">
+              </Field>{" "}
+              <Field>
               {" "}
-                <Label> Branch </Label>{" "}
-                <Select value={branch} onValueChange={setBranch}>
+                <FieldLabel> Branch </FieldLabel>{" "}
+                <Select value={branch} onValueChange={(val) => setBranch(val || "")}>
                   {" "}
                   <SelectTrigger>
                     {" "}
@@ -345,11 +339,11 @@ export default function StudentProfilePage() {
                     ))}{" "}
                   </SelectContent>{" "}
                 </Select>{" "}
-              </div>{" "}
-              <div className="space-y-2">
+              </Field>{" "}
+              <Field>
                 {" "}
-                <Label> Academic Year </Label>{" "}
-                <Select value={year} onValueChange={setYear}>
+                <FieldLabel> Academic Year </FieldLabel>{" "}
+                <Select value={year} onValueChange={(val) => setYear(val || "")}>
                   {" "}
                   <SelectTrigger>
                     {" "}
@@ -365,7 +359,7 @@ export default function StudentProfilePage() {
                     ))}{" "}
                   </SelectContent>{" "}
                 </Select>{" "}
-              </div>{" "}
+              </Field>{" "}
             </div>{" "}
             <div className="flex justify-end">
               {" "}
@@ -375,7 +369,7 @@ export default function StudentProfilePage() {
               </Button>{" "}
             </div>{" "}
           </form>{" "}
-        </CardContent>{" "}
+        </CardPanel>{" "}
       </Card>{" "}
       {/* Account Information */}{" "}
       <Card>
@@ -384,7 +378,7 @@ export default function StudentProfilePage() {
           {" "}
           <CardTitle> Account Information </CardTitle>{" "}
         </CardHeader>{" "}
-        <CardContent>
+        <CardPanel>
           {" "}
           <div className="divide-y">
             {" "}
@@ -415,7 +409,7 @@ export default function StudentProfilePage() {
               </Badge>{" "}
             </div>{" "}
           </div>{" "}
-        </CardContent>{" "}
+        </CardPanel>{" "}
       </Card>{" "}
     </div>
   );

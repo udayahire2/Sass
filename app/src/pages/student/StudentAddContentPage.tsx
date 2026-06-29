@@ -1,9 +1,9 @@
 import { useState, useRef, useMemo, type ChangeEvent, type FormEvent } from "react";
 import { AlertCircle, UploadCloud, File, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardPanel, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { uploadMaterial, type StudyMaterial } from "@/services/study-service";
@@ -129,11 +129,11 @@ export default function StudentAddContentPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6 sm:p-8">
+        <CardPanel className="p-6 sm:p-8">
           <form onSubmit={handleContentSubmit} className="space-y-8">
             {/* File Dropzone */}
             <div className="space-y-3">
-              <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">1. Select File</Label>
+              <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground block">1. Select File</span>
               
               <div
                 className={cn(
@@ -209,11 +209,11 @@ export default function StudentAddContentPage() {
 
             {/* Metadata Form */}
             <div className="space-y-6">
-              <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">2. Material Details</Label>
+              <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground block">2. Material Details</span>
               
               <div className="grid gap-6 sm:grid-cols-2">
-                <div className="space-y-2.5">
-                  <Label htmlFor="title">Title</Label>
+                <Field className="space-y-2.5">
+                  <FieldLabel htmlFor="title">Title</FieldLabel>
                   <Input
                     id="title"
                     value={title}
@@ -222,11 +222,11 @@ export default function StudentAddContentPage() {
                     className="bg-background shadow-sm"
                     required
                   />
-                </div>
+                </Field>
                 
-                <div className="space-y-2.5">
-                  <Label htmlFor="branch">Branch</Label>
-                  <Select value={branch} onValueChange={setBranch} required>
+                <Field className="space-y-2.5">
+                  <FieldLabel htmlFor="branch">Branch</FieldLabel>
+                  <Select value={branch} onValueChange={(val) => setBranch(val || "")} required>
                     <SelectTrigger id="branch" className="bg-background shadow-sm">
                       <SelectValue placeholder="Select Branch" />
                     </SelectTrigger>
@@ -236,10 +236,10 @@ export default function StudentAddContentPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
 
-                <div className="space-y-2.5 sm:col-span-2">
-                  <Label htmlFor="subject">Subject</Label>
+                <Field className="space-y-2.5 sm:col-span-2">
+                  <FieldLabel htmlFor="subject">Subject</FieldLabel>
                   <Input
                     id="subject"
                     value={subject}
@@ -248,10 +248,10 @@ export default function StudentAddContentPage() {
                     className="bg-background shadow-sm"
                     required
                   />
-                </div>
+                </Field>
 
-                <div className="space-y-2.5 sm:col-span-2">
-                  <Label htmlFor="credit">Credit Name (Optional)</Label>
+                <Field className="space-y-2.5 sm:col-span-2">
+                  <FieldLabel htmlFor="credit">Credit Name (Optional)</FieldLabel>
                   <Input
                     id="credit"
                     value={creditName}
@@ -262,7 +262,7 @@ export default function StudentAddContentPage() {
                   <p className="text-xs text-muted-foreground pl-1">
                     This material will be publicly credited to: <span className="font-semibold text-foreground">{effectiveCreditName || "Student"}</span>
                   </p>
-                </div>
+                </Field>
               </div>
             </div>
 
@@ -282,7 +282,7 @@ export default function StudentAddContentPage() {
               </Button>
             </div>
           </form>
-        </CardContent>
+        </CardPanel>
       </Card>
     </div>
   );
