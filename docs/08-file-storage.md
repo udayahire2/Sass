@@ -95,8 +95,8 @@ Allowed extensions:
 
 Behavior:
 
-- PDF files are saved to disk and path is stored in `syllabi.content_url`.
-- Markdown/text uploads are read into memory and stored directly in `syllabi.content_url`.
+- PDF files are saved to disk and path is stored in `syllabus.content_url`.
+- Markdown/text uploads are read into memory and stored directly in `syllabus.content_url`.
 - Syllabus files are public by product design.
 
 ## Avatar Files

@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     UNIQUE (code, branch, semester)
 );
 
-CREATE TABLE IF NOT EXISTS syllabi (
+CREATE TABLE IF NOT EXISTS syllabus (
     id TEXT PRIMARY KEY,
     subject_id TEXT,
     title TEXT NOT NULL,
@@ -167,7 +167,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role_deleted_at ON users(role, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_users_email_deleted_at ON users(email, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_faculty_subjects_faculty ON faculty_subjects(faculty_user_id, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_subjects_branch_semester ON subjects(branch, semester, deleted_at);
-CREATE INDEX IF NOT EXISTS idx_syllabi_branch_semester ON syllabi(branch, semester, deleted_at);
+CREATE INDEX IF NOT EXISTS idx_syllabus_branch_semester ON syllabus(branch, semester, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_resources_filters ON resources(branch, semester, academic_year, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_resources_status_created_at ON resources(status, created_at, deleted_at);
 CREATE INDEX IF NOT EXISTS idx_study_materials_status_created_at ON study_materials(status, created_at, deleted_at);

@@ -35,7 +35,7 @@ Configured in `backend/src/config/database.js`:
 | `004_material_feedback` | Adds faculty/admin feedback for study materials. |
 | `005_bookmarks` | Adds user bookmarks for study materials. |
 | `006_study_content` | Adds secondary study content table. |
-| `007_syllabus_year` | Adds academic year to syllabi. |
+| `007_syllabus_year` | Adds academic year to syllabus. |
 | `008_platform_feedback` | Adds user platform feedback. |
 | `009_resource_file_uploads` | Adds upload metadata to resources. |
 | `010_student_notes` | Adds personal student notes. |
@@ -112,7 +112,7 @@ Concerns:
 - Full admin CRUD is missing.
 - No full-text index exists for topic content.
 
-### `syllabi`
+### `syllabus`
 
 Stores syllabus records.
 

@@ -90,7 +90,7 @@ router.get('/:id/file', async (req, res, next) => {
     try {
         const syllabus = get(
             `SELECT *
-             FROM syllabi
+             FROM syllabus
              WHERE id = ? AND deleted_at IS NULL`,
             [req.params.id]
         );

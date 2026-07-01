@@ -311,7 +311,7 @@ export default function StudentProfilePage() {
               <div className="h-28 w-28 overflow-hidden rounded-full border bg-muted">
                 {avatarPreview || user.avatar ? (
                   <img
-                    src={avatarPreview || user.avatar}
+                    src={avatarPreview ?? user.avatar ?? undefined}
                     alt={user.name}
                     className="h-full w-full object-cover"
                   />

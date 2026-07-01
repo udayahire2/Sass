@@ -7,7 +7,7 @@ const { sendSuccess } = require('../utils/response');
 function getSyllabusRow(syllabusId) {
     return get(
         `SELECT *
-         FROM syllabi
+         FROM syllabus
          WHERE id = ? AND deleted_at IS NULL`,
         [syllabusId]
     );
@@ -17,7 +17,7 @@ exports.getSyllabus = async (_req, res, next) => {
     try {
         const syllabus = all(
             `SELECT *
-             FROM syllabi
+             FROM syllabus
              WHERE deleted_at IS NULL
              ORDER BY branch ASC, CAST(semester AS INTEGER) ASC, CAST(academic_year AS INTEGER) ASC, code ASC`
         ).map((row) => formatSyllabus(row));
@@ -49,7 +49,7 @@ exports.createSyllabus = async (req, res, next) => {
             : null;
 
         run(
-            `INSERT INTO syllabi (
+            `INSERT INTO syllabus (
                 id, subject_id, title, code, branch, semester, academic_year, type, credits, content_url, created_at, updated_at, deleted_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
             [
@@ -89,7 +89,7 @@ exports.deleteSyllabus = async (req, res, next) => {
 
         const timestamps = createTimestamps();
         run(
-            `UPDATE syllabi
+            `UPDATE syllabus
              SET deleted_at = ?, updated_at = ?
              WHERE id = ?`,
             [timestamps.updatedAt, timestamps.updatedAt, syllabus.id]
