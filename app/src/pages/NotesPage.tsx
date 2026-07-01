@@ -259,10 +259,47 @@ export default function NotesPage() {
         };
         return { ...n, meta, bodyMarkdown: n.content_markdown || "" };
       });
-      setNotes(enriched);
-      if (enriched.length > 0 && !activeNoteIdRef.current) {
-        const firstActive = enriched.find((n) => !n.meta.trash);
-        if (firstActive) selectNote(firstActive);
+      
+      const pendingContent = localStorage.getItem("pendingNoteCreation");
+      if (pendingContent) {
+        localStorage.removeItem("pendingNoteCreation");
+        const newMeta: NoteMetadata = {
+          ...DEFAULT_METADATA,
+          parentId: "",
+        };
+        const newNote = await createNote({
+          title: "Untitled",
+          content_markdown: pendingContent,
+          icon: newMeta.icon || null,
+          cover: newMeta.cover || null,
+          is_favorite: newMeta.favorite ? 1 : 0,
+          is_trash: newMeta.trash ? 1 : 0,
+          parent_id: newMeta.parentId || null,
+          font: newMeta.font,
+          full_width: newMeta.fullWidth ? 1 : 0,
+        });
+        const meta: NoteMetadata = {
+          icon: newNote.icon || "",
+          cover: newNote.cover || "",
+          favorite: !!newNote.is_favorite,
+          trash: !!newNote.is_trash,
+          parentId: newNote.parent_id || "",
+          font: (newNote.font as PageFont) || "sans",
+          fullWidth: !!newNote.full_width,
+        };
+        const newEnriched: NoteWithMeta = {
+          ...newNote,
+          meta,
+          bodyMarkdown: newNote.content_markdown || "",
+        };
+        setNotes([newEnriched, ...enriched]);
+        selectNote(newEnriched);
+      } else {
+        setNotes(enriched);
+        if (enriched.length > 0 && !activeNoteIdRef.current) {
+          const firstActive = enriched.find((n) => !n.meta.trash);
+          if (firstActive) selectNote(firstActive);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch notes:", error);

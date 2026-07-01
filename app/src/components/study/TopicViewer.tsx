@@ -11,14 +11,20 @@ import {
   Loader2,
   RefreshCw,
   Video,
+  Copy,
+  ExternalLink,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import { type Subject, type Topic } from "@/services/api";
+import { cn } from "@/lib/utils";
 
 interface TopicViewerProps {
   topic: Topic;
@@ -60,6 +66,10 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
   const heroRef = useRef<HTMLDivElement>(null);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const navigate = useNavigate();
 
   // Topic completion management
   const { isCompleted, markComplete } = useTopicCompletion(topic.id);
@@ -132,9 +142,26 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
   }, []);
 
   const hasVideo = Boolean(topic.youtubeVideoId);
-  const hasNotes = Boolean(topic.markdownContent?.trim());
+  const hasNotes = Boolean(topic.markdownContent?.trim() || topic.contentMarkdown?.trim());
   const hasSummary = Boolean(topic.summaryPoints?.length);
   const progressPercentage = totalTopics > 0 ? (currentIndex / totalTopics) * 100 : 0;
+  
+  const markdownContent = topic.contentMarkdown || topic.markdownContent || "";
+
+  const handleCopyMarkdown = async () => {
+    try {
+      await navigator.clipboard.writeText(markdownContent);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy", err);
+    }
+  };
+
+  const handleOpenInNotes = () => {
+    localStorage.setItem("pendingNoteCreation", markdownContent);
+    navigate("/dashboard/student/notes");
+  };
 
   return (
     <motion.article
@@ -307,12 +334,57 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       {/* ── Topic Content ── */}
       <section className="mb-6">
         {hasNotes ? (
-          <div className="rounded-xl border border-border/40 bg-background p-3 sm:p-5 overflow-hidden transition-shadow hover:shadow-sm">
-            <RichTextEditor
-              content={topic.contentMarkdown || topic.markdownContent || ""}
-              onChange={() => {}}
-              editable={false}
-            />
+          <div className={cn(
+            "flex flex-col bg-background transition-shadow",
+            isFullscreen 
+              ? "fixed inset-0 z-[100] h-screen w-screen" 
+              : "rounded-xl border border-border/40 hover:shadow-sm"
+          )}>
+            {/* Toolbar */}
+            <div className={cn(
+              "flex items-center justify-end gap-1.5 border-b border-border/40 bg-muted/10",
+              isFullscreen ? "p-3 sm:px-6" : "p-2"
+            )}>
+              <Button variant="ghost" size="sm" onClick={handleCopyMarkdown} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+                {isCopied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                Copy
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleOpenInNotes} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+                <ExternalLink className="h-3.5 w-3.5" />
+                Open in Notes
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setIsFullscreen(!isFullscreen)} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+                {isFullscreen ? (
+                  <>
+                    <Minimize2 className="h-3.5 w-3.5" /> Exit Full Screen
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="h-3.5 w-3.5" /> Full Screen
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {isFullscreen ? (
+              <ScrollArea className="flex-1 w-full h-full">
+                <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 pb-32">
+                  <RichTextEditor
+                    content={markdownContent}
+                    onChange={() => {}}
+                    editable={false}
+                  />
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="p-3 sm:p-5 overflow-hidden">
+                <RichTextEditor
+                  content={markdownContent}
+                  onChange={() => {}}
+                  editable={false}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-border/50 bg-muted/10 p-6 text-center">

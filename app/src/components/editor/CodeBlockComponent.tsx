@@ -19,6 +19,7 @@ interface CodeBlockProps {
   };
   updateAttributes: (attrs: { language: string }) => void;
   extension: unknown;
+  editor: any;
 }
 
 const LANGUAGES = [
@@ -45,6 +46,7 @@ const LANGUAGES = [
 export default function CodeBlockComponent({
   node,
   updateAttributes,
+  editor,
 }: CodeBlockProps) {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -108,27 +110,33 @@ export default function CodeBlockComponent({
           className="relative flex items-center"
           onMouseDown={(e) => e.preventDefault()}
         >
-          <SelectClean
-            value={currentLang}
-            onValueChange={(value) =>
-              updateAttributes({ language: value })
-            }
-          >
-            <SelectCleanTrigger>
-              <SelectCleanValue placeholder="Language" />
-            </SelectCleanTrigger>
+          {editor?.isEditable ? (
+            <SelectClean
+              value={currentLang}
+              onValueChange={(value) =>
+                updateAttributes({ language: value })
+              }
+            >
+              <SelectCleanTrigger>
+                <SelectCleanValue placeholder="Language" />
+              </SelectCleanTrigger>
 
-            <SelectCleanContent>
-              {LANGUAGES.map((lang) => (
-                <SelectCleanItem
-                  key={lang.value}
-                  value={lang.value}
-                >
-                  {lang.label}
-                </SelectCleanItem>
-              ))}
-            </SelectCleanContent>
-          </SelectClean>
+              <SelectCleanContent>
+                {LANGUAGES.map((lang) => (
+                  <SelectCleanItem
+                    key={lang.value}
+                    value={lang.value}
+                  >
+                    {lang.label}
+                  </SelectCleanItem>
+                ))}
+              </SelectCleanContent>
+            </SelectClean>
+          ) : (
+            <span className="px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground">
+              {LANGUAGES.find((l) => l.value === currentLang)?.label || currentLang}
+            </span>
+          )}
         </div>
 
         <button
