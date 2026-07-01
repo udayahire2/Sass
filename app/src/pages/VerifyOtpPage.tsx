@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, KeyRound, Loader2 } from "lucide-react";
+import { ArrowRight, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Card,
-    CardContent,
+    CardPanel,
     CardFooter,
     CardDescription,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    OTPField,
+    OTPFieldInput,
+    OTPFieldSeparator,
+} from "@/components/ui/otp-field";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -109,7 +113,7 @@ export default function VerifyOtpPage() {
                     </CardHeader>
                     <Separator className="bg-border/60" />
                     <form onSubmit={handleVerify}>
-                        <CardContent className="space-y-5 pt-6">
+                        <CardPanel className="space-y-5 pt-6">
                             <div className="rounded-2xl border border-border/50 bg-muted/20 p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="rounded-xl bg-primary/10 p-2 text-primary">
@@ -124,35 +128,30 @@ export default function VerifyOtpPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="flex flex-col gap-3">
                                 <Label htmlFor="otp">One-Time Password (OTP)</Label>
-                                <Input
-                                    id="otp"
-                                    placeholder="Enter 6-digit OTP"
+                                <OTPField
+                                    length={6}
                                     value={otp}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOtp(e.target.value)}
-                                    required
-                                    maxLength={6}
-                                    className="h-11 rounded-xl border-border/60 bg-background"
-                                />
+                                    onValueChange={setOtp}
+                                >
+                                    <OTPFieldInput aria-label="Character 1 of 6" />
+                                    <OTPFieldInput aria-label="Character 2 of 6" />
+                                    <OTPFieldInput aria-label="Character 3 of 6" />
+                                    <OTPFieldSeparator />
+                                    <OTPFieldInput aria-label="Character 4 of 6" />
+                                    <OTPFieldInput aria-label="Character 5 of 6" />
+                                    <OTPFieldInput aria-label="Character 6 of 6" />
+                                </OTPField>
                             </div>
 
-                            <Button className="h-11 w-full rounded-xl" type="submit" disabled={loading}>
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="size-4 animate-spin" />
-                                        Verifying...
-                                    </>
-                                ) : (
-                                    <>
-                                        Verify OTP
-                                        <ArrowRight className="size-4" />
-                                    </>
-                                )}
+                            <Button className="h-11 w-full rounded-xl" type="submit" loading={loading} disabled={loading || otp.length !== 6}>
+                                Verify OTP
+                                <ArrowRight className="size-4" />
                             </Button>
-                        </CardContent>
+                        </CardPanel>
                     </form>
-                    <CardFooter className="justify-center pt-1">
+                    <CardFooter className="justify-center pt-1 pb-6">
                         <p className="text-sm text-muted-foreground">
                             Need a different account?{" "}
                             <Link to="/login" className="font-medium text-foreground transition-colors hover:text-primary">
