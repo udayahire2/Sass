@@ -2,33 +2,34 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import {
-  Camera,
-  ZoomIn,
-  Edit2,
-  Save,
-  Mail,
-  BookOpen,
-  CalendarDays,
-  Clock,
-  ShieldCheck,
-  X,
-} from "lucide-react";
-import { toast } from "sonner";
-
-// REPLACED Card imports with Frame imports
-import {
-  Frame,
-  FrameDescription,
-  FrameFooter,
-  FrameHeader,
-  FramePanel,
-  FrameTitle,
-} from "@/components/ui/frame";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Edit2,
+  Save,
+  User,
+  Mail,
+  ShieldCheck,
+  Loader2,
+  Camera,
+  ZoomIn,
+  CheckCircle2,
+  BookOpen,
+  CalendarDays,
+} from "lucide-react";
+import { toast } from "sonner";
+import { buildApiUrl, buildAvatarUrl, getErrorMessage, parseApiData } from "@/services/api";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -36,22 +37,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import {
-  buildApiUrl,
-  buildAvatarUrl,
-  getErrorMessage,
-  parseApiData,
-} from "@/services/api";
-import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 
-// ------------------------------------------------------------
-// Cropping utilities
-// ------------------------------------------------------------
+// ──────────────────────────────────────────────────────────────
+// Crop utility
+// ──────────────────────────────────────────────────────────────
+
 async function getCroppedImg(
   imageSrc: string,
   pixelCrop: Area,
-  outputSize = 400,
+  outputSize = 400
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -67,17 +61,13 @@ async function getCroppedImg(
     0,
     0,
     outputSize,
-    outputSize,
+    outputSize
   );
   return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error("Canvas is empty"));
-      },
-      "image/jpeg",
-      0.92,
-    );
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Canvas is empty"));
+    }, "image/jpeg", 0.92);
   });
 }
 
@@ -91,14 +81,9 @@ function createImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-const formatDate = (dateString?: string) => {
-  if (!dateString) return "N/A";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-};
+// ──────────────────────────────────────────────────────────────
+// Main Component
+// ──────────────────────────────────────────────────────────────
 
 type LocalProfileUser = {
   id?: string;
@@ -116,12 +101,12 @@ type LocalProfileUser = {
 export default function StudentProfilePage() {
   const [user, setUser] = useState<LocalProfileUser | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-
   const [name, setName] = useState("");
   const [branch, setBranch] = useState("");
   const [year, setYear] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // Avatar state
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -131,8 +116,7 @@ export default function StudentProfilePage() {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -140,19 +124,22 @@ export default function StudentProfilePage() {
     try {
       const parsedUser = JSON.parse(storedUser) as LocalProfileUser;
       setUser(parsedUser);
-      setName(parsedUser.name);
+      setName(parsedUser.name || "");
       setBranch(parsedUser.branch || "");
       setYear(parsedUser.year || "");
       if (parsedUser.avatar) setAvatarPreview(parsedUser.avatar);
-    } catch {
-      // ignore
+    } catch (e) {
+      console.error(e);
     }
   }, []);
 
   const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
-    if (!token) return;
     setLoading(true);
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(buildApiUrl("/auth/updatedetails"), {
         method: "PUT",
@@ -163,8 +150,7 @@ export default function StudentProfilePage() {
         body: JSON.stringify({ name, branch, year }),
       });
       const data = await res.json();
-      const updatedPayload =
-        parseApiData<Partial<LocalProfileUser> | null>(data, null) ?? data.user;
+      const updatedPayload = parseApiData<Partial<LocalProfileUser> | null>(data, null) ?? data.user;
       if (res.ok && data.success && updatedPayload) {
         const updatedUser = { ...user, ...updatedPayload } as LocalProfileUser;
         localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -175,18 +161,22 @@ export default function StudentProfilePage() {
       } else {
         toast.error(getErrorMessage(data, "Update failed"));
       }
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast.error("Network error occurred.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Avatar handlers
   const onAvatarFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
-    if (!selectedFile.type.startsWith("image/"))
-      return toast.error("Please select a valid image.");
+    if (!selectedFile.type.startsWith("image/")) {
+      toast.error("Please select a valid image.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       setImageSrc(reader.result as string);
@@ -198,10 +188,9 @@ export default function StudentProfilePage() {
     if (avatarInputRef.current) avatarInputRef.current.value = "";
   };
 
-  const onCropComplete = useCallback(
-    (_: Area, croppedPixels: Area) => setCroppedAreaPixels(croppedPixels),
-    [],
-  );
+  const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
+    setCroppedAreaPixels(croppedPixels);
+  }, []);
 
   const handleApplyCrop = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
@@ -210,10 +199,7 @@ export default function StudentProfilePage() {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       if (!token) throw new Error("Authentication missing.");
       const formData = new FormData();
-      formData.append(
-        "avatar",
-        new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" }),
-      );
+      formData.append("avatar", new File([croppedBlob], "avatar.jpg", { type: "image/jpeg" }));
       const res = await fetch(buildApiUrl("/auth/updateavatar"), {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
@@ -221,12 +207,10 @@ export default function StudentProfilePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message || "Upload rejected.");
-      const rawAvatarPath =
+      const rawAvatarPath: string =
         data?.avatar_url || data?.data?.avatar || data?.data?.avatarUrl || "";
       if (!rawAvatarPath) throw new Error("No URL provided by server.");
-      const resolvedUrl = rawAvatarPath.startsWith("http")
-        ? rawAvatarPath
-        : buildAvatarUrl(rawAvatarPath);
+      const resolvedUrl = rawAvatarPath.startsWith("http") ? rawAvatarPath : buildAvatarUrl(rawAvatarPath);
       const updatedUser = { ...user, avatar: resolvedUrl } as LocalProfileUser;
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
@@ -235,151 +219,244 @@ export default function StudentProfilePage() {
       setCropModalOpen(false);
       toast.success("Avatar updated successfully.");
     } catch (err) {
+      console.error(err);
       toast.error(err instanceof Error ? err.message : "Process failed.");
     } finally {
       setAvatarUploading(false);
     }
   };
 
+  if (!user) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      {/* Profile Header */}
-      <Frame className="w-full">
-        <FramePanel className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
-          <div
-            className="relative cursor-pointer"
-            onClick={() => avatarInputRef.current?.click()}
-          >
-            <div className="h-24 w-24 overflow-hidden rounded-full border bg-muted">
-              {avatarPreview || user?.avatar ? (
-                <img
-                  src={avatarPreview || user?.avatar || undefined}
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Student Profile</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Manage your personal information and academic details.
+        </p>
+      </div>
+
+      {/* Avatar Crop Modal */}
+      <Dialog open={cropModalOpen} onOpenChange={setCropModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Crop Avatar</DialogTitle>
+            <DialogDescription>Drag to reposition the image</DialogDescription>
+          </DialogHeader>
+          <div className="relative h-64 w-full overflow-hidden rounded-md bg-black/90">
+            {imageSrc && (
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            )}
+          </div>
+          <div className="flex items-center gap-3 pt-2">
+            <ZoomIn className="h-4 w-4 text-muted-foreground" />
+            <Input
+              type="range"
+              min={1}
+              max={3}
+              step={0.05}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
+              className="flex-1"
+            />
+            <span className="w-9 text-right text-xs tabular-nums text-muted-foreground">
+              {zoom.toFixed(1)}×
+            </span>
+          </div>
+          <div className="mt-4 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setCropModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleApplyCrop} disabled={avatarUploading}>
+              {avatarUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving…
+                </>
               ) : (
-                <DefaultAvatar
-                  name={user?.name || "User"}
-                  size={96}
-                  className="h-full w-full"
-                />
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Apply
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Profile grid */}
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Avatar card */}
+        <Card>
+          <CardContent className="flex flex-col items-center pt-6 text-center">
+            <div className="relative mb-4">
+              <div className="h-28 w-28 overflow-hidden rounded-full border bg-muted">
+                {avatarPreview || user.avatar ? (
+                  <img
+                    src={avatarPreview || user.avatar}
+                    alt={user.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <DefaultAvatar name={user.name} size={112} className="h-full w-full rounded-full" />
+                )}
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-background"
+                onClick={() => avatarInputRef.current?.click()}
+              >
+                <Camera className="h-4 w-4" />
+              </Button>
+              <Input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                onChange={onAvatarFileChange}
+                className="hidden"
+              />
+            </div>
+            <h3 className="flex items-center justify-center gap-1.5 text-lg font-semibold">
+              {user.name}
+              {user.isVerified && <ShieldCheck className="h-4 w-4 text-emerald-500" />}
+            </h3>
+            <p className="break-all text-sm text-muted-foreground">{user.email}</p>
+            <div className="mt-3 flex flex-wrap justify-center gap-2">
+              <Badge variant="secondary">Student</Badge>
+              {user.isVerified ? (
+                <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+                  Verified
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400">
+                  Pending Verification
+                </Badge>
               )}
             </div>
-            <Input
-              ref={avatarInputRef}
-              type="file"
-              accept="image/*"
-              onChange={onAvatarFileChange}
-              className="hidden"
-            />
-          </div>
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold">
-              {user?.name || "Student"}
-            </h1>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
-            <Badge variant="secondary">Student Account</Badge>
-          </div>
-        </FramePanel>
-      </Frame>
+          </CardContent>
+        </Card>
 
-      {/* Personal Information */}
-      <Frame className="w-full">
-        <FrameHeader>
-          <FrameTitle>Personal Information</FrameTitle>
-          <FrameDescription>
-            Update your academic profile details.
-          </FrameDescription>
-        </FrameHeader>
-        <FramePanel>
-          <form onSubmit={handleUpdate} className="space-y-6">
-            <div className="grid gap-5 md:grid-cols-3">
-              <Field>
-                <FieldLabel htmlFor="name">Full Name</FieldLabel>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </Field>
-              <Field>
-                <FieldLabel>Branch</FieldLabel>
-                <Select
-                  value={branch}
-                  onValueChange={(val) => setBranch(val || "")}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select branch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      "Computer",
-                      "IT",
-                      "Civil",
-                      "Mechanical",
-                      "Electrical",
-                      "ENTC",
-                    ].map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item} Engineering
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field>
-                <FieldLabel>Academic Year</FieldLabel>
-                <Select value={year} onValueChange={(val) => setYear(val || "")}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["FE", "SE", "TE", "BE"].map((item) => (
-                      <SelectItem key={item} value={item}>
-                        {item}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+        {/* Information card */}
+        <Card className="md:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle>Personal Information</CardTitle>
+              <CardDescription>Update your academic profile details.</CardDescription>
             </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Saving..." : "Save Changes"}
+            {!isEditing && (
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                <Edit2 className="mr-2 h-4 w-4" /> Edit
               </Button>
-            </div>
-          </form>
-        </FramePanel>
-      </Frame>
-
-      {/* Account Information */}
-      <Frame className="w-full">
-        <FrameHeader>
-          <FrameTitle>Account Information</FrameTitle>
-        </FrameHeader>
-        <FramePanel>
-          <div className="divide-y">
-            <div className="flex items-center justify-between py-4">
-              <span className="text-muted-foreground">Email</span>
-              <span className="font-medium">{user?.email}</span>
-            </div>
-            <div className="flex items-center justify-between py-4">
-              <span className="text-muted-foreground">Account Type</span>
-              <Badge variant="outline">Student</Badge>
-            </div>
-            <div className="flex items-center justify-between py-4">
-              <span className="text-muted-foreground">Member Since</span>
-              <span className="font-medium">{formatDate(user?.createdAt)}</span>
-            </div>
-            <div className="flex items-center justify-between py-4">
-              <span className="text-muted-foreground">Verification</span>
-              <Badge variant={user?.isVerified ? "default" : "secondary"}>
-                {user?.isVerified ? "Verified" : "Pending"}
-              </Badge>
-            </div>
-          </div>
-        </FramePanel>
-      </Frame>
+            )}
+          </CardHeader>
+          <CardContent>
+            {isEditing ? (
+              <form onSubmit={handleUpdate} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="branch">Branch</Label>
+                    <Select value={branch} onValueChange={(val) => setBranch(val || "")}>
+                      <SelectTrigger id="branch">
+                        <SelectValue placeholder="Select branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Computer", "IT", "Civil", "Mechanical", "Electrical", "ENTC"].map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {item} Engineering
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="year">Academic Year</Label>
+                    <Select value={year} onValueChange={(val) => setYear(val || "")}>
+                      <SelectTrigger id="year">
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["FE", "SE", "TE", "BE"].map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 border-t pt-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setName(user.name);
+                      setBranch(user.branch || "");
+                      setYear(user.year || "");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                    Save Changes
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <dt className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="h-4 w-4" /> Full Name
+                  </dt>
+                  <dd className="mt-1 text-sm font-medium">{user.name}</dd>
+                </div>
+                <div>
+                  <dt className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-4 w-4" /> Email
+                  </dt>
+                  <dd className="mt-1 break-all text-sm font-medium">{user.email}</dd>
+                </div>
+                <div>
+                  <dt className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <BookOpen className="h-4 w-4" /> Branch
+                  </dt>
+                  <dd className="mt-1 text-sm font-medium">{user.branch ? `${user.branch} Engineering` : "Not specified"}</dd>
+                </div>
+                <div>
+                  <dt className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CalendarDays className="h-4 w-4" /> Academic Year
+                  </dt>
+                  <dd className="mt-1 text-sm font-medium">{user.year || "Not specified"}</dd>
+                </div>
+              </dl>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
