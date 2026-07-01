@@ -18,7 +18,6 @@ import {
   NotesEditorHeader,
   NoteEditorCanvas,
   NotesEmptyState,
-  NotesSettingsModal,
   NotesSidebarContextMenu,
   type NoteWithMeta,
 } from "@/components/notes";
@@ -27,9 +26,10 @@ import { NotesEmojiPicker } from "@/components/notes/NotesEmojiPicker";
 import { NotesCoverPicker } from "@/components/notes/NotesCoverPicker";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
+import { EditorSettingsDialog } from "@/components/notes/settings";
 
 function normalizeEditorTheme(theme: string | null | undefined): string {
-  if (theme === "dark" || theme === "sepia" || theme === "nord") {
+  if (theme === "dark" || theme === "sepia" || theme === "nord" || theme === "system") {
     return theme;
   }
   return "light";
@@ -94,6 +94,12 @@ export default function NotesPage() {
     }
     return true;
   });
+  const [textColor, setTextColor] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("pref-text-color") || "default";
+    }
+    return "default";
+  });
 
   useEffect(() => {
     import("@/services/api").then(({ getApiOrigin }) => {
@@ -135,24 +141,43 @@ export default function NotesPage() {
           const localVal = localStorage.getItem("pref-paste-image-link");
           setPasteImageLink(localVal !== null ? localVal === "true" : true);
         }
+
+        if (prefs.textColor) {
+          setTextColor(prefs.textColor);
+        } else {
+          setTextColor(localStorage.getItem("pref-text-color") || "default");
+        }
       }).catch(() => {
         const localTheme = normalizeEditorTheme(localStorage.getItem("editor-theme"));
-        if (localTheme === "light" || localTheme === "dark") {
+        if (localTheme === "light" || localTheme === "dark" || localTheme === "sepia" || localTheme === "nord" || localTheme === "system") {
           setTheme(localTheme);
         }
         setShowWordCount(localStorage.getItem("pref-show-word-count") !== "false");
         setSpellcheck(localStorage.getItem("pref-spellcheck") === "true");
         setPasteImageLink(localStorage.getItem("pref-paste-image-link") !== "false");
+        setTextColor(localStorage.getItem("pref-text-color") || "default");
       });
     });
   }, []);
 
   const handleToggleTheme = () => {
     const nextTheme = editorTheme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
+    handleThemeChange(nextTheme);
+  };
+
+  const handleThemeChange = (nextTheme: string) => {
+    setTheme(nextTheme as any);
     localStorage.setItem("editor-theme", nextTheme);
     import("@/services/api").then(({ updatePreferences }) => {
       updatePreferences({ editorTheme: nextTheme }).catch(console.error);
+    });
+  };
+
+  const handleTextColorChange = (color: string) => {
+    setTextColor(color);
+    localStorage.setItem("pref-text-color", color);
+    import("@/services/api").then(({ updatePreferences }) => {
+      updatePreferences({ textColor: color }).catch(console.error);
     });
   };
 
@@ -712,7 +737,16 @@ export default function NotesPage() {
       />
 
       {/* ═══════════════ MAIN AREA ═══════════════ */}
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative bg-background text-foreground transition-all duration-300">
+      <div className={cn(
+        "flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative bg-background transition-all duration-300",
+        textColor === "blue" ? "text-blue-900 dark:text-blue-100" :
+        textColor === "green" ? "text-emerald-900 dark:text-emerald-100" :
+        textColor === "rose" ? "text-rose-900 dark:text-rose-100" :
+        textColor === "violet" ? "text-violet-900 dark:text-violet-100" :
+        textColor === "orange" ? "text-orange-900 dark:text-orange-100" :
+        textColor === "slate" ? "text-slate-700 dark:text-slate-300" :
+        "text-foreground"
+      )}>
         {activeNote && !activeNote.meta.trash ? (
           <>
             <NotesEditorHeader
@@ -793,13 +827,17 @@ export default function NotesPage() {
         theme={editorTheme}
       />
 
-      <NotesSettingsModal
+      <EditorSettingsDialog
         isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
+        onOpenChange={setShowSettings}
         showWordCount={showWordCount}
         spellcheck={spellcheck}
         pasteImageLink={pasteImageLink}
         onPreferenceChange={handlePreferenceChange}
+        editorTheme={editorTheme}
+        onThemeChange={handleThemeChange}
+        textColor={textColor}
+        onTextColorChange={handleTextColorChange}
       />
 
       {sidebarMenu && (
