@@ -15,13 +15,17 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+
+// REPLACED Card imports with Frame imports
 import {
-  Card,
-  CardPanel,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Frame,
+  FrameDescription,
+  FrameFooter,
+  FrameHeader,
+  FramePanel,
+  FrameTitle,
+} from "@/components/ui/frame";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -33,8 +37,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Badge } from "@/components/ui/badge";
-import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import {
   buildApiUrl,
   buildAvatarUrl,
@@ -241,19 +243,14 @@ export default function StudentProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      {" "}
-      {/* Profile Header */}{" "}
-      <Card>
-        {" "}
-        <CardPanel className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
-          {" "}
+      {/* Profile Header */}
+      <Frame className="w-full">
+        <FramePanel className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
           <div
             className="relative cursor-pointer"
             onClick={() => avatarInputRef.current?.click()}
           >
-            {" "}
             <div className="h-24 w-24 overflow-hidden rounded-full border bg-muted">
-              {" "}
               {avatarPreview || user?.avatar ? (
                 <img
                   src={avatarPreview || user?.avatar || undefined}
@@ -266,64 +263,55 @@ export default function StudentProfilePage() {
                   size={96}
                   className="h-full w-full"
                 />
-              )}{" "}
-            </div>{" "}
+              )}
+            </div>
             <Input
               ref={avatarInputRef}
               type="file"
               accept="image/*"
               onChange={onAvatarFileChange}
               className="hidden"
-            />{" "}
-          </div>{" "}
+            />
+          </div>
           <div className="space-y-1">
-            {" "}
             <h1 className="text-2xl font-semibold">
-              {" "}
-              {user?.name || "Student"}{" "}
-            </h1>{" "}
-            <p className="text-sm text-muted-foreground"> {user?.email} </p>{" "}
-            <Badge variant="secondary"> Student Account </Badge>{" "}
-          </div>{" "}
-        </CardPanel>{" "}
-      </Card>{" "}
-      {/* Personal Information */}{" "}
-      <Card>
-        {" "}
-        <CardHeader>
-          {" "}
-          <CardTitle>Personal Information</CardTitle>{" "}
-          <CardDescription>
-            {" "}
-            Update your academic profile details.{" "}
-          </CardDescription>{" "}
-        </CardHeader>{" "}
-        <CardPanel>
-          {" "}
+              {user?.name || "Student"}
+            </h1>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
+            <Badge variant="secondary">Student Account</Badge>
+          </div>
+        </FramePanel>
+      </Frame>
+
+      {/* Personal Information */}
+      <Frame className="w-full">
+        <FrameHeader>
+          <FrameTitle>Personal Information</FrameTitle>
+          <FrameDescription>
+            Update your academic profile details.
+          </FrameDescription>
+        </FrameHeader>
+        <FramePanel>
           <form onSubmit={handleUpdate} className="space-y-6">
-            {" "}
             <div className="grid gap-5 md:grid-cols-3">
-              {" "}
               <Field>
-                {" "}
-                <FieldLabel htmlFor="name"> Full Name </FieldLabel>{" "}
+                <FieldLabel htmlFor="name">Full Name</FieldLabel>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                />{" "}
-              </Field>{" "}
+                />
+              </Field>
               <Field>
-              {" "}
-                <FieldLabel> Branch </FieldLabel>{" "}
-                <Select value={branch} onValueChange={(val) => setBranch(val || "")}>
-                  {" "}
+                <FieldLabel>Branch</FieldLabel>
+                <Select
+                  value={branch}
+                  onValueChange={(val) => setBranch(val || "")}
+                >
                   <SelectTrigger>
-                    {" "}
-                    <SelectValue placeholder="Select branch" />{" "}
-                  </SelectTrigger>{" "}
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {" "}
                     {[
                       "Computer",
                       "IT",
@@ -333,84 +321,65 @@ export default function StudentProfilePage() {
                       "ENTC",
                     ].map((item) => (
                       <SelectItem key={item} value={item}>
-                        {" "}
-                        {item} Engineering{" "}
+                        {item} Engineering
                       </SelectItem>
-                    ))}{" "}
-                  </SelectContent>{" "}
-                </Select>{" "}
-              </Field>{" "}
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
               <Field>
-                {" "}
-                <FieldLabel> Academic Year </FieldLabel>{" "}
+                <FieldLabel>Academic Year</FieldLabel>
                 <Select value={year} onValueChange={(val) => setYear(val || "")}>
-                  {" "}
                   <SelectTrigger>
-                    {" "}
-                    <SelectValue placeholder="Select year" />{" "}
-                  </SelectTrigger>{" "}
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {" "}
                     {["FE", "SE", "TE", "BE"].map((item) => (
                       <SelectItem key={item} value={item}>
-                        {" "}
-                        {item}{" "}
+                        {item}
                       </SelectItem>
-                    ))}{" "}
-                  </SelectContent>{" "}
-                </Select>{" "}
-              </Field>{" "}
-            </div>{" "}
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
             <div className="flex justify-end">
-              {" "}
               <Button type="submit" disabled={loading}>
-                {" "}
-                {loading ? "Saving..." : "Save Changes"}{" "}
-              </Button>{" "}
-            </div>{" "}
-          </form>{" "}
-        </CardPanel>{" "}
-      </Card>{" "}
-      {/* Account Information */}{" "}
-      <Card>
-        {" "}
-        <CardHeader>
-          {" "}
-          <CardTitle> Account Information </CardTitle>{" "}
-        </CardHeader>{" "}
-        <CardPanel>
-          {" "}
+                {loading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </form>
+        </FramePanel>
+      </Frame>
+
+      {/* Account Information */}
+      <Frame className="w-full">
+        <FrameHeader>
+          <FrameTitle>Account Information</FrameTitle>
+        </FrameHeader>
+        <FramePanel>
           <div className="divide-y">
-            {" "}
             <div className="flex items-center justify-between py-4">
-              {" "}
-              <span className="text-muted-foreground"> Email </span>{" "}
-              <span className="font-medium"> {user?.email} </span>{" "}
-            </div>{" "}
+              <span className="text-muted-foreground">Email</span>
+              <span className="font-medium">{user?.email}</span>
+            </div>
             <div className="flex items-center justify-between py-4">
-              {" "}
-              <span className="text-muted-foreground"> Account Type </span>{" "}
-              <Badge variant="outline"> Student </Badge>{" "}
-            </div>{" "}
+              <span className="text-muted-foreground">Account Type</span>
+              <Badge variant="outline">Student</Badge>
+            </div>
             <div className="flex items-center justify-between py-4">
-              {" "}
-              <span className="text-muted-foreground"> Member Since </span>{" "}
-              <span className="font-medium">
-                {" "}
-                {formatDate(user?.createdAt)}{" "}
-              </span>{" "}
-            </div>{" "}
+              <span className="text-muted-foreground">Member Since</span>
+              <span className="font-medium">{formatDate(user?.createdAt)}</span>
+            </div>
             <div className="flex items-center justify-between py-4">
-              {" "}
-              <span className="text-muted-foreground"> Verification </span>{" "}
+              <span className="text-muted-foreground">Verification</span>
               <Badge variant={user?.isVerified ? "default" : "secondary"}>
-                {" "}
-                {user?.isVerified ? "Verified" : "Pending"}{" "}
-              </Badge>{" "}
-            </div>{" "}
-          </div>{" "}
-        </CardPanel>{" "}
-      </Card>{" "}
+                {user?.isVerified ? "Verified" : "Pending"}
+              </Badge>
+            </div>
+          </div>
+        </FramePanel>
+      </Frame>
     </div>
   );
 }
