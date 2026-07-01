@@ -1,0 +1,5 @@
+-- SQLite does not support DROP COLUMN easily. This is a placeholder or no-op.
+-- Alternatively:
+-- ALTER TABLE topics DROP COLUMN description;
+-- ALTER TABLE topics DROP COLUMN estimated_time;
+-- ALTER TABLE topics DROP COLUMN summary_points;

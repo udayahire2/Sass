@@ -250,7 +250,7 @@ const SignUp = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Branch</label>
-                  <Select onValueChange={setBranch} value={branch} required>
+                  <Select onValueChange={(value) => setBranch(value ?? "")} value={branch} required>
                     <SelectTrigger className="h-9 w-full rounded-lg border border-input bg-background text-foreground shadow-xs/5">
                       <SelectValue placeholder="Select branch" />
                     </SelectTrigger>
@@ -267,7 +267,7 @@ const SignUp = () => {
 
                 <div>
                   <label className="text-xs font-medium text-zinc-400 mb-1.5 block">Year</label>
-                  <Select onValueChange={setYear} value={year} required>
+                  <Select onValueChange={(value) => setYear(value ?? "")} value={year} required>
                     <SelectTrigger className="h-9 w-full rounded-lg border border-input bg-background text-foreground shadow-xs/5">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>

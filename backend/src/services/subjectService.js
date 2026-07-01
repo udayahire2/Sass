@@ -33,18 +33,27 @@ function formatTopic(row) {
     }
 
     const youtubeVideoId = extractYoutubeVideoId(row.video_url);
+    
+    let parsedSummaryPoints = [];
+    if (row.summary_points) {
+        try {
+            parsedSummaryPoints = JSON.parse(row.summary_points);
+        } catch (e) {
+            console.error("Failed to parse summary_points", e);
+        }
+    }
 
     return {
         _id: row.id,
         id: row.id,
         title: row.title,
-        description: `Comprehensive detailed study note for ${row.title}. Focuses on core concepts required for NMU exams.`,
+        description: row.description || `Comprehensive detailed study note for ${row.title}. Focuses on core concepts required for NMU exams.`,
         contentMarkdown: row.content_markdown,
         markdownContent: row.content_markdown,
         videoUrl: row.video_url,
         youtubeVideoId,
-        estimatedTime: '15 mins',
-        summaryPoints: [
+        estimatedTime: row.estimated_time || '15 mins',
+        summaryPoints: parsedSummaryPoints.length > 0 ? parsedSummaryPoints : [
             'Key concept definition and importance.',
             'Standard algorithm steps or formula.',
             'Common exam question patterns.',
@@ -298,7 +307,7 @@ function getTopicById(topicId) {
 }
 
 function updateTopic(topicId, data) {
-    const { title, content_markdown } = data;
+    const { title, content_markdown, description, estimated_time, summary_points, video_url } = data;
     const updates = [];
     const params = [];
 
@@ -309,6 +318,22 @@ function updateTopic(topicId, data) {
     if (content_markdown !== undefined) {
         updates.push('content_markdown = ?');
         params.push(content_markdown);
+    }
+    if (description !== undefined) {
+        updates.push('description = ?');
+        params.push(description);
+    }
+    if (estimated_time !== undefined) {
+        updates.push('estimated_time = ?');
+        params.push(estimated_time);
+    }
+    if (summary_points !== undefined) {
+        updates.push('summary_points = ?');
+        params.push(typeof summary_points === 'string' ? summary_points : JSON.stringify(summary_points));
+    }
+    if (video_url !== undefined) {
+        updates.push('video_url = ?');
+        params.push(video_url);
     }
 
     if (updates.length === 0) {
@@ -325,14 +350,16 @@ function updateTopic(topicId, data) {
 }
 
 function createTopic(unitId, data) {
-    const { title, content_markdown, video_url } = data;
+    const { title, content_markdown, video_url, description, estimated_time, summary_points } = data;
     const timestamps = createTimestamps();
     const id = crypto.randomUUID();
+    
+    const summaryPointsStr = typeof summary_points === 'string' ? summary_points : (summary_points ? JSON.stringify(summary_points) : null);
 
     run(
-        `INSERT INTO topics (id, unit_id, title, content_markdown, video_url, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, unitId, title, content_markdown || '', video_url || null, timestamps.createdAt]
+        `INSERT INTO topics (id, unit_id, title, content_markdown, video_url, description, estimated_time, summary_points, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, unitId, title, content_markdown || '', video_url || null, description || null, estimated_time || null, summaryPointsStr, timestamps.createdAt]
     );
 
     return getTopicById(id);

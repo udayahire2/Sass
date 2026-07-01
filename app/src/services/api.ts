@@ -201,7 +201,7 @@ export const fetchTopicById = async (topicId: string): Promise<Topic | null> => 
     return requestApiData<Topic | null>(`/topics/${topicId}`, null, 'Failed to fetch topic');
 };
 
-export const updateTopic = async (topicId: string, data: { title?: string; content_markdown?: string; video_url?: string }): Promise<Topic> => {
+export const updateTopic = async (topicId: string, data: { title?: string; content_markdown?: string; description?: string; estimated_time?: string; video_url?: string; summary_points?: string[] }): Promise<Topic> => {
     const response = await fetch(buildApiUrl(`/topics/${topicId}`), {
         method: 'PUT',
         headers: {
@@ -277,7 +277,7 @@ export const deleteUnit = async (unitId: string): Promise<void> => {
     if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to delete unit'));
 };
 
-export const createTopic = async (unitId: string, data: Partial<Topic>): Promise<Topic> => {
+export const createTopic = async (unitId: string, data: Partial<Topic> & { content_markdown?: string; video_url?: string; estimated_time?: string; summary_points?: string[] }): Promise<Topic> => {
     const response = await fetch(buildApiUrl(`/units/${unitId}/topics`), {
         method: 'POST',
         headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },

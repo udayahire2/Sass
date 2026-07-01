@@ -4,6 +4,10 @@ import { ArrowLeft, Save, Loader2, FileEdit, FileText, LayoutTemplate, MoreHoriz
 import { fetchTopicById, updateTopic, type Topic } from "@/services/api";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Trash, Plus, Clock, Video } from "lucide-react";
 
 export default function TopicEditorPage() {
   const { topicId } = useParams<{ topicId: string }>();
@@ -11,6 +15,10 @@ export default function TopicEditorPage() {
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [estimatedTime, setEstimatedTime] = useState("15 mins");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [summaryPoints, setSummaryPoints] = useState<string[]>([]);
   const [contentMarkdown, setContentMarkdown] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -23,6 +31,10 @@ export default function TopicEditorPage() {
         if (data) {
           setTopic(data);
           setTitle(data.title);
+          setDescription(data.description || "");
+          setEstimatedTime(data.estimatedTime || "15 mins");
+          setVideoUrl(data.videoUrl || "");
+          setSummaryPoints(data.summaryPoints || []);
           setContentMarkdown(data.contentMarkdown || data.markdownContent || "");
         }
       } catch (error) {
@@ -40,6 +52,10 @@ export default function TopicEditorPage() {
     try {
       await updateTopic(topicId, {
         title,
+        description,
+        estimated_time: estimatedTime,
+        video_url: videoUrl,
+        summary_points: summaryPoints,
         content_markdown: contentMarkdown,
       });
       navigate(-1);
@@ -156,6 +172,80 @@ export default function TopicEditorPage() {
             placeholder="Untitled document"
             className="w-full bg-transparent text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 border-none px-0"
           />
+        </div>
+
+        {/* Metadata Section */}
+        <div className="mb-10 space-y-6 rounded-xl border border-border/50 bg-muted/10 p-6">
+          <h3 className="text-lg font-medium text-foreground border-b border-border/50 pb-2">Topic Metadata</h3>
+          
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="description">Short Description</Label>
+              <Textarea 
+                id="description" 
+                placeholder="Briefly describe what this topic covers..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="resize-none bg-background h-24"
+              />
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="estimatedTime" className="flex items-center gap-1.5"><Clock className="h-4 w-4 text-muted-foreground" /> Estimated Time</Label>
+                <Input 
+                  id="estimatedTime" 
+                  placeholder="e.g. 15 mins, 1 hour"
+                  value={estimatedTime}
+                  onChange={(e) => setEstimatedTime(e.target.value)}
+                  className="bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="videoUrl" className="flex items-center gap-1.5"><Video className="h-4 w-4 text-muted-foreground" /> Video URL</Label>
+                <Input 
+                  id="videoUrl" 
+                  placeholder="https://youtube.com/..."
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  className="bg-background"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <Label>Key Takeaways (Summary Points)</Label>
+              <Button type="button" variant="outline" size="sm" onClick={() => setSummaryPoints([...summaryPoints, ""])} className="h-7 gap-1 text-xs">
+                <Plus className="h-3 w-3" /> Add Point
+              </Button>
+            </div>
+            {summaryPoints.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">No summary points added. Click "Add Point" to create one.</p>
+            ) : (
+              <div className="space-y-2">
+                {summaryPoints.map((point, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground w-4 text-center">{index + 1}.</span>
+                    <Input 
+                      value={point}
+                      onChange={(e) => {
+                        const newPoints = [...summaryPoints];
+                        newPoints[index] = e.target.value;
+                        setSummaryPoints(newPoints);
+                      }}
+                      placeholder="Enter a key takeaway..."
+                      className="bg-background flex-1"
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setSummaryPoints(summaryPoints.filter((_, i) => i !== index))} className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10">
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Editor Wrapper */}
