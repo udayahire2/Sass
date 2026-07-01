@@ -1,18 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen,
-  ChevronRight,
   ClipboardCheck,
   FileQuestion,
   Files,
   LayoutDashboard,
   LogOut,
-  Menu,
   SearchIcon,
   Users,
+  ChevronUp,
 } from "lucide-react";
-
 import { useLocalAuth } from "@/hooks/use-local-auth";
 import { NavbarThemeToggle } from "@/components/layout/navbar/navbar-theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,16 +24,29 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Menu,
+  MenuItem,
+  MenuPopup,
+  MenuTrigger,
+} from "@/components/ui/menu";
 import { Logo } from "@/components/ui/logo";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import {
   InputGroup,
   InputGroupAddon,
@@ -70,7 +81,6 @@ const navSections = [
 ];
 
 export default function AdminLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, getInitials } = useLocalAuth();
@@ -82,10 +92,6 @@ export default function AdminLayout() {
       navigate("/login");
     }
   }, [navigate, user]);
-
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
 
   const currentPage = useMemo(() => {
     return (
@@ -99,44 +105,33 @@ export default function AdminLayout() {
   const displayEmail = user?.email || "admin@studyhub.com";
 
   return (
-    <div className="h-screen bg-background text-foreground">
-      <div className="mx-auto flex h-screen w-full max-w-screen-2xl">
-        {/* Mobile overlay */}
-        <div
-          aria-hidden="true"
-          className={cn(
-            "fixed inset-0 z-40 bg-black/40 transition-opacity md:hidden",
-            sidebarOpen ? "opacity-100" : "pointer-events-none opacity-0",
-          )}
-          onClick={() => setSidebarOpen(false)}
-        />
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarHeader className="h-14 flex flex-row items-center justify-between px-4 border-b border-border bg-background">
+            <Link
+              className="min-w-0 flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+              to="/admin/dashboard"
+            >
+              <Logo />
+            </Link>
+            <Badge
+              variant="secondary"
+              className="font-mono text-[10px] uppercase tracking-wider"
+            >
+              Admin
+            </Badge>
+          </SidebarHeader>
 
-        {/* Sidebar */}
-        <aside
-          className={cn(
-            "fixed inset-y-0 left-0 z-50 w-70 border-r bg-background transition-transform duration-200 md:sticky md:top-0 md:h-screen md:translate-x-0",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full",
-          )}
-        >
-          <div className="flex h-full flex-col">
-            <div className="flex h-16 items-center justify-between px-4">
-              <Link className="min-w-0" to="/admin/dashboard">
-                <Logo />
-              </Link>
-              <Badge variant="outline">Admin</Badge>
-            </div>
-
-            <Separator />
-
-            <ScrollArea className="flex-1 px-3 pb-3">
-              <div className="space-y-5 py-3">
-                {navSections.map((section) => (
-                  <div key={section.label} className="space-y-2">
-                    <div className="px-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {section.label}
-                    </div>
-
-                    <div className="space-y-1">
+          <SidebarContent>
+            <div className="space-y-4 py-4">
+              {navSections.map((section) => (
+                <SidebarGroup key={section.label}>
+                  <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {section.label}
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
                       {section.items.map((item) => {
                         const isActive =
                           location.pathname === item.path ||
@@ -144,95 +139,85 @@ export default function AdminLayout() {
                             item.path === "/admin/dashboard");
 
                         return (
-                          <Link key={item.path} to={item.path}>
-                            <div
-                              className={cn(
-                                "flex items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
-                                isActive
-                                  ? "bg-accent text-accent-foreground"
-                                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                              )}
+                          <SidebarMenuItem key={item.path}>
+                            <SidebarMenuButton
+                              isActive={isActive}
+                              render={<Link to={item.path} />}
                             >
-                              <div className="flex items-center gap-3">
-                                <item.icon className="h-4 w-4" />
-                                <span>{item.label}</span>
-                              </div>
-
-                              <ChevronRight
-                                className={cn(
-                                  "h-4 w-4 transition-opacity",
-                                  isActive ? "opacity-100" : "opacity-0",
-                                )}
-                              />
-                            </div>
-                          </Link>
+                              <item.icon className="h-4 w-4" aria-hidden="true" />
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
                         );
                       })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-
-            <div className="border-t p-3">
-              <div className="rounded-lg border p-3">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.avatar} />
-                    <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
-                  </Avatar>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">
-                      {displayName}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {displayEmail}
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  className="mt-3 w-full justify-start"
-                  onClick={logout}
-                  variant="outline"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </Button>
-              </div>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              ))}
             </div>
-          </div>
-        </aside>
+          </SidebarContent>
 
-        {/* Main content */}
-        <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="sticky top-0 z-30 border-b bg-background">
-            <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
-              <Button
-                className="md:hidden"
-                onClick={() => setSidebarOpen(true)}
-                size="icon"
-                variant="outline"
+          <SidebarFooter className="p-3 border-t border-border">
+            <Menu>
+              <MenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full h-full flex items-center justify-start gap-3 p-2 rounded-md hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-ring outline-none"
+                  />
+                }
               >
-                <Menu className="h-4 w-4" />
-              </Button>
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarImage src={user?.avatar} alt={displayName} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    {getInitials(displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-start overflow-hidden text-left flex-1">
+                  <span className="truncate text-sm font-medium leading-none mb-1.5">
+                    {displayName}
+                  </span>
+                  <span className="truncate text-xs text-muted-foreground leading-none">
+                    {displayEmail}
+                  </span>
+                </div>
+                <ChevronUp className="h-4 w-4 text-muted-foreground ml-auto shrink-0 opacity-50" aria-hidden="true" />
+              </MenuTrigger>
 
-              <div className="min-w-0 flex-1">
-                <Breadcrumb>
-                  <BreadcrumbList>
-                    <BreadcrumbItem>
-                      <span className="text-muted-foreground">Admin</span>
-                    </BreadcrumbItem>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
-                      <BreadcrumbPage>{currentPage}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </BreadcrumbList>
-                </Breadcrumb>
-              </div>
+              <MenuPopup className="w-56 rounded-xl shadow-lg">
+                <MenuItem onClick={logout} closeOnClick>
+                  <LogOut className="mr-2 h-4 w-4" aria-hidden="true" /> Sign out
+                </MenuItem>
+              </MenuPopup>
+            </Menu>
+          </SidebarFooter>
+          <SidebarRail />
+        </Sidebar>
 
-              <InputGroup className="w-fit">
+        <SidebarInset className="flex flex-col flex-1 h-screen w-full min-w-0 overflow-hidden">
+          {/* Header */}
+          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b border-border bg-background px-4 sm:gap-6 sm:px-6 lg:px-8">
+            <SidebarTrigger className="h-8 w-8 -ml-2 text-muted-foreground" />
+
+            <div className="min-w-0 flex-1 flex items-center">
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <span className="text-muted-foreground">Admin</span>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="font-semibold text-foreground">
+                      {currentPage}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <InputGroup className="w-fit hidden sm:flex">
                 <InputGroupInput
                   aria-label="Search"
                   placeholder="Search students, approvals, resources..."
@@ -242,47 +227,19 @@ export default function AdminLayout() {
                   <SearchIcon aria-hidden="true" />
                 </InputGroupAddon>
               </InputGroup>
+              
               <NavbarThemeToggle />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger className="rounded-full border p-0 outline-none ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={user?.avatar} />
-                    <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">{displayName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {displayEmail}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-
-                  <DropdownMenuItem
-                    onClick={logout}
-                    className="text-destructive"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </header>
 
-          <ScrollArea className="flex-1">
-            <main className="px-4 py-6 sm:px-6 lg:px-8">
-              <div className="mx-auto w-full max-w-6xl">
-                <Outlet />
-              </div>
-            </main>
-          </ScrollArea>
-        </div>
-      </div>
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto bg-muted/30 px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-6xl animate-in fade-in duration-500">
+              <Outlet />
+            </div>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   );
 }

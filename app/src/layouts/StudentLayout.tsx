@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  Bell,
   Bookmark,
   Edit2,
   LayoutDashboard,
@@ -32,12 +31,7 @@ import {
   MenuTrigger,
 } from "@/components/ui/menu";
 import { Logo } from "@/components/ui/logo";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+
 import {
   Sidebar,
   SidebarContent,
@@ -54,7 +48,8 @@ import {
   SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const navSections = [
   {
@@ -134,36 +129,34 @@ export default function StudentLayout() {
           </SidebarHeader>
 
           <SidebarContent>
-            <ScrollArea className="flex-1" disableLenis>
-              <div className="space-y-4 py-4">
-                {navSections.map((section) => (
-                  <SidebarGroup key={section.label}>
-                    <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      {section.label}
-                    </SidebarGroupLabel>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {section.items.map((item) => {
-                          const isActive = location.pathname === item.path;
+            <div className="space-y-4 py-4">
+              {navSections.map((section) => (
+                <SidebarGroup key={section.label}>
+                  <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    {section.label}
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {section.items.map((item) => {
+                        const isActive = location.pathname === item.path;
 
-                          return (
-                            <SidebarMenuItem key={item.path}>
-                              <SidebarMenuButton
-                                isActive={isActive}
-                                render={<Link to={item.path} />}
-                              >
-                                <item.icon className="h-4 w-4" />
-                                <span>{item.label}</span>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          );
-                        })}
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </SidebarGroup>
-                ))}
-              </div>
-            </ScrollArea>
+                        return (
+                          <SidebarMenuItem key={item.path}>
+                            <SidebarMenuButton
+                              isActive={isActive}
+                              render={<Link to={item.path} />}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.label}</span>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              ))}
+            </div>
           </SidebarContent>
 
           <SidebarFooter className="p-3 border-t border-border">
@@ -171,13 +164,14 @@ export default function StudentLayout() {
               <MenuTrigger
                 render={
                   <Button
+                    type="button"
                     variant="ghost"
-                    className="w-full h-auto flex items-center justify-start gap-3 p-2 rounded-md hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-ring outline-none"
+                    className="w-full h-full flex items-center justify-start gap-3 p-2 rounded-md hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-ring outline-none"
                   />
                 }
               >
                 <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src={user?.avatar} />
+                  <AvatarImage src={user?.avatar} alt={displayName} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                     {getInitials(displayName)}
                   </AvatarFallback>
@@ -190,36 +184,17 @@ export default function StudentLayout() {
                     {displayEmail}
                   </span>
                 </div>
-                <ChevronUp className="h-4 w-4 text-muted-foreground ml-auto shrink-0 opacity-50" />
+                <ChevronUp className="h-4 w-4 text-muted-foreground ml-auto shrink-0 opacity-50" aria-hidden="true" />
               </MenuTrigger>
 
-              <MenuPopup
-                align="end"
-                side="top"
-                className="w-56 rounded-xl shadow-lg"
-              >
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  My Account
-                </div>
-                <MenuSeparator />
-
-                <MenuItem
-                  render={
-                    <Link
-                      to="/dashboard/student/profile"
-                      className="flex w-full cursor-pointer items-center text-sm py-1.5"
-                    />
-                  }
-                >
-                  <User className="mr-2 h-4 w-4 text-muted-foreground" />
+              <MenuPopup className="w-56 rounded-xl shadow-lg">
+                <MenuItem render={<Link to="/dashboard/student/profile" />}>
+                  <User className="mr-2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   Profile Settings
                 </MenuItem>
-
-                <MenuItem
-                  onClick={logout}
-                  className="rounded-md text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer text-sm py-1.5 mt-1"
-                >
-                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                <MenuSeparator />
+                <MenuItem onClick={logout} closeOnClick>
+                  <LogOut className="mr-2 h-4 w-4" aria-hidden="true" /> Sign out
                 </MenuItem>
               </MenuPopup>
             </Menu>
@@ -249,44 +224,31 @@ export default function StudentLayout() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              {/* Coss UI standard InputGroup */}
-              <div className="relative hidden w-full max-w-xs lg:block">
-                <InputGroup className="h-8">
-                  <InputGroupAddon>
-                    <Search
-                      aria-hidden="true"
-                      className="h-4 w-4 text-muted-foreground"
-                    />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    placeholder="Search materials..."
-                    type="search"
-                    className="h-8 text-sm placeholder:text-muted-foreground"
-                  />
-                  <InputGroupAddon>
-                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                      <span className="text-xs">⌘</span>K
-                    </kbd>
-                  </InputGroupAddon>
-                </InputGroup>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/search")}
+                className="gap-2"
+              >
+                <Search className="h-4 w-4" aria-hidden="true" />
+                Search
+                <KbdGroup className="-me-1">
+                  <Kbd>Ctrl</Kbd>
+                  <Kbd>K</Kbd>
+                </KbdGroup>
+              </Button>
 
               <NavbarThemeToggle />
-
-              <Button size="icon" variant="ghost" className="h-8 w-8 relative">
-                <Bell className="h-4 w-4 text-muted-foreground" />
-                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
-              </Button>
             </div>
           </header>
 
           {/* Page Content */}
-          <ScrollArea className="flex-1 bg-muted/30">
-            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-              <div className="mx-auto w-full max-w-6xl animate-in fade-in duration-500">
-                <Outlet />
-              </div>
-            </main>
+          <ScrollArea className="h-full ">
+          <main className="flex-1 overflow-y-auto bg-muted/30 px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-6xl animate-in fade-in duration-500">
+              <Outlet />
+            </div>
+          </main>
           </ScrollArea>
         </SidebarInset>
       </SidebarProvider>
