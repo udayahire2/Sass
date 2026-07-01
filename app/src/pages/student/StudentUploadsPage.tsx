@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Clock, CheckCircle2, XCircle, UploadCloud, ChevronRight } from "lucide-react";
-import { Card, CardPanel, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+// REPLACED Card imports with Frame imports
+import { 
+  Frame, 
+  FramePanel, 
+  FrameDescription, 
+  FrameHeader, 
+  FrameTitle 
+} from "@/components/ui/frame";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,27 +44,27 @@ export default function StudentUploadsPage() {
   }, [token]);
 
   return (
-    <Card className="border-border/40 shadow-sm overflow-hidden bg-card/50 backdrop-blur-xl">
-      <CardHeader className="border-b border-border/30 pb-6">
+    <Frame >
+      <FrameHeader >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <CardTitle className="text-xl flex items-center gap-2">
+            <FrameTitle className="text-xl flex items-center gap-2">
               <FileText className="h-5 w-5 text-muted-foreground" />
               My Uploads
-            </CardTitle>
-            <CardDescription className="mt-1.5">Track the approval status of study materials you have contributed.</CardDescription>
+            </FrameTitle>
+            <FrameDescription className="mt-1.5">Track the approval status of study materials you have contributed.</FrameDescription>
           </div>
           <Button render={<Link to="/dashboard/student/add-content" />}>
             <UploadCloud className="mr-2 h-4 w-4" />
             Upload New
           </Button>
         </div>
-      </CardHeader>
-      <CardPanel className="p-0">
+      </FrameHeader>
+      <FramePanel className="p-0">
         {materialsLoading ? (
           <Empty className="py-16">
             <EmptyHeader>
-              <EmptyMedia variant="icon" className="bg-transparent border-none shadow-none text-primary">
+              <EmptyMedia variant="icon" >
                 <Spinner className="h-6 w-6" />
               </EmptyMedia>
               <EmptyTitle>Loading Uploads</EmptyTitle>
@@ -64,14 +73,14 @@ export default function StudentUploadsPage() {
         ) : userMaterials.length === 0 ? (
           <Empty className="py-16 mx-4 sm:mx-0">
             <EmptyHeader>
-              <EmptyMedia variant="icon" className="bg-secondary/20">
-                <FileText className="h-6 w-6 text-muted-foreground" />
+              <EmptyMedia variant="icon">
+                <FileText  />
               </EmptyMedia>
             <EmptyTitle >No Uploads Yet</EmptyTitle>
-              <EmptyDescription className="max-w-md mx-auto">Get started by sharing your notes, sample papers, or study content with the community.</EmptyDescription>
+              <EmptyDescription >Get started by sharing your notes, sample papers, or study content with the community.</EmptyDescription>
             </EmptyHeader>
             <Button variant="outline" className="mt-4" render={<Link to="/dashboard/student/add-content" />}>
-              <UploadCloud className="mr-2 h-4 w-4" />
+              <UploadCloud />
               Start Uploading
             </Button>
           </Empty>
@@ -133,7 +142,7 @@ export default function StudentUploadsPage() {
             </Table>
           </div>
         )}
-      </CardPanel>
-    </Card>
+      </FramePanel>
+    </Frame>
   );
 }

@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Bookmark, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+// REPLACED Card imports with Frame imports
 import {
-  Card,
-  CardPanel,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Frame,
+  FrameDescription,
+  FrameHeader,
+  FramePanel,
+  FrameTitle,
+} from "@/components/ui/frame";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -99,8 +100,8 @@ export default function StudentBookmarksPage() {
 
       {/* Empty State */}
       {bookmarkedMaterials.length === 0 ? (
-        <Card>
-          <CardPanel className="py-16">
+        <Frame className="w-full">
+          <FramePanel className="py-16">
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -117,22 +118,22 @@ export default function StudentBookmarksPage() {
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
-          </CardPanel>
-        </Card>
+          </FramePanel>
+        </Frame>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>
+        <Frame className="w-full">
+          <FrameHeader>
+            <FrameTitle>
               {bookmarkedMaterials.length} Saved Material
               {bookmarkedMaterials.length !== 1 ? "s" : ""}
-            </CardTitle>
+            </FrameTitle>
 
-            <CardDescription>
+            <FrameDescription>
               Your personal collection of bookmarked resources.
-            </CardDescription>
-          </CardHeader>
+            </FrameDescription>
+          </FrameHeader>
 
-          <CardPanel className="p-0">
+          <FramePanel className="p-0">
             <div className="divide-y">
               {bookmarkedMaterials.map((material) => {
                 const href =
@@ -204,8 +205,8 @@ export default function StudentBookmarksPage() {
                 );
               })}
             </div>
-          </CardPanel>
-        </Card>
+          </FramePanel>
+        </Frame>
       )}
     </div>
   );
