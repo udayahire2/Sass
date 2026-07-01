@@ -70,39 +70,39 @@ export default function FeedbackManagerPage() {
     const getStatusStyles = (status: string) => {
         switch (status) {
             case "pending":
-                return "bg-neutral-100 text-neutral-700 border-neutral-200";
+                return "bg-secondary text-secondary-foreground border-border";
 
             case "reviewed":
-                return "bg-blue-50 text-blue-700 border-blue-200";
+                return "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20";
 
             case "resolved":
-                return "bg-emerald-50 text-emerald-700 border-emerald-200";
+                return "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20";
 
             default:
-                return "bg-neutral-100 text-neutral-700 border-neutral-200";
+                return "bg-secondary text-secondary-foreground border-border";
         }
     };
 
     const getTypeStyles = (type: string) => {
         switch (type) {
             case "bug":
-                return "bg-red-50 text-red-700 border-red-200";
+                return "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-500/20";
 
             case "feature":
-                return "bg-purple-50 text-purple-700 border-purple-200";
+                return "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-500/20";
 
             case "general":
-                return "bg-neutral-100 text-neutral-700 border-neutral-200";
+                return "bg-secondary text-secondary-foreground border-border";
 
             default:
-                return "bg-neutral-100 text-neutral-700 border-neutral-200";
+                return "bg-secondary text-secondary-foreground border-border";
         }
     };
 
     if (loading) {
         return (
             <div className="flex h-[60vh] items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-neutral-500" />
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
         );
     }
@@ -111,28 +111,28 @@ export default function FeedbackManagerPage() {
         <div className="mx-auto max-w-7xl px-6 py-8">
             {/* Header */}
             <div className="mb-10">
-                <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">
+                <h1 className="text-3xl font-semibold tracking-tight text-foreground">
                     Platform Feedback
                 </h1>
 
-                <p className="mt-2 text-sm text-neutral-500">
+                <p className="mt-2 text-sm text-muted-foreground">
                     Review user suggestions, bugs, and platform feedback.
                 </p>
             </div>
 
             {/* Empty State */}
             {feedbacks.length === 0 ? (
-                <Card className="border border-dashed border-neutral-200 bg-white shadow-none">
+                <Card className="border border-dashed border-border bg-card shadow-none">
                     <CardContent className="flex flex-col items-center justify-center py-24 text-center">
-                        <div className="mb-5 rounded-full border border-neutral-200 bg-neutral-50 p-4">
-                            <MessageSquare className="h-7 w-7 text-neutral-500" />
+                        <div className="mb-5 rounded-full border border-border bg-muted p-4">
+                            <MessageSquare className="h-7 w-7 text-muted-foreground" />
                         </div>
 
-                        <h2 className="text-lg font-medium text-neutral-900">
+                        <h2 className="text-lg font-medium text-foreground">
                             No feedback available
                         </h2>
 
-                        <p className="mt-2 max-w-sm text-sm leading-relaxed text-neutral-500">
+                        <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                             User feedback submissions will automatically appear here.
                         </p>
                     </CardContent>
@@ -147,13 +147,13 @@ export default function FeedbackManagerPage() {
                                 overflow-hidden
                                 rounded-2xl
                                 border
-                                border-neutral-200
-                                bg-white
+                                border-border
+                                bg-card
                                 shadow-none
                                 transition-all
                                 duration-200
-                                hover:border-neutral-300
-                                hover:bg-neutral-50/40
+                                hover:border-primary/30
+                                hover:bg-accent/40
                             "
                         >
                             <CardContent className="p-5">
@@ -220,16 +220,16 @@ export default function FeedbackManagerPage() {
 
                                 {/* User Info */}
                                 <div className="mt-5">
-                                    <h2 className="text-base font-semibold text-neutral-900">
+                                    <h2 className="text-base font-semibold text-foreground">
                                         {feedback.first_name}{" "}
                                         {feedback.last_name}
                                     </h2>
 
-                                    <p className="mt-1 text-sm text-neutral-500">
+                                    <p className="mt-1 text-sm text-muted-foreground">
                                         {feedback.email}
                                     </p>
 
-                                    <p className="mt-1 text-xs text-neutral-400">
+                                    <p className="mt-1 text-xs text-muted-foreground/70">
                                         {new Date(
                                             feedback.created_at
                                         ).toLocaleDateString()}
@@ -237,11 +237,11 @@ export default function FeedbackManagerPage() {
                                 </div>
 
                                 {/* Divider */}
-                                <div className="my-5 h-px bg-neutral-100" />
+                                <div className="my-5 h-px bg-border" />
 
                                 {/* Message */}
                                 <div>
-                                    <p className="whitespace-pre-wrap text-sm leading-7 text-neutral-700">
+                                    <p className="whitespace-pre-wrap text-sm leading-7 text-foreground/90">
                                         {feedback.message}
                                     </p>
                                 </div>
