@@ -237,7 +237,6 @@ export default function StudentLayout() {
                   <Kbd>K</Kbd>
                 </KbdGroup>
               </Button>
-
               <NavbarThemeToggle />
             </div>
           </header>

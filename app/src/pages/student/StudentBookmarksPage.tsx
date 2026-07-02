@@ -29,6 +29,7 @@ import {
 } from "@/services/study-service";
 
 import { buildAssetUrl } from "@/services/api";
+import { Button } from "@/components/ui/button";
 
 export default function StudentBookmarksPage() {
   const [bookmarkedMaterials, setBookmarkedMaterials] = useState<
@@ -178,28 +179,29 @@ export default function StudentBookmarksPage() {
 
                     <div className="flex items-center gap-2">
                       {href && (
-                        <a
+                       <Button variant={"default"}>
+                         <ExternalLink className="h-4 w-4" />
+                         <a
                           href={href}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
                         >
-                          <ExternalLink className="h-4 w-4" />
                           Open
                         </a>
+                       </Button>
                       )}
 
-                      <button
+                      <Button
+                      variant={"secondary"}
                         onClick={() =>
                           handleRemoveBookmark(
                             String(material.id || material._id)
                           )
                         }
-                        className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                         Remove
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 );
