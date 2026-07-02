@@ -89,10 +89,10 @@ export default function StudentUploadsPage() {
             <Table className="min-w-150">
               <TableHeader className="bg-secondary/30">
                 <TableRow className="hover:bg-transparent border-border/30">
-                  <TableHead className="w-[45%] pl-6 text-xs uppercase tracking-wider font-semibold text-muted-foreground">Content</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Subject</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Date</TableHead>
-                  <TableHead className="pr-6 text-right text-xs uppercase tracking-wider font-semibold text-muted-foreground">Status</TableHead>
+                  <TableHead >Content</TableHead>
+                  <TableHead >Subject</TableHead>
+                  <TableHead >Date</TableHead>
+                  <TableHead >Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -100,28 +100,28 @@ export default function StudentUploadsPage() {
                   const status = statusConfig[m.status] || statusConfig.pending;
                   const StatusIcon = status.icon;
                   return (
-                    <TableRow key={m._id || m.id} className="group hover:bg-muted/30 transition-colors border-border/30">
-                      <TableCell className="pl-6 py-4">
+                    <TableRow key={m._id || m.id} >
+                      <TableCell >
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/50 bg-background shadow-sm transition-colors group-hover:border-primary/20 group-hover:bg-primary/5">
                             <FileText className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate font-semibold text-sm text-foreground transition-colors group-hover:text-primary">{m.title}</p>
+                            <p className="truncate font-semibold text-sm text-foreground">{m.title}</p>
                             <span className="mt-1 inline-flex items-center rounded border border-border/50 bg-secondary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                               {m.type}
                             </span>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <span className="font-medium text-sm text-muted-foreground group-hover:text-foreground transition-colors">{m.subject}</span>
+                      <TableCell >
+                        <span className="font-medium text-sm text-foreground ">{m.subject}</span>
                       </TableCell>
-                      <TableCell className="py-4 text-xs text-muted-foreground font-medium">
+                      <TableCell>
                         {formatDate(m.createdAt)}
                       </TableCell>
-                      <TableCell className="pr-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                      <TableCell >
+                        <div className="flex items-center justify-start gap-2">
                           <Badge className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide border shadow-sm flex items-center gap-1.5 w-fit", status.colorClass)}>
                             {status.animate && (
                               <span className="relative flex h-2 w-2">
@@ -132,7 +132,6 @@ export default function StudentUploadsPage() {
                             {!status.animate && <StatusIcon className="h-3 w-3" />}
                             {status.label}
                           </Badge>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 -translate-x-2 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
                         </div>
                       </TableCell>
                     </TableRow>
