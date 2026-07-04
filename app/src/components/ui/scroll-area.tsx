@@ -80,7 +80,7 @@ export function ScrollArea({
         )}
         data-slot="scroll-area-viewport"
       >
-        <div className="min-h-full w-full">{children}</div>
+        <div className="min-h-full min-w-full w-fit">{children}</div>
       </ScrollAreaPrimitive.Viewport>
       <ScrollBar orientation="vertical" />
       <ScrollBar orientation="horizontal" />
