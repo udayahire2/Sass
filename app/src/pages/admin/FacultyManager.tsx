@@ -304,9 +304,8 @@ const FacultyCard = React.memo(function FacultyCardComponent({
                 {showActions && (
                     <div className="grid grid-cols-2 gap-3 pt-2">
                         <Button
-                            variant="outline"
+                            variant="default"
                             onClick={() => onAction(faculty._id, "approve")}
-                            className="border-emerald-500/50 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
                         >
                             <Check className="mr-2 h-4 w-4" />
                             Approve
@@ -314,7 +313,6 @@ const FacultyCard = React.memo(function FacultyCardComponent({
                         <Button
                             variant="outline"
                             onClick={() => onAction(faculty._id, "reject")}
-                            className="border-red-500/50 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
                         >
                             <X className="mr-2 h-4 w-4" />
                             Reject
@@ -326,7 +324,6 @@ const FacultyCard = React.memo(function FacultyCardComponent({
                     <Button
                         variant="outline"
                         onClick={() => onAction(faculty._id, "approve")}
-                        className="w-full border-emerald-500/50 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
                     >
                         <Check className="mr-2 h-4 w-4" />
                         Approve Now
@@ -337,7 +334,6 @@ const FacultyCard = React.memo(function FacultyCardComponent({
                     <Button
                         variant="outline"
                         onClick={() => onAction(faculty._id, "reject")}
-                        className="w-full border-red-500/50 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
                     >
                         <X className="mr-2 h-4 w-4" />
                         Revoke Access
