@@ -1,89 +1,15 @@
-import { useEffect, useMemo } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  BookOpen,
-  ClipboardCheck,
-  FileQuestion,
-  Files,
-  LayoutDashboard,
-  LogOut,
-  SearchIcon,
-  Users,
-  ChevronUp,
-} from "lucide-react";
+import { useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { ROUTE_LABELS } from "@/config/navigation";
+import { AdminSidebar } from "./components/AdminSidebar";
+import { AdminHeader } from "./components/AdminHeader";
 import { useLocalAuth } from "@/hooks/use-local-auth";
-import { NavbarThemeToggle } from "@/components/layout/navbar/navbar-theme-toggle";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Button } from "@/components/ui/button";
-import {
-  Menu,
-  MenuItem,
-  MenuPopup,
-  MenuTrigger,
-} from "@/components/ui/menu";
-import { Logo } from "@/components/ui/logo";
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarRail,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-
-const navSections = [
-  {
-    label: "Workspace",
-    items: [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
-      { icon: ClipboardCheck, label: "Approvals", path: "/admin/approvals" },
-      { icon: Users, label: "Students", path: "/admin/students" },
-    ],
-  },
-  {
-    label: "Content",
-    items: [
-      { icon: BookOpen, label: "Subjects", path: "/admin/subjects" },
-      { icon: BookOpen, label: "Syllabus", path: "/admin/syllabus" },
-      { icon: BookOpen, label: "Resources", path: "/admin/resources" },
-      {
-        icon: FileQuestion,
-        label: "IMP Questions",
-        path: "/admin/imp-questions",
-      },
-      { icon: Files, label: "Sample Papers", path: "/admin/sample-papers" },
-      { icon: Users, label: "Faculty", path: "/admin/faculty" },
-      { icon: Users, label: "Feedback", path: "/admin/feedback" },
-    ],
-  },
-];
 
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout, getInitials } = useLocalAuth();
+  const { user } = useLocalAuth();
 
   useEffect(() => {
     if (user && user.role !== "admin") {
@@ -93,145 +19,17 @@ export default function AdminLayout() {
     }
   }, [navigate, user]);
 
-  const currentPage = useMemo(() => {
-    return (
-      navSections
-        .flatMap((section) => section.items)
-        .find((item) => item.path === location.pathname)?.label ?? "Dashboard"
-    );
-  }, [location.pathname]);
-
-  const displayName = user?.name || "Admin User";
-  const displayEmail = user?.email || "admin@studyhub.com";
+  // O(1) lookup; fallback to Dashboard if route is just "/admin"
+  const currentPage = ROUTE_LABELS[location.pathname] ?? "Dashboard";
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20">
       <SidebarProvider>
-        <Sidebar>
-          <SidebarHeader className="h-14 flex flex-row items-center justify-between px-4 border-b border-border bg-background">
-            <Link
-              className="min-w-0 flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
-              to="/admin/dashboard"
-            >
-              <Logo />
-            </Link>
-            <Badge
-              variant="secondary"
-              className="font-mono text-[10px] uppercase tracking-wider"
-            >
-              Admin
-            </Badge>
-          </SidebarHeader>
-
-          <SidebarContent>
-            <div className="space-y-4 py-4">
-              {navSections.map((section) => (
-                <SidebarGroup key={section.label}>
-                  <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    {section.label}
-                  </SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      {section.items.map((item) => {
-                        const isActive =
-                          location.pathname === item.path ||
-                          (location.pathname === "/admin" &&
-                            item.path === "/admin/dashboard");
-
-                        return (
-                          <SidebarMenuItem key={item.path}>
-                            <SidebarMenuButton
-                              isActive={isActive}
-                              render={<Link to={item.path} />}
-                            >
-                              <item.icon className="h-4 w-4" aria-hidden="true" />
-                              <span>{item.label}</span>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        );
-                      })}
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-              ))}
-            </div>
-          </SidebarContent>
-
-          <SidebarFooter className="p-3 border-t border-border">
-            <Menu>
-              <MenuTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="w-full h-full flex items-center justify-start gap-3 p-2 rounded-md hover:bg-secondary transition-colors focus-visible:ring-2 focus-visible:ring-ring outline-none"
-                  />
-                }
-              >
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src={user?.avatar} alt={displayName} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                    {getInitials(displayName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start overflow-hidden text-left flex-1">
-                  <span className="truncate text-sm font-medium leading-none mb-1.5">
-                    {displayName}
-                  </span>
-                  <span className="truncate text-xs text-muted-foreground leading-none">
-                    {displayEmail}
-                  </span>
-                </div>
-                <ChevronUp className="h-4 w-4 text-muted-foreground ml-auto shrink-0 opacity-50" aria-hidden="true" />
-              </MenuTrigger>
-
-              <MenuPopup className="w-56 rounded-xl shadow-lg">
-                <MenuItem onClick={logout} closeOnClick>
-                  <LogOut className="mr-2 h-4 w-4" aria-hidden="true" /> Sign out
-                </MenuItem>
-              </MenuPopup>
-            </Menu>
-          </SidebarFooter>
-          <SidebarRail />
-        </Sidebar>
-
+        <AdminSidebar />
+        
         <SidebarInset className="flex flex-col flex-1 h-screen w-full min-w-0 overflow-hidden">
-          {/* Header */}
-          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b border-border bg-background px-4 sm:gap-6 sm:px-6 lg:px-8">
-            <SidebarTrigger className="h-8 w-8 -ml-2 text-muted-foreground" />
-
-            <div className="min-w-0 flex-1 flex items-center">
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <span className="text-muted-foreground">Admin</span>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="font-semibold text-foreground">
-                      {currentPage}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <InputGroup className="w-fit hidden sm:flex">
-                <InputGroupInput
-                  aria-label="Search"
-                  placeholder="Search students, approvals, resources..."
-                  type="search"
-                />
-                <InputGroupAddon>
-                  <SearchIcon aria-hidden="true" />
-                </InputGroupAddon>
-              </InputGroup>
-              
-              <NavbarThemeToggle />
-            </div>
-          </header>
-
+          <AdminHeader currentPage={currentPage} />
+          
           {/* Page Content */}
           <main className="flex-1 overflow-y-auto bg-muted/30 px-4 py-6 sm:px-6 lg:px-8">
             <div className="mx-auto w-full max-w-6xl animate-in fade-in duration-500">
