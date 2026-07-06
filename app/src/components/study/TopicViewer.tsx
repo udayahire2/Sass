@@ -169,7 +169,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="mx-auto w-full max-w-3xl px-3 pb-28 sm:px-6 sm:pb-20"
+      className="mx-auto w-full min-w-0 max-w-3xl px-3 pb-28 sm:px-6 sm:pb-20 overflow-x-hidden sm:overflow-x-visible"
     >
       {/* ── Compact Header ── */}
       <header ref={heroRef} className="mb-5 space-y-3">
@@ -260,8 +260,8 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
 
       {/* ── Video Section ── */}
       {hasVideo && (
-        <section className="mb-6">
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black/5 ring-1 ring-border/40">
+        <section className="mb-6 w-full min-w-0">
+          <div className="relative aspect-video w-full max-w-full overflow-hidden rounded-xl bg-black/5 ring-1 ring-border/40">
             {isVideoLoading && !hasVideoError && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-2">
@@ -332,10 +332,10 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       )}
 
       {/* ── Topic Content ── */}
-      <section className="mb-6">
+      <section className="mb-6 w-full min-w-0">
         {hasNotes ? (
           <div className={cn(
-            "flex flex-col bg-background transition-shadow",
+            "flex flex-col bg-background transition-shadow w-full min-w-0",
             isFullscreen 
               ? "fixed inset-0 z-[100] h-screen w-screen" 
               : "rounded-xl border border-border/40 hover:shadow-sm"
@@ -367,8 +367,8 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
             </div>
             
             {isFullscreen ? (
-              <ScrollArea className="flex-1 w-full h-full">
-                <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 pb-32">
+              <ScrollArea className="flex-1 w-full h-full min-w-0">
+                <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 pb-32 overflow-x-hidden w-full">
                   <RichTextEditor
                     content={markdownContent}
                     onChange={() => {}}
@@ -377,7 +377,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
                 </div>
               </ScrollArea>
             ) : (
-              <div className="p-3 sm:p-5 overflow-hidden">
+              <div className="p-3 sm:p-5 overflow-x-auto w-full min-w-0">
                 <RichTextEditor
                   content={markdownContent}
                   onChange={() => {}}
