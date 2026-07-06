@@ -429,6 +429,12 @@ export default function DashboardPage() {
                 framed={false}
                 actions={[
                   {
+                    label: "Manage Curriculum",
+                    description: "Branches, Subjects, Topics",
+                    to: "/admin/subjects",
+                    icon: BookOpen,
+                  },
+                  {
                     label: "Manage Approvals",
                     description: "Review pending submissions",
                     to: "/admin/approvals",

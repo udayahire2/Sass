@@ -53,12 +53,15 @@ function formatTopic(row) {
         videoUrl: row.video_url,
         youtubeVideoId,
         estimatedTime: row.estimated_time || '15 mins',
+        orderIndex: Number(row.order_index || 0),
         summaryPoints: parsedSummaryPoints.length > 0 ? parsedSummaryPoints : [
             'Key concept definition and importance.',
             'Standard algorithm steps or formula.',
             'Common exam question patterns.',
             'Advantages and limitations.',
         ],
+        isActive: Boolean(row.is_active !== undefined ? row.is_active : 1),
+        contentJson: row.content_json,
         createdAt: row.created_at,
     };
 }
@@ -80,6 +83,9 @@ function formatSubject(row) {
         description: row.description,
         unitCount: Number(row.unit_count || 0),
         topicCount: Number(row.topic_count || 0),
+        status: row.status || 'Available',
+        isActive: Boolean(row.is_active !== undefined ? row.is_active : 1),
+        orderIndex: Number(row.order_index || 0),
         units: [],
         papers: [],
         createdAt: row.created_at,
@@ -95,6 +101,7 @@ function formatUnit(row, topics = []) {
         unitNumber: Number(row.unit_number),
         title: row.title,
         description: row.description,
+        orderIndex: Number(row.order_index || 0),
         topics,
         createdAt: row.created_at,
     };
@@ -117,8 +124,7 @@ function getSubjectsByBranchSemester(branch, semester) {
            AND s.semester = ?
            AND s.deleted_at IS NULL
          GROUP BY s.id
-         HAVING COUNT(DISTINCT u.id) > 0
-         ORDER BY s.code ASC, s.title ASC`,
+         ORDER BY s.order_index ASC, s.code ASC, s.title ASC`,
         [branch, Number(semester)]
     );
 
@@ -148,21 +154,21 @@ function getSubjectById(subjectId) {
 }
 
 function createSubject(data) {
-    const { title, code, branch, semester, credits, description } = data;
+    const { title, code, branch, semester, credits, description, status, is_active, order_index } = data;
     const timestamps = createTimestamps();
     const id = crypto.randomUUID();
 
     run(
-        `INSERT INTO subjects (id, code, title, branch, semester, credits, description, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, code, title, branch, Number(semester), Number(credits) || 0, description || null, timestamps.createdAt, timestamps.updatedAt]
+        `INSERT INTO subjects (id, code, title, branch, semester, credits, description, status, is_active, order_index, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, code, title, branch, Number(semester), Number(credits) || 0, description || null, status || 'Available', is_active !== undefined ? (is_active ? 1 : 0) : 1, Number(order_index || 0), timestamps.createdAt, timestamps.updatedAt]
     );
 
     return getSubjectById(id);
 }
 
 function updateSubject(subjectId, data) {
-    const { title, code, branch, semester, credits, description } = data;
+    const { title, code, branch, semester, credits, description, status, is_active, order_index } = data;
     const timestamps = createTimestamps();
     const updates = [];
     const params = [];
@@ -173,6 +179,9 @@ function updateSubject(subjectId, data) {
     if (semester !== undefined) { updates.push('semester = ?'); params.push(Number(semester)); }
     if (credits !== undefined) { updates.push('credits = ?'); params.push(Number(credits)); }
     if (description !== undefined) { updates.push('description = ?'); params.push(description); }
+    if (status !== undefined) { updates.push('status = ?'); params.push(status); }
+    if (is_active !== undefined) { updates.push('is_active = ?'); params.push(is_active ? 1 : 0); }
+    if (order_index !== undefined) { updates.push('order_index = ?'); params.push(Number(order_index)); }
 
     if (updates.length > 0) {
         updates.push('updated_at = ?');
@@ -196,7 +205,7 @@ function getUnitsBySubject(subjectId) {
         `SELECT *
          FROM units
          WHERE subject_id = ? AND deleted_at IS NULL
-         ORDER BY unit_number ASC, title ASC`,
+         ORDER BY order_index ASC, unit_number ASC, title ASC`,
         [subjectId]
     );
 
@@ -205,7 +214,7 @@ function getUnitsBySubject(subjectId) {
             `SELECT *
              FROM topics
              WHERE unit_id = ? AND deleted_at IS NULL
-             ORDER BY title ASC`,
+             ORDER BY order_index ASC, title ASC`,
             [unit.id]
         );
 
@@ -221,7 +230,7 @@ function getUnitById(unitId) {
     if (!unit) return null;
 
     const topicRows = all(
-        `SELECT * FROM topics WHERE unit_id = ? AND deleted_at IS NULL ORDER BY title ASC`,
+        `SELECT * FROM topics WHERE unit_id = ? AND deleted_at IS NULL ORDER BY order_index ASC, title ASC`,
         [unit.id]
     );
 
@@ -229,27 +238,28 @@ function getUnitById(unitId) {
 }
 
 function createUnit(subjectId, data) {
-    const { title, description, unit_number } = data;
+    const { title, description, unit_number, order_index } = data;
     const timestamps = createTimestamps();
     const id = crypto.randomUUID();
 
     run(
-        `INSERT INTO units (id, subject_id, unit_number, title, description, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [id, subjectId, Number(unit_number), title, description || null, timestamps.createdAt]
+        `INSERT INTO units (id, subject_id, unit_number, title, description, order_index, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, subjectId, Number(unit_number), title, description || null, Number(order_index || 0), timestamps.createdAt]
     );
 
     return getUnitById(id);
 }
 
 function updateUnit(unitId, data) {
-    const { title, description, unit_number } = data;
+    const { title, description, unit_number, order_index } = data;
     const updates = [];
     const params = [];
 
     if (title !== undefined) { updates.push('title = ?'); params.push(title); }
     if (description !== undefined) { updates.push('description = ?'); params.push(description); }
     if (unit_number !== undefined) { updates.push('unit_number = ?'); params.push(Number(unit_number)); }
+    if (order_index !== undefined) { updates.push('order_index = ?'); params.push(Number(order_index)); }
 
     if (updates.length > 0) {
         params.push(unitId);
@@ -335,6 +345,18 @@ function updateTopic(topicId, data) {
         updates.push('video_url = ?');
         params.push(video_url);
     }
+    if (data.order_index !== undefined) {
+        updates.push('order_index = ?');
+        params.push(Number(data.order_index));
+    }
+    if (data.is_active !== undefined) {
+        updates.push('is_active = ?');
+        params.push(data.is_active ? 1 : 0);
+    }
+    if (data.content_json !== undefined) {
+        updates.push('content_json = ?');
+        params.push(data.content_json);
+    }
 
     if (updates.length === 0) {
         return getTopicById(topicId);
@@ -350,16 +372,16 @@ function updateTopic(topicId, data) {
 }
 
 function createTopic(unitId, data) {
-    const { title, content_markdown, video_url, description, estimated_time, summary_points } = data;
+    const { title, content_markdown, video_url, description, estimated_time, summary_points, order_index, is_active, content_json } = data;
     const timestamps = createTimestamps();
     const id = crypto.randomUUID();
     
     const summaryPointsStr = typeof summary_points === 'string' ? summary_points : (summary_points ? JSON.stringify(summary_points) : null);
 
     run(
-        `INSERT INTO topics (id, unit_id, title, content_markdown, video_url, description, estimated_time, summary_points, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, unitId, title, content_markdown || '', video_url || null, description || null, estimated_time || null, summaryPointsStr, timestamps.createdAt]
+        `INSERT INTO topics (id, unit_id, title, content_markdown, video_url, description, estimated_time, summary_points, order_index, is_active, content_json, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, unitId, title, content_markdown || '', video_url || null, description || null, estimated_time || null, summaryPointsStr, Number(order_index || 0), is_active !== undefined ? (is_active ? 1 : 0) : 1, content_json || null, timestamps.createdAt]
     );
 
     return getTopicById(id);

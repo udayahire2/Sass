@@ -106,7 +106,16 @@ export const getAuthHeaders = (): Record<string, string> => {
         : {};
 };
 
-export type Branch = 'Computer' | 'IT' | 'Mechanical' | 'Civil' | 'Electrical';
+export type Branch = string;
+
+export interface BranchData {
+    id: string;
+    _id?: string;
+    name: string;
+    status: 'Available' | 'Coming Soon';
+    isActive: boolean;
+    orderIndex: number;
+}
 
 export interface Topic {
     id: string;
@@ -120,6 +129,9 @@ export interface Topic {
     videoDuration?: string;
     estimatedTime?: string;
     summaryPoints: string[];
+    isActive?: boolean;
+    orderIndex?: number;
+    contentJson?: string;
     unit?: {
         id: string;
         number: number;
@@ -167,6 +179,9 @@ export interface Subject {
     description?: string | null;
     unitCount?: number;
     topicCount?: number;
+    status?: 'Available' | 'Coming Soon';
+    isActive?: boolean;
+    orderIndex?: number;
     units: Unit[];
     papers: QuestionPaper[];
 }
@@ -193,6 +208,41 @@ export const fetchSubjectsByBranchSemester = async (
     return requestApiData<Subject[]>(`/subjects?${params.toString()}`, [], 'Failed to fetch subjects');
 };
 
+export const fetchBranches = async (all = false): Promise<BranchData[]> => {
+    return requestApiData<BranchData[]>(`/branches${all ? '?all=true' : ''}`, [], 'Failed to fetch branches');
+};
+
+export const createBranchData = async (data: Partial<BranchData>): Promise<BranchData> => {
+    const response = await fetch(buildApiUrl('/branches'), {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, is_active: data.isActive, order_index: data.orderIndex }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to create branch'));
+    return parseApiData<BranchData>(payload, {} as BranchData);
+};
+
+export const updateBranchData = async (id: string, data: Partial<BranchData>): Promise<BranchData> => {
+    const response = await fetch(buildApiUrl(`/branches/${id}`), {
+        method: 'PUT',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, is_active: data.isActive, order_index: data.orderIndex }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to update branch'));
+    return parseApiData<BranchData>(payload, {} as BranchData);
+};
+
+export const deleteBranchData = async (id: string): Promise<void> => {
+    const response = await fetch(buildApiUrl(`/branches/${id}`), {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(getErrorMessage(payload, 'Failed to delete branch'));
+};
+
 export const fetchSubjectUnits = async (subjectId: string): Promise<Unit[]> => {
     return requestApiData<Unit[]>(`/subjects/${subjectId}/units`, [], 'Failed to fetch subject units');
 };
@@ -201,7 +251,7 @@ export const fetchTopicById = async (topicId: string): Promise<Topic | null> => 
     return requestApiData<Topic | null>(`/topics/${topicId}`, null, 'Failed to fetch topic');
 };
 
-export const updateTopic = async (topicId: string, data: { title?: string; content_markdown?: string; description?: string; estimated_time?: string; video_url?: string; summary_points?: string[] }): Promise<Topic> => {
+export const updateTopic = async (topicId: string, data: Partial<Topic> & { content_markdown?: string; estimated_time?: string; video_url?: string; summary_points?: string[]; is_active?: boolean; order_index?: number }): Promise<Topic> => {
     const response = await fetch(buildApiUrl(`/topics/${topicId}`), {
         method: 'PUT',
         headers: {

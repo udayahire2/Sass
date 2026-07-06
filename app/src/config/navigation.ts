@@ -32,7 +32,7 @@ export const ADMIN_NAV_SECTIONS = [
   {
     label: "Content",
     items: [
-      { icon: BookOpen, label: "Subjects", path: ROUTES.ADMIN_SUBJECTS },
+      { icon: BookOpen, label: "Curriculum", path: ROUTES.ADMIN_SUBJECTS },
       { icon: BookOpen, label: "Syllabus", path: ROUTES.ADMIN_SYLLABUS },
       { icon: BookOpen, label: "Resources", path: ROUTES.ADMIN_RESOURCES },
       { icon: FileQuestion, label: "IMP Questions", path: ROUTES.ADMIN_IMP_QUESTIONS },

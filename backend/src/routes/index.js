@@ -11,6 +11,8 @@ const syllabusRoutes = require('./syllabusRoutes');
 const subjectRoutes = require('./subjectRoutes');
 const platformFeedbackRoutes = require('./platformFeedbackRoutes');
 const notesRoutes = require('./notesRoutes');
+const progressRoutes = require('./progressRoutes');
+const branchRoutes = require('./branchRoutes');
 
 router.use('/resources', resourceRoutes);
 router.use('/auth', authRoutes);
@@ -22,6 +24,8 @@ router.use('/syllabus', syllabusRoutes);
 router.use('/notes', notesRoutes);
 router.use('/', subjectRoutes);
 router.use('/feedback', platformFeedbackRoutes);
+router.use('/progress', progressRoutes);
+router.use('/branches', branchRoutes);
 
 router.get('/health', (req, res) => {
     res.status(200).json({

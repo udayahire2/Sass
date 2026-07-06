@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import type { ElementType } from "react";
 import {
@@ -7,11 +8,13 @@ import {
     Globe,
     Monitor,
     Zap,
+    Folder,
+    Loader2
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { BRANCHES, SEMESTERS } from "@/services/api";
+import { SEMESTERS, fetchBranches, type BranchData } from "@/services/api";
 import { cn } from "@/lib/utils";
 
 interface BranchSemesterSelectionProps {
@@ -25,33 +28,27 @@ const BRANCH_META: Record<
     string,
     {
         icon: ElementType;
-        label: string;
         desc: string;
     }
 > = {
     Computer: {
         icon: Monitor,
-        label: "Computer Engg.",
         desc: "Software, DSA, OS and networking fundamentals.",
     },
     IT: {
         icon: Globe,
-        label: "Information Tech.",
         desc: "Web, databases, security and cloud systems.",
     },
     Mechanical: {
         icon: Cog,
-        label: "Mechanical Engg.",
         desc: "Thermodynamics, CAD and machine design topics.",
     },
     Civil: {
         icon: Building2,
-        label: "Civil Engg.",
         desc: "Structures, surveying and construction materials.",
     },
     Electrical: {
         icon: Zap,
-        label: "Electrical Engg.",
         desc: "Circuits, machines and power system studies.",
     },
 };
@@ -75,7 +72,21 @@ export function BranchSemesterSelection({
     onBranchSelect,
     onSemesterSelect,
 }: BranchSemesterSelectionProps) {
-    const selectedMeta = selectedBranch ? BRANCH_META[selectedBranch] : null;
+    const [branches, setBranches] = useState<BranchData[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let mounted = true;
+        fetchBranches()
+            .then(data => {
+                if (mounted) setBranches(data.filter(b => b.isActive));
+            })
+            .catch(err => console.error("Failed to load branches:", err))
+            .finally(() => { if (mounted) setLoading(false); });
+        return () => { mounted = false; };
+    }, []);
+
+    const selectedBranchData = branches.find(b => b.name === selectedBranch);
 
     return (
         <div className="mx-auto w-full max-w-5xl space-y-6">
@@ -95,75 +106,89 @@ export function BranchSemesterSelection({
                 <Separator className="bg-border/60" />
 
                 <div>
-                    <motion.div
-                        variants={staggerContainer}
-                        initial="hidden"
-                        animate="visible"
-                        className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-                    >
-                        {BRANCHES.map((branch) => {
-                            const meta = BRANCH_META[branch];
-                            if (!meta) return null;
+                    {loading ? (
+                        <div className="flex justify-center p-8">
+                            <Loader2 className="animate-spin text-muted-foreground w-8 h-8" />
+                        </div>
+                    ) : branches.length === 0 ? (
+                        <div className="text-center p-8 text-muted-foreground">
+                            No branches available at the moment.
+                        </div>
+                    ) : (
+                        <motion.div
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate="visible"
+                            className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
+                        >
+                            {branches.map((branch) => {
+                                const meta = BRANCH_META[branch.name] || { icon: Folder, desc: "Explore subjects and resources." };
+                                const Icon = meta.icon;
+                                const isActive = selectedBranch === branch.name;
+                                const isComingSoon = branch.status === 'Coming Soon';
 
-                            const Icon = meta.icon;
-                            const isActive = selectedBranch === branch;
-
-                            return (
-                                <motion.button
-                                    key={branch}
-                                    variants={fadeUpVariants}
-                                    onClick={() => onBranchSelect(branch)}
-                                    aria-pressed={isActive}
-                                    className={cn(
-                                        "group relative flex w-full items-start gap-4 rounded-2xl border p-4 text-left outline-none transition-all duration-300 overflow-hidden",
-                                        "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-                                        isActive
-                                            ? "border-primary/50 bg-primary/5 shadow-[0_0_20px_-5px_rgba(var(--primary),0.2)] scale-[1.01]"
-                                            : "border-border/60 bg-background/50 hover:border-primary/30 hover:bg-muted hover:shadow-sm"
-                                    )}
-                                >
-                                    {isActive && (
-                                        <div className="absolute inset-0  from-primary/10 via-transparent to-transparent opacity-50" />
-                                    )}
-                                    <div
+                                return (
+                                    <motion.button
+                                        key={branch.id}
+                                        variants={fadeUpVariants}
+                                        onClick={() => {
+                                            if (!isComingSoon) onBranchSelect(branch.name);
+                                        }}
+                                        disabled={isComingSoon}
+                                        aria-pressed={isActive}
                                         className={cn(
-                                            "relative z-10 mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border transition-colors duration-300",
+                                            "group relative flex w-full items-start gap-4 rounded-2xl border p-4 text-left outline-none transition-all duration-300 overflow-hidden",
+                                            isComingSoon ? "opacity-60 cursor-not-allowed bg-muted/30" : "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                                             isActive
-                                                ? "border-primary/30 bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                                                : "border-border/50 bg-background text-muted-foreground group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary"
+                                                ? "border-primary/50 bg-primary/5 shadow-[0_0_20px_-5px_rgba(var(--primary),0.2)] scale-[1.01]"
+                                                : (!isComingSoon ? "border-border/60 bg-background/50 hover:border-primary/30 hover:bg-muted hover:shadow-sm" : "border-border/40")
                                         )}
                                     >
-                                        <Icon className="h-5 w-5" strokeWidth={2} />
-                                    </div>
-
-                                    <div className="relative z-10 min-w-0 flex-1">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <p className={cn("truncate text-[15px] font-semibold transition-colors", isActive ? "text-primary" : "text-foreground group-hover:text-foreground")}>
-                                                {meta.label}
-                                            </p>
-                                            {isActive && (
-                                                <motion.div
-                                                    initial={{ scale: 0.5, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    className="shrink-0"
-                                                >
-                                                    <Check className="h-5 w-5 text-primary" />
-                                                </motion.div>
+                                        {isActive && (
+                                            <div className="absolute inset-0 from-primary/10 via-transparent to-transparent opacity-50" />
+                                        )}
+                                        <div
+                                            className={cn(
+                                                "relative z-10 mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border transition-colors duration-300",
+                                                isActive
+                                                    ? "border-primary/30 bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                                                    : "border-border/50 bg-background text-muted-foreground group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary"
                                             )}
+                                        >
+                                            <Icon className="h-5 w-5" strokeWidth={2} />
                                         </div>
-                                        <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
-                                            {meta.desc}
-                                        </p>
-                                    </div>
-                                </motion.button>
-                            );
-                        })}
-                    </motion.div>
+
+                                        <div className="relative z-10 min-w-0 flex-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className={cn("truncate text-[15px] font-semibold transition-colors", isActive ? "text-primary" : "text-foreground group-hover:text-foreground")}>
+                                                    {branch.name}
+                                                </p>
+                                                {isComingSoon ? (
+                                                    <Badge variant="secondary" className="text-[9px] uppercase tracking-wider px-1.5 py-0">Coming Soon</Badge>
+                                                ) : isActive && (
+                                                    <motion.div
+                                                        initial={{ scale: 0.5, opacity: 0 }}
+                                                        animate={{ scale: 1, opacity: 1 }}
+                                                        className="shrink-0"
+                                                    >
+                                                        <Check className="h-5 w-5 text-primary" />
+                                                    </motion.div>
+                                                )}
+                                            </div>
+                                            <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
+                                                {meta.desc}
+                                            </p>
+                                        </div>
+                                    </motion.button>
+                                );
+                            })}
+                        </motion.div>
+                    )}
                 </div>
             </section>
 
             <AnimatePresence mode="popLayout">
-                {selectedBranch && selectedMeta && (
+                {selectedBranch && selectedBranchData && (
                     <motion.div
                         key="semester-section"
                         initial={{ opacity: 0, height: 0 }}
@@ -178,7 +203,7 @@ export function BranchSemesterSelection({
                                         Step 2
                                     </Badge>
                                     <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
-                                        {selectedMeta.label}
+                                        {selectedBranchData.name}
                                     </Badge>
                                 </div>
                                 <div className="space-y-1.5">
@@ -216,7 +241,7 @@ export function BranchSemesterSelection({
                                                 {isActive && (
                                                     <motion.div
                                                         layoutId="activeSem"
-                                                        className="absolute inset-0  from-primary to-primary/80"
+                                                        className="absolute inset-0 from-primary to-primary/80"
                                                         initial={false}
                                                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                                     />
