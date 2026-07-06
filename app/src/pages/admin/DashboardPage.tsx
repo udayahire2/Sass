@@ -20,7 +20,11 @@ import {
   CardPanel,
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@/components/ui/tabs";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   DashboardActionList,
   DashboardPageHeader,
@@ -37,7 +41,7 @@ import { buildApiUrl, parseApiData } from "@/services/api";
 import { useDebounce } from "@/hooks/use-debounce";
 
 import { ThemeCard } from "./components/ThemeCard";
-import  MetricRow  from "./components/MetricRow";
+import MetricRow from "./components/MetricRow";
 import { MaterialTable } from "./components/MaterialTable";
 
 const DASHBOARD_PAGE_SIZE = 50;
@@ -297,7 +301,6 @@ export default function DashboardPage() {
 
       {/* Main content */}
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        
         <Card className=" overflow-hidden">
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -322,9 +325,7 @@ export default function DashboardPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <InputGroupAddon>
-                    <button type="submit" aria-label="Submit search">
-                      <Search aria-hidden="true" className="h-4 w-4" />
-                    </button>
+                    <Search aria-hidden="true" className="h-4 w-4" />
                   </InputGroupAddon>
                 </InputGroup>
               </form>
@@ -333,7 +334,7 @@ export default function DashboardPage() {
 
           <CardPanel className="p-0">
             <Tabs defaultValue="pending" className="w-full">
-              <div className="border-b px-5 pt-2">
+              <div className=" px-5 pt-2">
                 <TabsList variant="default" className="gap-2">
                   <TabsTab value="pending" className="relative">
                     Pending
