@@ -49,7 +49,6 @@ export default function RichTextEditor({
   const [slashQuery, setSlashQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Context menu state
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const isInternalUpdate = useRef(false);
 
@@ -74,7 +73,6 @@ export default function RichTextEditor({
     filteredItems: filteredSlashItems,
   });
 
-  // Sync ref with fresh state on every render
   useEffect(() => {
     slashStateRef.current = {
       isOpen: slashMenuOpen,
@@ -83,7 +81,6 @@ export default function RichTextEditor({
     };
   }, [slashMenuOpen, selectedIndex, filteredSlashItems]);
 
-  // Reset selectedIndex when filtered items change
   useEffect(() => {
     setSelectedIndex(0);
   }, [slashQuery]);
@@ -94,7 +91,6 @@ export default function RichTextEditor({
 
     const parent = $from.parent;
 
-    // Only trigger in paragraph nodes (not inside code blocks, headings, etc.)
     if (parent.type.name !== 'paragraph') {
       if (slashMenuOpen) {
         setSlashMenuOpen(false);
@@ -105,7 +101,6 @@ export default function RichTextEditor({
 
     const text = parent.textContent;
 
-    // Check if the line starts with '/' and cursor is after it
     if (text.startsWith('/')) {
       const query = text.substring(1);
       setSlashMenuOpen(true);
@@ -167,7 +162,8 @@ export default function RichTextEditor({
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: 'focus:outline-none min-h-[200px]',
+        // Responsive min-height and padding applied directly to the editor content area
+        class: 'focus:outline-none min-h-[150px] sm:min-h-[200px] p-2 sm:p-4 text-sm sm:text-base leading-relaxed',
         spellcheck: spellcheck ? 'true' : 'false',
       },
       handlePaste: (view, event) => {
@@ -187,7 +183,6 @@ export default function RichTextEditor({
           return true;
         }
 
-        // Check if the clipboard lacks rich HTML and looks like markdown
         const isRichHtml = html && /<(h[1-6]|ul|ol|table|strong|em|a|pre|blockquote)[>\s]/i.test(html);
         const isMarkdown = /^(#{1,6}\s|\* |- |> |\d+\.\s|```|\[.*\]\(.*\))/m.test(text) || /(\*\*|__)[^\s].*[^\s](\*\*|__)/.test(text) || /`[^`]+`/.test(text);
 
@@ -239,14 +234,12 @@ export default function RichTextEditor({
           setSlashMenuOpen(false);
           setSlashQuery('');
           setSelectedIndex(0);
-          // Delete the slash character and any typed query
           const { selection } = view.state;
           const { $from } = selection;
           view.dispatch(view.state.tr.delete($from.start(), $from.end()));
           return true;
         }
 
-        // Let Tab also act as Enter for quick selection
         if (event.key === 'Tab') {
           event.preventDefault();
           const item = filteredItems[selIdx];
@@ -278,14 +271,10 @@ export default function RichTextEditor({
     editorRef.current = editor;
   }, [editor]);
 
-  // Shiki code block rendering is managed natively by ShikiCodeBlock extension NodeView.
-
-  // Close slash menu on click outside editor
   useEffect(() => {
     if (!slashMenuOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Don't close if clicking inside the slash menu itself
       if (target.closest('[data-slash-menu]')) return;
       if (editorWrapperRef.current && !editorWrapperRef.current.contains(target)) {
         setSlashMenuOpen(false);
@@ -297,7 +286,6 @@ export default function RichTextEditor({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [slashMenuOpen]);
 
-  // Synchronize dynamic updates of "content" from outside the editor
   useEffect(() => {
     if (!editor) return;
     if (isInternalUpdate.current) {
@@ -310,13 +298,11 @@ export default function RichTextEditor({
     }
   }, [content, editor]);
 
-  // Synchronize dynamic updates of the "editable" prop
   useEffect(() => {
     if (!editor) return;
     editor.setEditable(editable);
   }, [editable, editor]);
 
-  // Synchronize spellcheck updates dynamically
   useEffect(() => {
     if (!editor) return;
     editor.setOptions({
@@ -339,40 +325,49 @@ export default function RichTextEditor({
     <ContextMenu>
       <div
         ref={editorWrapperRef}
-        className={cn("w-full flex flex-col group relative", className)}
+        className={cn(
+          "w-full flex flex-col group relative",
+          // Responsive padding around the whole editor
+          "px-2 sm:px-4",
+          className
+        )}
       >
         <ContextMenuTrigger className="contents">
-          <div className="w-full text-foreground transition-all duration-200 bg-transparent border-none">
+          <div className="w-full text-foreground transition-all duration-200 bg-transparent border-none max-w-none">
             <EditorContent
-          editor={editor}
-          className="w-full text-base focus:outline-none focus:ring-0"
-        />
-
-        {editable && <BubbleToolbar editor={editor} />}
-
-        {editable && (
-          <SlashMenu
-            editor={editor}
-            isOpen={slashMenuOpen}
-            selectedIndex={selectedIndex}
-            filteredItems={filteredSlashItems}
-            onClose={() => {
-              setSlashMenuOpen(false);
-              setSlashQuery('');
-              setSelectedIndex(0);
-            }}
-          />
-        )}
+              editor={editor}
+              className="w-full focus:outline-none focus:ring-0"
+            />
           </div>
 
-          {editable && showWordCount && (
-            <div className="flex justify-start text-xs text-muted-foreground/40 pt-16 pb-8 select-none font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
-              <span className="mx-2">·</span>
-              <span>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</span>
-            </div>
+          {editable && <BubbleToolbar editor={editor} />}
+
+          {editable && (
+            <SlashMenu
+              editor={editor}
+              isOpen={slashMenuOpen}
+              selectedIndex={selectedIndex}
+              filteredItems={filteredSlashItems}
+              onClose={() => {
+                setSlashMenuOpen(false);
+                setSlashQuery('');
+                setSelectedIndex(0);
+              }}
+            />
           )}
         </ContextMenuTrigger>
+
+        {editable && showWordCount && (
+          <div className={cn(
+            "flex justify-start text-xs text-muted-foreground/40 pt-16 pb-8 select-none font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+            // Hide on small screens to save space; visible on hover on larger screens
+            "hidden sm:flex"
+          )}>
+            <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
+            <span className="mx-2">·</span>
+            <span>{characterCount} {characterCount === 1 ? 'character' : 'characters'}</span>
+          </div>
+        )}
       </div>
 
       {editable && <EditorContextMenu editor={editor} />}
