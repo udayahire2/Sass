@@ -177,7 +177,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         <div className="flex items-start gap-2">
           <Link
             to={`/resources/${branch}/${semester}/${subjectId}`}
-            className="mt-0.5 rounded-full p-2 -ml-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="mt-0.5 rounded-full p-2 -ml-2 text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 shrink-0"
             aria-label="Back to subject"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -342,25 +342,25 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
           )}>
             {/* Toolbar */}
             <div className={cn(
-              "flex items-center justify-end gap-1.5 border-b border-border/40 bg-muted/10",
+              "flex flex-wrap items-center justify-end gap-1.5 border-b border-border/40 bg-muted/10",
               isFullscreen ? "p-3 sm:px-6" : "p-2"
             )}>
-              <Button variant="ghost" size="sm" onClick={handleCopyMarkdown} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" onClick={handleCopyMarkdown} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0">
                 {isCopied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
-                Copy
+                <span className="hidden sm:inline">Copy</span>
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleOpenInNotes} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" onClick={handleOpenInNotes} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0">
                 <ExternalLink className="h-3.5 w-3.5" />
-                Open in Notes
+                <span className="hidden sm:inline">Open in Notes</span>
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setIsFullscreen(!isFullscreen)} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" onClick={() => setIsFullscreen(!isFullscreen)} className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground shrink-0">
                 {isFullscreen ? (
                   <>
-                    <Minimize2 className="h-3.5 w-3.5" /> Exit Full Screen
+                    <Minimize2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Exit Full Screen</span>
                   </>
                 ) : (
                   <>
-                    <Maximize2 className="h-3.5 w-3.5" /> Full Screen
+                    <Maximize2 className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Full Screen</span>
                   </>
                 )}
               </Button>
