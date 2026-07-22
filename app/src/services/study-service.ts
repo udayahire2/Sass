@@ -129,7 +129,8 @@ export const fetchUserMaterials = async (): Promise<StudyMaterial[]> => {
 
 export const updateMaterialStatus = async (
     id: string,
-    status: 'approved' | 'rejected'
+    status: 'approved' | 'rejected',
+    reason?: string
 ): Promise<StudyMaterial | null> => {
     try {
         const response = await fetch(`${API_URL}/${id}/status`, {
@@ -138,7 +139,7 @@ export const updateMaterialStatus = async (
                 'Content-Type': 'application/json',
                 ...getAuthHeaders(),
             },
-            body: JSON.stringify({ status }),
+            body: JSON.stringify({ status, ...(reason ? { reason } : {}) }),
         });
         const payload = await response.json();
         if (!response.ok || payload.success === false) {
