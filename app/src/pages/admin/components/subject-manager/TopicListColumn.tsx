@@ -30,52 +30,55 @@ export function TopicListColumn({ manager, onEditTopic, onCreateTopic }: TopicLi
 
     return (
         <div className="flex-1 flex flex-col min-w-0 bg-background">
-            <div className="p-4 border-b flex items-center justify-between">
-                <div className="font-semibold flex items-center gap-2">
+            <div className="px-6 py-3 border-b border-border/50 flex items-center justify-between">
+                <div className="text-sm font-semibold flex items-center gap-2">
                     <LayoutList className="w-4 h-4 text-muted-foreground" />
-                    Topics {selectedSubject && <span className="text-muted-foreground font-normal ml-2">in {selectedSubject.title}</span>}
+                    Topics {selectedSubject && <span className="text-muted-foreground font-normal ml-1 truncate max-w-[200px]">/ {selectedSubject.title}</span>}
                 </div>
-                <Button size="sm" disabled={!selectedSubject} onClick={onCreateTopic}>
-                    <Plus className="w-4 h-4 mr-2" /> Add Topic
+                <Button size="sm" variant="outline" className="h-7 text-xs shadow-sm" disabled={!selectedSubject} onClick={onCreateTopic}>
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Add Topic
                 </Button>
             </div>
             
             <div className="flex-1 overflow-hidden flex relative">
-                <div className="flex flex-col h-full overflow-y-auto p-4 space-y-2 transition-all w-full">
+                <div className="flex flex-col h-full overflow-y-auto px-6 py-4 space-y-3 transition-all w-full">
                     {!selectedSubject ? (
                         <Empty className="my-auto">
                             <EmptyHeader>
-                                <EmptyTitle>No Subject Selected</EmptyTitle>
-                                <EmptyDescription>Select a subject to view its topics.</EmptyDescription>
+                                <EmptyTitle className="text-sm font-medium">No Subject Selected</EmptyTitle>
+                                <EmptyDescription className="text-xs">Select a subject to view its topics.</EmptyDescription>
                             </EmptyHeader>
                         </Empty>
                     ) : loadingTopics ? (
-                        <div className="flex justify-center p-8"><Loader2 className="animate-spin text-muted-foreground w-6 h-6" /></div>
+                        <div className="flex justify-center p-8"><Loader2 className="animate-spin text-muted-foreground w-5 h-5" /></div>
                     ) : allTopics.length === 0 ? (
                         <Empty className="my-auto">
                             <EmptyHeader>
-                                <EmptyTitle>No Topics Yet</EmptyTitle>
-                                <EmptyDescription>Click the button above to add the first topic.</EmptyDescription>
+                                <EmptyTitle className="text-sm font-medium">No Topics Yet</EmptyTitle>
+                                <EmptyDescription className="text-xs">Click the button above to add the first topic.</EmptyDescription>
                             </EmptyHeader>
                         </Empty>
                     ) : allTopics.map((t, idx) => (
                         <div 
                             key={t.id} 
+                            onClick={() => setSelectedTopic(t)}
                             className={cn(
-                                "flex items-start justify-between p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm",
-                                selectedTopic?.id === t.id ? "ring-2 ring-primary border-transparent bg-primary/5" : "bg-card"
+                                "flex items-start justify-between p-4 rounded-xl border cursor-pointer transition-all group",
+                                selectedTopic?.id === t.id 
+                                    ? "border-border shadow-sm bg-accent/20" 
+                                    : "border-border/40 hover:border-border/80 hover:bg-accent/10"
                             )}
                         >
-                            <div className="flex flex-col min-w-0 flex-1 pr-3" onClick={() => setSelectedTopic(t)}>
-                                <span className="text-xs font-semibold text-primary mb-1">Topic {idx + 1}</span>
-                                <span className="font-medium text-sm leading-tight mb-1">{t.title}</span>
-                                {t.description && <span className="text-xs text-muted-foreground line-clamp-2">{t.description}</span>}
+                            <div className="flex flex-col min-w-0 flex-1 pr-4">
+                                <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">Topic {idx + 1}</span>
+                                <span className="font-semibold text-sm leading-tight text-foreground mb-1.5">{t.title}</span>
+                                {t.description && <span className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{t.description}</span>}
                             </div>
-                            <div className="flex flex-col items-center gap-1 shrink-0">
-                                <button className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEditTopic(t); }}>
+                            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button className="p-1.5 hover:bg-background rounded-md text-muted-foreground hover:text-foreground border border-transparent hover:border-border shadow-sm transition-all" onClick={(e) => { e.stopPropagation(); onEditTopic(t); }}>
                                     <Edit2 className="w-3.5 h-3.5" />
                                 </button>
-                                <button className="p-1.5 hover:bg-muted rounded text-muted-foreground hover:text-red-500" onClick={(e) => handleDelete(t.id, e)}>
+                                <button className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md text-muted-foreground hover:text-red-500 border border-transparent hover:border-red-200 dark:hover:border-red-900 shadow-sm transition-all" onClick={(e) => handleDelete(t.id, e)}>
                                     <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                             </div>

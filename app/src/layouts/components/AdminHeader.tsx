@@ -50,9 +50,8 @@ export function AdminHeader({ currentPage }: AdminHeaderProps) {
               type="search"
             />
             <InputGroupAddon>
-              <button type="submit" aria-label="Submit search">
+             
                 <SearchIcon aria-hidden="true" className="h-4 w-4" />
-              </button>
             </InputGroupAddon>
           </InputGroup>
         </form>

@@ -31,8 +31,8 @@ export default function AdminLayout() {
           <AdminHeader currentPage={currentPage} />
           
           {/* Page Content */}
-          <main className="flex-1 overflow-y-auto bg-muted/30 px-4 py-6 sm:px-6 lg:px-8">
-            <div className="mx-auto w-full max-w-6xl animate-in fade-in duration-500">
+          <main className="flex-1 overflow-y-auto bg-background px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-7xl animate-in fade-in duration-500">
               <Outlet />
             </div>
           </main>

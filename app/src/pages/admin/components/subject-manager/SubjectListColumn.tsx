@@ -23,31 +23,31 @@ export function SubjectListColumn({ manager, onEditSubject, onCreateSubject }: S
     };
 
     return (
-        <div className="w-80 flex flex-col border-r bg-muted/5 shrink-0">
-            <div className="p-4 border-b flex items-center justify-between bg-background">
-                <div className="font-semibold flex items-center gap-2">
+        <div className="w-80 flex flex-col border-r border-border/50 bg-background/95 shrink-0">
+            <div className="px-4 py-3 border-b border-border/50 flex items-center justify-between">
+                <div className="text-sm font-semibold flex items-center gap-2">
                     <LayoutTemplate className="w-4 h-4 text-muted-foreground" />
                     Subjects
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8" disabled={!selectedBranch} onClick={onCreateSubject}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" disabled={!selectedBranch} onClick={onCreateSubject}>
                     <Plus className="w-4 h-4" />
                 </Button>
             </div>
-            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
                 {!selectedBranch ? (
                     <Empty className="mt-10">
                         <EmptyHeader>
-                            <EmptyTitle className="text-sm">No branch selected</EmptyTitle>
-                            <EmptyDescription>Select a branch to view subjects</EmptyDescription>
+                            <EmptyTitle className="text-sm font-medium">No branch selected</EmptyTitle>
+                            <EmptyDescription className="text-xs">Select a branch to view subjects</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 ) : loadingSubjects ? (
-                    <div className="flex justify-center p-4"><Loader2 className="animate-spin text-muted-foreground w-5 h-5" /></div>
+                    <div className="flex justify-center p-4"><Loader2 className="animate-spin text-muted-foreground w-4 h-4" /></div>
                 ) : subjects.length === 0 ? (
                     <Empty className="mt-10">
                         <EmptyHeader>
-                            <EmptyTitle className="text-sm">No subjects found</EmptyTitle>
-                            <EmptyDescription>Add a subject for this branch.</EmptyDescription>
+                            <EmptyTitle className="text-sm font-medium">No subjects found</EmptyTitle>
+                            <EmptyDescription className="text-xs">Add a subject for this branch.</EmptyDescription>
                         </EmptyHeader>
                     </Empty>
                 ) : subjects.map(s => (
@@ -55,20 +55,22 @@ export function SubjectListColumn({ manager, onEditSubject, onCreateSubject }: S
                         key={s.id} 
                         onClick={() => setSelectedSubject(s)}
                         className={cn(
-                            "flex items-center justify-between p-3 rounded-md cursor-pointer text-sm transition-colors border group",
-                            selectedSubject?.id === s.id ? "bg-accent border-accent-foreground/20 shadow-sm" : "bg-background border-transparent hover:border-border"
+                            "flex items-center justify-between px-3 py-2 rounded-md cursor-pointer text-sm transition-colors group",
+                            selectedSubject?.id === s.id 
+                                ? "bg-accent text-accent-foreground font-medium" 
+                                : "bg-transparent text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                         )}
                     >
-                        <div className="flex flex-col min-w-0 flex-1 pr-2">
-                            <span className="font-medium truncate">{s.title || s.name}</span>
-                            <span className="text-xs text-muted-foreground font-mono">{s.code}</span>
+                        <div className="flex flex-col min-w-0 flex-1 pr-2 gap-1">
+                            <span className="truncate">{s.title || s.name}</span>
+                            <span className="text-[10px] font-mono text-muted-foreground opacity-70 truncate w-fit">{s.code}</span>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1.5 hover:bg-muted rounded" onClick={(e) => { e.stopPropagation(); onEditSubject(s); }}>
-                                <Edit2 className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEditSubject(s); }}>
+                                <Edit2 className="w-3.5 h-3.5" />
                             </button>
-                            <button className="p-1.5 hover:bg-muted rounded" onClick={(e) => handleDelete(s.id, e)}>
-                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded text-muted-foreground hover:text-red-500" onClick={(e) => handleDelete(s.id, e)}>
+                                <Trash2 className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     </div>

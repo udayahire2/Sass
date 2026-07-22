@@ -32,23 +32,23 @@ export function BranchListColumn({ manager, onEditBranch, onCreateBranch }: Bran
     };
 
     return (
-        <div className="w-64 flex flex-col border-r bg-muted/10 shrink-0">
-            <div className="p-4 border-b flex items-center justify-between bg-background">
-                <div className="font-semibold flex items-center gap-2">
+        <div className="w-64 flex flex-col border-r border-border/50 bg-muted/10 shrink-0">
+            <div className="px-3 py-3 border-b border-border/50 flex items-center justify-between">
+                <div className="text-sm font-semibold flex items-center gap-2 px-1">
                     <Layers className="w-4 h-4 text-muted-foreground" />
                     Branches
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onCreateBranch}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={onCreateBranch}>
                     <Plus className="w-4 h-4" />
                 </Button>
             </div>
-            <div className="p-2 border-b bg-background">
+            <div className="px-3 py-2 border-b border-border/50">
                 <Select
                     items={semesterItems}
                     value={semesterItems.find(i => i.value === selectedSemester)}
                     onValueChange={(item) => item && setSelectedSemester(item.value)}
                 >
-                    <SelectTrigger className="h-8 text-xs">
+                    <SelectTrigger className="h-8 text-xs border-border/50 bg-background/50 hover:bg-background transition-colors">
                         <SelectValue placeholder="Semester" />
                     </SelectTrigger>
                     <SelectPopup>
@@ -60,30 +60,31 @@ export function BranchListColumn({ manager, onEditBranch, onCreateBranch }: Bran
                     </SelectPopup>
                 </Select>
             </div>
-            <div className="flex-1 overflow-y-auto p-2 space-y-1">
+            <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
                 {loadingBranches ? (
-                    <div className="flex justify-center p-4"><Loader2 className="animate-spin text-muted-foreground w-5 h-5" /></div>
+                    <div className="flex justify-center p-4"><Loader2 className="animate-spin text-muted-foreground w-4 h-4" /></div>
                 ) : branches.map(b => (
                     <div 
                         key={b.id} 
                         onClick={() => setSelectedBranch(b)}
                         className={cn(
-                            "flex items-center justify-between p-2 rounded-md cursor-pointer text-sm transition-colors group",
-                            selectedBranch?.id === b.id ? "bg-primary text-primary-foreground font-medium" : "hover:bg-muted"
+                            "flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer text-sm transition-colors group",
+                            selectedBranch?.id === b.id 
+                                ? "bg-accent text-accent-foreground font-medium" 
+                                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                         )}
                     >
                         <div className="flex flex-col min-w-0">
                             <span className="truncate">{b.name}</span>
-                            <span className="text-[10px] opacity-70">{b.status}</span>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded" onClick={(e) => { e.stopPropagation(); onEditBranch(b); }}>
+                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); onEditBranch(b); }}>
                                 <Edit2 className="w-3 h-3" />
                             </button>
-                            <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded" onClick={(e) => handleDelete(b.id, e)}>
-                                <Trash2 className="w-3 h-3 text-red-500 hover:text-red-600 dark:text-red-400" />
+                            <button className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded text-muted-foreground hover:text-red-500" onClick={(e) => handleDelete(b.id, e)}>
+                                <Trash2 className="w-3 h-3" />
                             </button>
-                            <ChevronRight className="w-4 h-4 ml-1 opacity-50" />
+                            <ChevronRight className="w-4 h-4 ml-0.5 text-muted-foreground/50" />
                         </div>
                     </div>
                 ))}

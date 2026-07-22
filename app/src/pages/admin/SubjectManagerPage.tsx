@@ -64,7 +64,7 @@ export default function SubjectManagerPage() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-theme(spacing.16))] -mx-4 sm:-mx-6 -my-4 sm:-my-6 sm:mt-0 overflow-hidden bg-background">
+        <div className="flex h-[calc(100vh-theme(spacing.32))] w-full border border-border/50 rounded-xl overflow-hidden bg-background shadow-sm">
             
             <BranchListColumn 
                 manager={manager} 

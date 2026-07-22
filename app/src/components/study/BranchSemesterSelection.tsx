@@ -137,25 +137,22 @@ export function BranchSemesterSelection({
                                         disabled={isComingSoon}
                                         aria-pressed={isActive}
                                         className={cn(
-                                            "group relative flex w-full items-start gap-4 rounded-2xl border p-4 text-left outline-none transition-all duration-300 overflow-hidden",
+                                            "group relative flex w-full items-start gap-4 rounded-xl border p-4 text-left outline-none transition-colors duration-200 overflow-hidden",
                                             isComingSoon ? "opacity-60 cursor-not-allowed bg-muted/30" : "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                                             isActive
-                                                ? "border-primary/50 bg-primary/5 shadow-[0_0_20px_-5px_rgba(var(--primary),0.2)] scale-[1.01]"
-                                                : (!isComingSoon ? "border-border/60 bg-background/50 hover:border-primary/30 hover:bg-muted hover:shadow-sm" : "border-border/40")
+                                                ? "border-primary bg-primary/5"
+                                                : (!isComingSoon ? "border-border bg-background hover:bg-muted" : "border-border/40")
                                         )}
                                     >
-                                        {isActive && (
-                                            <div className="absolute inset-0 from-primary/10 via-transparent to-transparent opacity-50" />
-                                        )}
                                         <div
                                             className={cn(
-                                                "relative z-10 mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border transition-colors duration-300",
+                                                "relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-colors duration-200",
                                                 isActive
-                                                    ? "border-primary/30 bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                                                    : "border-border/50 bg-background text-muted-foreground group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary"
+                                                    ? "border-primary bg-primary text-primary-foreground"
+                                                    : "border-border bg-background text-muted-foreground group-hover:bg-background/80 group-hover:text-foreground"
                                             )}
                                         >
-                                            <Icon className="h-5 w-5" strokeWidth={2} />
+                                            <Icon className="h-5 w-5" strokeWidth={1.5} />
                                         </div>
 
                                         <div className="relative z-10 min-w-0 flex-1">
@@ -166,13 +163,9 @@ export function BranchSemesterSelection({
                                                 {isComingSoon ? (
                                                     <Badge variant="secondary" className="text-[9px] uppercase tracking-wider px-1.5 py-0">Coming Soon</Badge>
                                                 ) : isActive && (
-                                                    <motion.div
-                                                        initial={{ scale: 0.5, opacity: 0 }}
-                                                        animate={{ scale: 1, opacity: 1 }}
-                                                        className="shrink-0"
-                                                    >
-                                                        <Check className="h-5 w-5 text-primary" />
-                                                    </motion.div>
+                                                    <div className="shrink-0">
+                                                        <Check className="h-4 w-4 text-primary" />
+                                                    </div>
                                                 )}
                                             </div>
                                             <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
@@ -231,25 +224,17 @@ export function BranchSemesterSelection({
                                                 onClick={() => onSemesterSelect(sem.toString())}
                                                 aria-pressed={isActive}
                                                 className={cn(
-                                                    "relative flex h-14 flex-col items-center justify-center rounded-xl p-3 outline-none transition-all duration-300 overflow-hidden",
+                                                    "relative flex h-14 flex-col items-center justify-center rounded-lg p-3 outline-none transition-colors duration-200 overflow-hidden",
                                                     "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                                                     isActive
-                                                        ? "border-transparent text-primary-foreground shadow-lg shadow-primary/25 scale-[1.02]"
-                                                        : "border border-border/60 bg-background/50 text-foreground hover:border-primary/30 hover:bg-muted"
+                                                        ? "border-primary bg-primary text-primary-foreground"
+                                                        : "border border-border bg-background text-foreground hover:bg-muted"
                                                 )}
                                             >
-                                                {isActive && (
-                                                    <motion.div
-                                                        layoutId="activeSem"
-                                                        className="absolute inset-0 from-primary to-primary/80"
-                                                        initial={false}
-                                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                                    />
-                                                )}
-                                                <span className={cn("relative z-10 text-[10px] font-semibold uppercase tracking-wider", isActive ? "text-primary-foreground/90" : "text-muted-foreground")}>
+                                                <span className={cn("relative z-10 text-[10px] font-medium uppercase tracking-wider", isActive ? "text-primary-foreground/90" : "text-muted-foreground")}>
                                                     Sem
                                                 </span>
-                                                <span className={cn("relative z-10 mt-0.5 text-[15px] font-bold", isActive ? "text-white" : "text-foreground")}>
+                                                <span className={cn("relative z-10 mt-0.5 text-[15px] font-semibold", isActive ? "text-white" : "text-foreground")}>
                                                     {sem}
                                                 </span>
                                             </motion.button>
