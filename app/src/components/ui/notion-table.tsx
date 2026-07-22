@@ -48,6 +48,92 @@ interface NotionTableProps {
   editable?: boolean;
 }
 
+/**
+ * Safe helper to parse and render formatted cell content including <strong>, <b>, <em>, <i>, <code>, <a>, <s>, <u> tags and markdown bold (**text**)
+ */
+function renderFormattedContent(content: string | undefined): React.ReactNode {
+  if (!content) return null;
+
+  let html = content;
+
+  // Convert markdown bold and italic syntaxes to HTML tags if present
+  if (html.includes('**') || html.includes('__')) {
+    html = html
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.*?)__/g, '<strong>$1</strong>');
+  }
+  if (html.includes('*') || html.includes('_')) {
+    html = html
+      .replace(/(^|[^\*])\*(?!\*)(.*?)\*/g, '$1<em>$2</em>')
+      .replace(/(^|[^_])_(?!_)(.*?)_/g, '$1<em>$2</em>');
+  }
+
+  // Fast path: if no HTML tags are present, return string as-is
+  if (!/<[a-z][\s\S]*>/i.test(html)) {
+    return html;
+  }
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<body>${html}</body>`, 'text/html');
+    return convertDomToReactNodes(doc.body);
+  } catch {
+    return content;
+  }
+}
+
+function convertDomToReactNodes(node: Node, keyPrefix = 'node'): React.ReactNode {
+  const nodes = Array.from(node.childNodes);
+  if (nodes.length === 0) return null;
+
+  return nodes.map((child, index) => {
+    const key = `${keyPrefix}-${index}`;
+    if (child.nodeType === Node.TEXT_NODE) {
+      return child.nodeValue;
+    }
+    if (child.nodeType === Node.ELEMENT_NODE) {
+      const el = child as HTMLElement;
+      const tagName = el.tagName.toLowerCase();
+      const children = convertDomToReactNodes(el, key);
+
+      switch (tagName) {
+        case 'strong':
+        case 'b':
+          return <strong key={key} className="font-bold text-foreground">{children}</strong>;
+        case 'em':
+        case 'i':
+          return <em key={key} className="italic">{children}</em>;
+        case 'code':
+          return <code key={key} className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>;
+        case 's':
+        case 'strike':
+        case 'del':
+          return <s key={key} className="line-through">{children}</s>;
+        case 'u':
+          return <u key={key} className="underline">{children}</u>;
+        case 'mark':
+          return <mark key={key} className="bg-yellow-200 dark:bg-yellow-800/50 px-1 rounded">{children}</mark>;
+        case 'a': {
+          const href = el.getAttribute('href') || '#';
+          return (
+            <a key={key} href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+              {children}
+            </a>
+          );
+        }
+        case 'br':
+          return <br key={key} />;
+        case 'p':
+        case 'span':
+        case 'div':
+        default:
+          return <span key={key}>{children}</span>;
+      }
+    }
+    return null;
+  });
+}
+
 export function NotionTable({
   data,
   className,
@@ -254,7 +340,7 @@ export function NotionTable({
         setEditingCell(null);
       }
       return;
-    }
+    } 
 
     // Navigation Mode keyboard triggers
     switch (e.key) {
@@ -485,7 +571,7 @@ export function NotionTable({
                         />
                       ) : (
                         <span className="text-sm font-semibold text-foreground font-sans">
-                          {col.title}
+                          {renderFormattedContent(col.title)}
                         </span>
                       )}
                     </div>
@@ -591,7 +677,7 @@ export function NotionTable({
                           />
                         ) : (
                           <div className="w-full min-h-[1.15rem] text-sm break-words leading-relaxed">
-                            {cellText || <span className="opacity-0">.</span>}
+                            {cellText ? renderFormattedContent(cellText) : <span className="opacity-0">.</span>}
                           </div>
                         )}
 
