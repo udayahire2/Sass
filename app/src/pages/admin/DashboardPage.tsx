@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import {
   CheckCircle2,
   Clock3,
@@ -8,6 +10,7 @@ import {
   Users,
   BookOpen,
   PlusCircle,
+  XCircle,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { Badge } from "@/components/ui/badge";
@@ -54,22 +57,40 @@ interface AdminStats {
 }
 
 export default function DashboardPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") || "pending";
+  const initialSearch = searchParams.get("search") || "";
+  const initialPendingPage = Number(searchParams.get("pendingPage")) || 1;
+  const initialApprovedPage = Number(searchParams.get("approvedPage")) || 1;
+
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingMaterials, setPendingMaterials] = useState<StudyMaterial[]>([]);
-  const [approvedMaterials, setApprovedMaterials] = useState<StudyMaterial[]>(
-    [],
-  );
-  const [searchQuery, setSearchQuery] = useState("");
+  const [approvedMaterials, setApprovedMaterials] = useState<StudyMaterial[]>([]);
+  
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const debouncedSearch = useDebounce(searchQuery, 300);
-  const [pendingPage, setPendingPage] = useState(1);
-  const [approvedPage, setApprovedPage] = useState(1);
+  const [pendingPage, setPendingPage] = useState(initialPendingPage);
+  const [approvedPage, setApprovedPage] = useState(initialApprovedPage);
+
   const { theme, setTheme } = useTheme();
   const themeMode = theme === "dark" || theme === "light" ? theme : "light";
+
   const handleThemeChange = useCallback(
     (value: "dark" | "light") => setTheme(value),
     [setTheme],
   );
+
+  // Sync state changes with URL Search Params
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (activeTab !== "pending") params.tab = activeTab;
+    if (debouncedSearch) params.search = debouncedSearch;
+    if (pendingPage > 1) params.pendingPage = String(pendingPage);
+    if (approvedPage > 1) params.approvedPage = String(approvedPage);
+
+    setSearchParams(params, { replace: true });
+  }, [activeTab, debouncedSearch, pendingPage, approvedPage, setSearchParams]);
 
   const loadMaterials = useCallback(async () => {
     const pending = await fetchPendingMaterials();
@@ -104,8 +125,9 @@ export default function DashboardPage() {
     void loadDashboardData();
   }, [loadMaterials]);
 
+  // Single Item Status Update with Reason & Optimistic UI + Toast Undo
   const handleStatusUpdate = useCallback(
-    async (id: string, status: "approved" | "rejected") => {
+    async (id: string, status: "approved" | "rejected", reason?: string) => {
       const previousPending = pendingMaterials;
       const previousApproved = approvedMaterials;
       const target = pendingMaterials.find((material) => material._id === id);
@@ -122,7 +144,23 @@ export default function DashboardPage() {
         }
       }
 
-      const result = await updateMaterialStatus(id, status);
+      // Show Toast Notification with Undo capability
+      toast.success(
+        `Material "${target?.title || "Item"}" ${status}${status === "rejected" && reason ? ` (${reason})` : ""}`,
+        {
+          description: "Changes applied optimistically.",
+          action: {
+            label: "Undo",
+            onClick: () => {
+              setPendingMaterials(previousPending);
+              setApprovedMaterials(previousApproved);
+              toast.info("Action undone.");
+            },
+          },
+        }
+      );
+
+      const result = await updateMaterialStatus(id, status, reason);
       if (result) {
         if (status === "approved") {
           setApprovedMaterials((current) =>
@@ -134,8 +172,82 @@ export default function DashboardPage() {
         return;
       }
 
+      // On API failure, revert state
       setPendingMaterials(previousPending);
       setApprovedMaterials(previousApproved);
+      toast.error("Failed to update status on server. Reverted changes.");
+    },
+    [approvedMaterials, pendingMaterials],
+  );
+
+  // Bulk Approval Handler
+  const handleBulkApprove = useCallback(
+    async (ids: string[]) => {
+      const previousPending = pendingMaterials;
+      const previousApproved = approvedMaterials;
+      const targets = pendingMaterials.filter((m) => ids.includes(m._id));
+
+      if (targets.length === 0) return;
+
+      // Optimistic update
+      setPendingMaterials((current) => current.filter((m) => !ids.includes(m._id)));
+      setApprovedMaterials((current) => [
+        ...targets.map((t) => ({ ...t, status: "approved" as const })),
+        ...current,
+      ]);
+
+      toast.success(`Approved ${targets.length} materials`, {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            setPendingMaterials(previousPending);
+            setApprovedMaterials(previousApproved);
+            toast.info("Bulk action undone.");
+          },
+        },
+      });
+
+      try {
+        await Promise.all(ids.map((id) => updateMaterialStatus(id, "approved")));
+      } catch {
+        setPendingMaterials(previousPending);
+        setApprovedMaterials(previousApproved);
+        toast.error("Some bulk approvals failed. Reverted state.");
+      }
+    },
+    [approvedMaterials, pendingMaterials],
+  );
+
+  // Bulk Rejection Handler
+  const handleBulkReject = useCallback(
+    async (ids: string[], reason?: string) => {
+      const previousPending = pendingMaterials;
+      const previousApproved = approvedMaterials;
+      const targets = pendingMaterials.filter((m) => ids.includes(m._id));
+
+      if (targets.length === 0) return;
+
+      // Optimistic update
+      setPendingMaterials((current) => current.filter((m) => !ids.includes(m._id)));
+
+      toast.success(`Rejected ${targets.length} materials ${reason ? `(${reason})` : ""}`, {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            setPendingMaterials(previousPending);
+            setApprovedMaterials(previousApproved);
+            toast.info("Bulk action undone.");
+          },
+        },
+      });
+
+      try {
+        await Promise.all(ids.map((id) => updateMaterialStatus(id, "rejected", reason)));
+      } catch {
+        setPendingMaterials(previousPending);
+        setApprovedMaterials(previousApproved);
+        toast.error("Some bulk rejections failed. Reverted state.");
+      }
     },
     [approvedMaterials, pendingMaterials],
   );
@@ -146,7 +258,7 @@ export default function DashboardPage() {
   );
 
   const handleRejectMaterial = useCallback(
-    (id: string) => handleStatusUpdate(id, "rejected"),
+    (id: string, reason?: string) => handleStatusUpdate(id, "rejected", reason),
     [handleStatusUpdate],
   );
 
@@ -201,7 +313,7 @@ export default function DashboardPage() {
       <div className="flex h-[60vh] items-center justify-center">
         <div className="space-y-3 text-center">
           <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <p className="text-sm text-muted-foreground">Loading dashboard…</p>
         </div>
       </div>
     );
@@ -239,14 +351,16 @@ export default function DashboardPage() {
       {/* Header */}
       <DashboardPageHeader
         title="Dashboard"
-        description="Welcome back, Admin. Here’s an overview of your content."
+        description="Welcome back, Admin. Manage submissions and review analytics."
         actions={
           <>
             <Button variant="outline" size="sm">
               <PlusCircle className="mr-2 h-4 w-4" />
-              New
+              New Resource
             </Button>
-            <Button size="sm">Review Submissions</Button>
+            <Button size="sm" onClick={() => setSearchParams({ tab: "pending" })}>
+              Review Submissions ({pendingCount})
+            </Button>
           </>
         }
       />
@@ -301,22 +415,22 @@ export default function DashboardPage() {
 
       {/* Main content */}
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        <Card className=" overflow-hidden">
+        <Card className="overflow-hidden">
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle className="text-base font-semibold">
-                  Content Approvals
+                  Content Moderation Hub
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Review and moderate submissions
+                  Review, approve, or reject student submissions
                 </CardDescription>
               </div>
               <form
-                className="relative w-full sm:w-64"
+                className="relative w-full sm:w-64 flex items-center gap-2"
                 onSubmit={(e) => e.preventDefault()}
               >
-                <InputGroup>
+                <InputGroup className="w-full">
                   <InputGroupInput
                     aria-label="Search"
                     placeholder="Search materials…"
@@ -328,13 +442,33 @@ export default function DashboardPage() {
                     <Search aria-hidden="true" className="h-4 w-4" />
                   </InputGroupAddon>
                 </InputGroup>
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => setSearchQuery("")}
+                    aria-label="Clear search"
+                  >
+                    <XCircle className="h-4 w-4" />
+                  </Button>
+                )}
               </form>
             </div>
           </CardHeader>
 
           <CardPanel className="p-0">
-            <Tabs defaultValue="pending" className="w-full">
-              <div className=" px-5 pt-2">
+            <Tabs
+              value={activeTab}
+              onValueChange={(val) =>
+                setSearchParams((prev) => {
+                  const p = new URLSearchParams(prev);
+                  p.set("tab", val);
+                  return p;
+                })
+              }
+              className="w-full"
+            >
+              <div className="px-5 pt-2">
                 <TabsList variant="default" className="gap-2">
                   <TabsTab value="pending" className="relative">
                     Pending
@@ -363,6 +497,8 @@ export default function DashboardPage() {
                   showActions
                   onApprove={handleApproveMaterial}
                   onReject={handleRejectMaterial}
+                  onBulkApprove={handleBulkApprove}
+                  onBulkReject={handleBulkReject}
                   onPageChange={setPendingPage}
                   page={pendingPage}
                   pageSize={DASHBOARD_PAGE_SIZE}
