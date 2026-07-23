@@ -68,7 +68,7 @@ export default function TopicEditorPage({
         setEstimatedTime(data.estimatedTime || "15 mins");
         setVideoUrl(data.videoUrl || "");
         setSummaryPoints(data.summaryPoints || []);
-        setContentMarkdown(data.contentMarkdown || data.markdownContent || "");
+        setContentMarkdown(data.contentMarkdown || data.markdownContent || (data as any).content_markdown || "");
         setSaveStatus("idle");
       }
     } catch (error) {

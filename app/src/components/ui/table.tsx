@@ -34,7 +34,7 @@ export function TableHeader({
 }: React.ComponentProps<"thead">): React.ReactElement {
   return (
     <thead
-      className={cn("[&_tr]:border-b", className)}
+      className={cn("[&_tr]:border-b in-data-[variant=card]:[&_tr]:border-none", className)}
       data-slot="table-header"
       {...props}
     />

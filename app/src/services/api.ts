@@ -248,7 +248,23 @@ export const fetchSubjectUnits = async (subjectId: string): Promise<Unit[]> => {
 };
 
 export const fetchTopicById = async (topicId: string): Promise<Topic | null> => {
-    return requestApiData<Topic | null>(`/topics/${topicId}`, null, 'Failed to fetch topic');
+    const topic = await requestApiData<any>(`/topics/${topicId}`, null, 'Failed to fetch topic');
+    if (topic) {
+        return {
+            ...topic,
+            contentMarkdown: topic.content_markdown || topic.contentMarkdown,
+            markdownContent: topic.markdown_content || topic.markdownContent,
+            contentJson: topic.content_json || topic.contentJson,
+            videoUrl: topic.video_url || topic.videoUrl,
+            youtubeVideoId: topic.youtube_video_id || topic.youtubeVideoId,
+            videoDuration: topic.video_duration || topic.videoDuration,
+            estimatedTime: topic.estimated_time || topic.estimatedTime,
+            summaryPoints: topic.summary_points || topic.summaryPoints,
+            isActive: topic.is_active !== undefined ? topic.is_active : topic.isActive,
+            orderIndex: topic.order_index !== undefined ? topic.order_index : topic.orderIndex,
+        } as Topic;
+    }
+    return null;
 };
 
 export const updateTopic = async (topicId: string, data: Partial<Topic> & { content_markdown?: string; estimated_time?: string; video_url?: string; summary_points?: string[]; is_active?: boolean; order_index?: number }): Promise<Topic> => {

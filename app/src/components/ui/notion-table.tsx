@@ -10,13 +10,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableRow, 
-  TableHead, 
-  TableCell 
-} from '@/components/ui/table';
+  EditorTable as Table, 
+  EditorTableHeader as TableHeader, 
+  EditorTableBody as TableBody, 
+  EditorTableRow as TableRow, 
+  EditorTableHead as TableHead, 
+  EditorTableCell as TableCell 
+} from '@/components/ui/editor-table';
+import { Frame } from '@/components/ui/frame';
 
 // Interfaces for Table Data Structure
 export interface TableColumn {
@@ -145,7 +146,7 @@ export function NotionTable({
     if (data?.columns && data.columns.length > 0) {
       return data.columns.map((col, i) => ({
         ...col,
-        title: col.title || (i === 0 ? "Name" : `Column ${i}`)
+        title: col.title !== undefined ? col.title : (i === 0 ? "Name" : `Column ${i}`)
       }));
     }
     return Array.from({ length: 3 }).map((_, i) => ({
@@ -166,16 +167,17 @@ export function NotionTable({
   // Sync state with dynamic external data prop changes
   useEffect(() => {
     if (data?.columns && data.columns.length > 0) {
-      setColumns(data.columns.map((col, i) => ({
+      const newColumns = data.columns.map((col, i) => ({
         ...col,
-        title: col.title || (i === 0 ? "Name" : `Column ${i}`)
-      })));
+        title: col.title !== undefined ? col.title : (i === 0 ? "Name" : `Column ${i}`)
+      }));
+      setColumns(prev => JSON.stringify(prev) !== JSON.stringify(newColumns) ? newColumns : prev);
     }
   }, [data?.columns]);
 
   useEffect(() => {
     if (data?.rows && data.rows.length > 0) {
-      setRows(data.rows);
+      setRows(prev => JSON.stringify(prev) !== JSON.stringify(data.rows) ? data.rows : prev);
     }
   }, [data?.rows]);
 
@@ -329,17 +331,19 @@ export function NotionTable({
 
     // If active editing mode
     if (editingCell) {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Escape') {
         e.preventDefault();
         setEditingCell(null);
-        if (rowIndex < rows.length - 1) {
-          setFocusedCell({ rowIndex: rowIndex + 1, colIndex });
-        }
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        setEditingCell(null);
+        return;
       }
-      return;
+      if (e.key === 'Tab') {
+        // Fall through to let Tab navigate
+        setEditingCell(null);
+      } else {
+        // Let native textarea handle Enter (newline) and Arrows
+        e.stopPropagation();
+        return;
+      }
     } 
 
     // Navigation Mode keyboard triggers
@@ -521,58 +525,57 @@ export function NotionTable({
   };
 
   return (
-    <div 
-      ref={containerRef}
-      className={cn("relative select-none font-sans text-sm text-foreground my-3 group/table-container max-w-full mr-auto ml-0", className)}
+    <Frame 
+      ref={containerRef as any}
+      className={cn("w-full relative group/table-container my-3", className)}
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       tabIndex={0}
       style={{ width: tableWidth }}
     >
-      <div className="relative w-full overflow-x-auto p-7 bg-transparent">
-        <Table 
-          onMouseLeave={() => { setHoveredColIndex(null); setHoveredRowIndex(null); }}
-          className="table-fixed select-text border-collapse bg-transparent rounded-none w-full border-y border-transparent"
-        >
-          <colgroup>
-            {columns.map((col) => (
-              <col key={col.id} style={{ width: col.width }} />
-            ))}
-          </colgroup>
+      <Table 
+        onMouseLeave={() => { setHoveredColIndex(null); setHoveredRowIndex(null); }}
+      >
+        <colgroup>
+          {columns.map((col) => (
+            <col key={col.id} style={{ width: col.width }} />
+          ))}
+        </colgroup>
 
-          {/* Header Row */}
-          <TableHeader className="bg-transparent border-b border-border rounded-none">
-            <TableRow className="border-b border-border h-10 bg-transparent hover:bg-transparent rounded-none">
+        {/* Header Row */}
+        <TableHeader>
+          <TableRow>
               {columns.map((col, colIndex) => {
                 const isFocused = focusedCell?.rowIndex === -1 && focusedCell?.colIndex === colIndex;
                 const isEditing = editingCell?.rowIndex === -1 && editingCell?.colIndex === colIndex;
-                const isColHighlighted = showControls && (selectedColIndex === colIndex || hoveredColHandleIndex === colIndex);
-
+                
                 return (
                   <TableHead
                     key={col.id}
-                    className={cn(
-                      "relative border-r border-border p-0 text-left font-semibold text-foreground/85 select-none h-10 transition-all duration-150 last:border-r-0 bg-transparent rounded-none text-sm",
-                      isColHighlighted && "bg-violet-500/10 dark:bg-violet-950/30"
-                    )}
+                    className="relative cursor-text"
                     onClick={() => handleCellClick(-1, colIndex)}
                     onMouseEnter={() => setHoveredColIndex(colIndex)}
                   >
-                    <div className="flex items-center justify-between px-3.5 h-full relative">
+                    <div className="flex items-center justify-between h-full relative">
                       {isEditing ? (
                         <textarea
                           ref={editInputRef}
-                          value={col.title || ''}
+                          value={col.title ?? ''}
                           onChange={(e) => handleCellChange(-1, colIndex, e.target.value)}
-                          onBlur={() => setEditingCell(null)}
-                          className="w-full resize-none bg-transparent border-none outline-none focus:ring-0 p-0 text-sm font-semibold text-foreground block whitespace-pre-wrap select-text h-5"
+                          onBlur={(e) => {
+                            if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+                              setEditingCell(null);
+                            }
+                          }}
+                          className="w-full min-h-[1.5rem] resize-none bg-transparent border-none outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none shadow-none p-0 m-0 text-sm font-semibold text-foreground block whitespace-pre-wrap select-text leading-relaxed overflow-hidden"
                           placeholder="..."
+                          rows={1}
                         />
                       ) : (
-                        <span className="text-sm font-semibold text-foreground font-sans">
+                        <div className="w-full min-h-[1.5rem] p-0 m-0 font-semibold text-foreground whitespace-pre-wrap block leading-relaxed overflow-hidden break-words">
                           {renderFormattedContent(col.title)}
-                        </span>
+                        </div>
                       )}
                     </div>
 
@@ -586,7 +589,7 @@ export function NotionTable({
                     )}
 
                     {/* FOCUSED CELL BLUE OUTLINE */}
-                    {isFocused && (
+                    {isFocused && !isEditing && (
                       <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
                     )}
 
@@ -636,53 +639,47 @@ export function NotionTable({
             </TableRow>
           </TableHeader>
 
-          {/* Table Data Rows */}
-          <TableBody className="bg-transparent rounded-none">
+        {/* Table Data Rows */}
+        <TableBody>
             {rows.map((row, rowIndex) => {
-              const isRowHighlighted = showControls && (selectedRowIndex === rowIndex || hoveredRowHandleIndex === rowIndex);
-
               return (
                 <TableRow
                   key={row.id}
-                  className={cn(
-                    "border-b border-border hover:bg-muted/30 transition-colors duration-100 last:border-b-0 bg-transparent rounded-none",
-                    isRowHighlighted && "bg-violet-500/10 dark:bg-violet-950/30"
-                  )}
                   onMouseEnter={() => setHoveredRowIndex(rowIndex)}
                 >
                   {row.cells.map((cellText, colIndex) => {
                     const isFocused = focusedCell?.rowIndex === rowIndex && focusedCell?.colIndex === colIndex;
                     const isEditing = editingCell?.rowIndex === rowIndex && editingCell?.colIndex === colIndex;
-                    const isColHighlighted = showControls && (selectedColIndex === colIndex || hoveredColHandleIndex === colIndex);
 
                     return (
                       <TableCell
                         key={`${rowIndex}-${colIndex}`}
                         onClick={() => handleCellClick(rowIndex, colIndex)}
                         onMouseEnter={() => setHoveredColIndex(colIndex)}
-                        className={cn(
-                          "relative border-r border-border p-2.5 h-10 align-top select-text whitespace-pre-wrap outline-none font-sans text-sm transition-all text-foreground break-words last:border-r-0 bg-transparent rounded-none",
-                          isColHighlighted && "bg-violet-500/10 dark:bg-violet-950/30",
-                          isEditing && "p-1.5"
-                        )}
+                        className="relative align-top cursor-text break-words"
                       >
                         {isEditing ? (
                           <textarea
                             ref={editInputRef}
-                            value={cellText}
+                            value={cellText ?? ''}
                             onChange={(e) => handleCellChange(rowIndex, colIndex, e.target.value)}
-                            onBlur={() => setEditingCell(null)}
-                            className="w-full min-h-[2.25rem] h-full resize-none bg-transparent border-none outline-none focus:ring-0 p-1 text-sm font-sans text-foreground block whitespace-pre-wrap select-text"
+                            onBlur={(e) => {
+                              if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+                                setEditingCell(null);
+                              }
+                            }}
+                            className="w-full min-h-[1.5rem] h-full resize-none bg-transparent border-none outline-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none shadow-none p-0 m-0 text-sm font-sans text-foreground block whitespace-pre-wrap select-text leading-relaxed overflow-hidden"
                             placeholder=""
+                            rows={1}
                           />
                         ) : (
-                          <div className="w-full min-h-[1.15rem] text-sm break-words leading-relaxed">
+                          <div className="w-full min-h-[1.5rem] p-0 m-0 text-sm break-words leading-relaxed whitespace-pre-wrap font-sans">
                             {cellText ? renderFormattedContent(cellText) : <span className="opacity-0">.</span>}
                           </div>
                         )}
 
                         {/* FOCUSED CELL BLUE OUTLINE */}
-                        {isFocused && (
+                        {isFocused && !isEditing && (
                           <div className="absolute inset-0 border border-primary z-30 pointer-events-none" />
                         )}
 
@@ -739,7 +736,7 @@ export function NotionTable({
         {editable && (
           <div
             onMouseDown={handleTableResizeMouseDown}
-            className="absolute bottom-[30px] right-[30px] w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 z-40 text-muted-foreground/40 hover:text-primary opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
+            className="absolute bottom-2 right-2 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 z-40 text-muted-foreground/40 hover:text-primary opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
             title="Drag to resize table width"
           >
             <svg width="6" height="6" viewBox="0 0 6 6" className="fill-current">
@@ -747,18 +744,17 @@ export function NotionTable({
             </svg>
           </div>
         )}
-      </div>
 
       {/* Add Column hover button on the right edge */}
       {editable && showControls && (
         <div 
-          className="absolute top-[28px] bottom-[28px] right-0 w-[28px] flex items-center justify-center opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
+          className="absolute top-[28px] bottom-[28px] -right-[14px] w-[28px] flex items-center justify-center opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200 z-50"
           contentEditable={false}
         >
           <div className="relative group/add-col-tooltip">
             <button
               onClick={() => handleAddColRight(columns.length - 1)}
-              className="w-5 h-5 rounded hover:bg-accent hover:text-foreground text-muted-foreground/45 bg-transparent border border-transparent hover:border-border flex items-center justify-center cursor-pointer transition-all duration-150"
+              className="w-5 h-5 rounded hover:bg-accent hover:text-foreground text-muted-foreground/45 bg-popover border border-border shadow-sm flex items-center justify-center cursor-pointer transition-all duration-150"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -774,13 +770,13 @@ export function NotionTable({
       {/* Add Row hover button at the bottom edge */}
       {editable && showControls && (
         <div 
-          className="absolute left-[28px] right-[28px] bottom-0 h-[28px] flex items-center justify-center opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200"
+          className="absolute left-[28px] right-[28px] -bottom-[14px] h-[28px] flex items-center justify-center opacity-0 group-hover/table-container:opacity-100 transition-opacity duration-200 z-50"
           contentEditable={false}
         >
           <div className="relative group/add-row-tooltip">
             <button
               onClick={() => handleAddRowBelow(rows.length - 1)}
-              className="w-5 h-5 rounded hover:bg-accent hover:text-foreground text-muted-foreground/45 bg-transparent border border-transparent hover:border-border flex items-center justify-center cursor-pointer transition-all duration-150"
+              className="w-5 h-5 rounded hover:bg-accent hover:text-foreground text-muted-foreground/45 bg-popover border border-border shadow-sm flex items-center justify-center cursor-pointer transition-all duration-150"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -792,7 +788,7 @@ export function NotionTable({
           </div>
         </div>
       )}
-    </div>
+    </Frame>
   );
 }
 
