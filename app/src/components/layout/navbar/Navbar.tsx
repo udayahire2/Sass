@@ -32,6 +32,7 @@ import { useTheme } from "@/components/theme-provider";
 import { type User as AuthUser, useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerTrigger, DrawerPopup, DrawerHeader, DrawerPanel } from "@/components/ui/drawer";
+import Folder from "@/components/svgs/folder";
 
 function getDashboardPath(user: AuthUser | null) {
   if (user?.role === "admin") return "/admin/dashboard";
@@ -332,8 +333,8 @@ function DesktopNavLinks() {
                   onClick={close}
                   className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                    <Library className="h-4.5 w-4.5" />
+                  <div >
+                    <Folder />
                   </div>
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1">

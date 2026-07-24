@@ -27,6 +27,8 @@ import { NotesCoverPicker } from "@/components/notes/NotesCoverPicker";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { EditorSettingsDialog } from "@/components/notes/settings";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+
 
 function normalizeEditorTheme(theme: string | null | undefined): string {
   if (theme === "dark" || theme === "sepia" || theme === "nord" || theme === "system") {
@@ -161,7 +163,8 @@ export default function NotesPage() {
   }, []);
 
   const handleToggleTheme = () => {
-    const nextTheme = editorTheme === "dark" ? "light" : "dark";
+    const isDark = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
+    const nextTheme = isDark ? "light" : "dark";
     handleThemeChange(nextTheme);
   };
 
@@ -707,32 +710,17 @@ export default function NotesPage() {
   }
 
   return (
-    <div className={cn(
-      "fixed inset-0 z-50 flex h-screen w-screen overflow-hidden bg-background",
-      editorTheme === "light" && "theme-light-editor",
-      editorTheme === "dark" && "theme-dark-editor",
-      editorTheme === "sepia" && "theme-sepia-editor",
-      editorTheme === "nord" && "theme-nord-editor"
-    )}>
-      {/* ── Mobile overlay ── */}
-      {sidebarVisible && !isSidebarPinned && (
-        <div
-          className="fixed inset-0 z-40 bg-black/20 md:hidden"
-          onClick={() => {
-            setIsSidebarPinned(false);
-            setSidebarHovered(false);
-          }}
-        />
+    <SidebarProvider
+      open={isSidebarPinned}
+      onOpenChange={setIsSidebarPinned}
+      className={cn(
+        "fixed inset-0 z-50 flex h-screen w-screen overflow-hidden bg-background",
+        editorTheme === "light" && "theme-light-editor",
+        editorTheme === "dark" && "theme-dark-editor",
+        editorTheme === "sepia" && "theme-sepia-editor",
+        editorTheme === "nord" && "theme-nord-editor"
       )}
-
-      {/* ── Hover zone for collapsed sidebar ── */}
-      {!sidebarVisible && (
-        <div
-          className="fixed inset-y-0 left-0 z-30 w-3 hidden md:block"
-          onMouseEnter={() => setSidebarHovered(true)}
-        />
-      )}
-
+    >
       {/* ═══════════════ SIDEBAR ═══════════════ */}
       <NotesSidebar
         isSidebarPinned={isSidebarPinned}
@@ -774,8 +762,8 @@ export default function NotesPage() {
       />
 
       {/* ═══════════════ MAIN AREA ═══════════════ */}
-      <div className={cn(
-        "flex flex-1 flex-col overflow-hidden min-w-0 z-10 relative bg-background transition-all duration-300",
+      <SidebarInset className={cn(
+        "flex flex-col overflow-hidden min-w-0 z-10 relative bg-background",
         textColor === "blue" ? "text-blue-900 dark:text-blue-100" :
         textColor === "green" ? "text-emerald-900 dark:text-emerald-100" :
         textColor === "rose" ? "text-rose-900 dark:text-rose-100" :
@@ -836,7 +824,7 @@ export default function NotesPage() {
             onToggleSidebar={() => setIsSidebarPinned(true)}
           />
         )}
-      </div>
+      </SidebarInset>
 
       <NotesEmojiPicker
         isOpen={showEmojiPicker}
@@ -889,6 +877,6 @@ export default function NotesPage() {
           theme={editorTheme}
         />
       )}
-    </div>
+    </SidebarProvider>
   );
 }

@@ -1,5 +1,6 @@
 import { SidebarNoteItem } from "./SidebarNoteItem";
 import type { NoteWithMeta, TreeNode } from "./types";
+import { SidebarMenuSub } from "../ui/sidebar";
 
 interface SidebarTreeNodeProps {
   node: TreeNode;
@@ -46,52 +47,54 @@ export function SidebarTreeNode({
   const hasChildren = node.children.length > 0;
 
   return (
-    <>
-      <SidebarNoteItem
-        note={node.note}
-        isActive={activeNoteId === node.note.id}
-        depth={depth}
-        onSelect={() => onSelect(node.note)}
-        onRename={(e) => onRename(node.note, e)}
-        onTrash={() => onTrash(node.note.id)}
-        onDuplicate={() => onDuplicate(node.note.id)}
-        onAddChild={() => onAddChild(node.note.id)}
-        onToggleFavorite={() => onToggleFavorite(node.note.id)}
-        renamingNoteId={renamingNoteId}
-        renameValue={renameValue}
-        setRenameValue={setRenameValue}
-        renameInputRef={renameInputRef}
-        commitRename={commitRename}
-        cancelRename={cancelRename}
-        hasChildren={hasChildren || undefined}
-        isExpanded={isExpanded}
-        onToggleExpand={() => toggleExpanded(node.note.id)}
-        onContextMenu={(e) => onContextMenu?.(node.note, e)}
-      />
-      {isExpanded &&
-        node.children.map((child) => (
-          <SidebarTreeNode
-            key={child.note.id}
-            node={child}
-            depth={depth + 1}
-            activeNoteId={activeNoteId}
-            expandedNodes={expandedNodes}
-            toggleExpanded={toggleExpanded}
-            onSelect={onSelect}
-            onRename={onRename}
-            onTrash={onTrash}
-            onDuplicate={onDuplicate}
-            onAddChild={onAddChild}
-            onToggleFavorite={onToggleFavorite}
-            renamingNoteId={renamingNoteId}
-            renameValue={renameValue}
-            setRenameValue={setRenameValue}
-            renameInputRef={renameInputRef}
-            commitRename={commitRename}
-            cancelRename={cancelRename}
-            onContextMenu={onContextMenu}
-          />
-        ))}
-    </>
+    <SidebarNoteItem
+      note={node.note}
+      isActive={activeNoteId === node.note.id}
+      depth={depth}
+      onSelect={() => onSelect(node.note)}
+      onRename={(e) => onRename(node.note, e)}
+      onTrash={() => onTrash(node.note.id)}
+      onDuplicate={() => onDuplicate(node.note.id)}
+      onAddChild={() => onAddChild(node.note.id)}
+      onToggleFavorite={() => onToggleFavorite(node.note.id)}
+      renamingNoteId={renamingNoteId}
+      renameValue={renameValue}
+      setRenameValue={setRenameValue}
+      renameInputRef={renameInputRef}
+      commitRename={commitRename}
+      cancelRename={cancelRename}
+      hasChildren={hasChildren || undefined}
+      isExpanded={isExpanded}
+      onToggleExpand={() => toggleExpanded(node.note.id)}
+      onContextMenu={(e) => onContextMenu?.(node.note, e)}
+    >
+      {hasChildren && (
+        <SidebarMenuSub className="mx-0 px-0 border-l-0 border-transparent gap-0">
+          {node.children.map((child) => (
+            <SidebarTreeNode
+              key={child.note.id}
+              node={child}
+              depth={depth + 1}
+              activeNoteId={activeNoteId}
+              expandedNodes={expandedNodes}
+              toggleExpanded={toggleExpanded}
+              onSelect={onSelect}
+              onRename={onRename}
+              onTrash={onTrash}
+              onDuplicate={onDuplicate}
+              onAddChild={onAddChild}
+              onToggleFavorite={onToggleFavorite}
+              renamingNoteId={renamingNoteId}
+              renameValue={renameValue}
+              setRenameValue={setRenameValue}
+              renameInputRef={renameInputRef}
+              commitRename={commitRename}
+              cancelRename={cancelRename}
+              onContextMenu={onContextMenu}
+            />
+          ))}
+        </SidebarMenuSub>
+      )}
+    </SidebarNoteItem>
   );
 }

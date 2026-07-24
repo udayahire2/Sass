@@ -10,6 +10,7 @@ import {
   Layers,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import gsap from "gsap";
 
 const roleSteps = {
@@ -86,35 +87,36 @@ const roleSteps = {
   ],
 };
 
+// Moved outside to prevent recreation on every render
+const roles = Object.keys(roleSteps);
+
 export function HowItWorksSection() {
-  const roles = Object.keys(roleSteps);
-
-  const [activeTab, setActiveTab] = useState("students");
-
+  const [activeTab, setActiveTab] = useState(roles[0]);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Handle GSAP Animations safely for React 18+
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const cards =
-      containerRef.current.querySelectorAll(".workflow-card");
+    // Use gsap.context for automatic cleanup in Strict Mode
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".workflow-card",
+        { opacity: 0, y: 15 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          stagger: 0.12,
+          ease: "power1.out",
+        }
+      );
+    }, containerRef);
 
-    gsap.killTweensOf(cards);
-
-    gsap.set(cards, {
-      opacity: 0,
-      y: 20,
-    });
-
-    gsap.to(cards, {
-      opacity: 1,
-      y: 0,
-      duration: 0.6,
-      stagger: 0.12,
-      ease: "power2.out",
-    });
+    return () => ctx.revert(); // Cleanup function
   }, [activeTab]);
 
+  // Handle auto-tab rotation
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveTab((current) => {
@@ -123,20 +125,19 @@ export function HowItWorksSection() {
       });
     }, 5000);
 
+    // Clears the interval on unmount OR if activeTab changes manually
     return () => clearInterval(interval);
-  }, []);
+  }, [activeTab]);
 
   return (
-    <section className="relative py-20 md:py-24 dark:bg-[radial-gradient(35%_128px_at_50%_0%,--theme(--color-foreground/.04),transparent)]">
-      {/* Top Divider & Decoration */}
-      <div className="absolute top-0 right-1/2 left-1/2 h-px w-full max-w-5xl -translate-x-1/2 bg-linear-to-r via-border/60" />
-
+    <section className="relative py-20 md:py-24">
       <div className="relative mx-auto max-w-5xl px-6 md:px-8">
+        
         {/* Header */}
         <div className="mx-auto mb-16 max-w-3xl text-center">
-          <div className="inline-flex items-center rounded-full border border-border bg-muted/50 px-4 py-1.5 text-xs font-medium text-primary">
+          <Badge variant="secondary" className="p-2">
             Platform Workflow
-          </div>
+          </Badge>
 
           <h2 className="mt-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             How Study Mate Works
@@ -149,71 +150,20 @@ export function HowItWorksSection() {
           </p>
         </div>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Tabs Navigation */}
           <div className="mb-14 flex justify-center">
-            <TabsList className="h-auto rounded-xl border border-border bg-card p-1 shadow-sm">
-              <TabsTrigger
-                value="students"
-                className="
-                  rounded-lg
-                  px-6
-                  py-2.5
-                  text-sm
-                  font-medium
-                  transition-all
-                  data-[state=active]:bg-primary
-                  data-[state=active]:text-white
-                "
-              >
-                Students
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="uploaders"
-                className="
-                  rounded-lg
-                  px-6
-                  py-2.5
-                  text-sm
-                  font-medium
-                  transition-all
-                  data-[state=active]:bg-primary
-                  data-[state=active]:text-white
-                "
-              >
-                Contributors
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="searchers"
-                className="
-                  rounded-lg
-                  px-6
-                  py-2.5
-                  text-sm
-                  font-medium
-                  transition-all
-                  data-[state=active]:bg-primary
-                  data-[state=active]:text-white
-                "
-              >
-                Searchers
-              </TabsTrigger>
+            <TabsList>
+              <TabsTrigger value="students">Students</TabsTrigger>
+              <TabsTrigger value="uploaders">Contributors</TabsTrigger>
+              <TabsTrigger value="searchers">Searchers</TabsTrigger>
             </TabsList>
           </div>
 
+          {/* Cards Container */}
           <div ref={containerRef}>
             {Object.entries(roleSteps).map(([role, steps]) => (
-              <TabsContent
-                key={role}
-                value={role}
-                className="mt-0"
-              >
+              <TabsContent key={role} value={role} className="mt-0">
                 <div className="grid gap-6 md:grid-cols-3">
                   {steps.map((step, index) => {
                     const Icon = step.icon;
@@ -221,72 +171,27 @@ export function HowItWorksSection() {
                     return (
                       <div
                         key={step.title}
-                        className="
-                          workflow-card
-                          group
-                          relative
-                          rounded-2xl
-                          border
-                          border-border
-                          bg-card
-                          p-7
-                          transition-all
-                          duration-300
-                          hover:-translate-y-0.5
-                          hover:border-primary/30
-                          hover:shadow-lg
-                        "
+                        className="workflow-card group relative rounded-2xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg"
                       >
-                        {/* connector */}
+                        {/* Connector Line */}
                         {index !== steps.length - 1 && (
-                          <div
-                            className="
-                              absolute
-                              left-full
-                              top-10
-                              hidden
-                              h-px
-                              w-6
-                              bg-border/60
-                              md:block
-                            "
-                          />
+                          <div className="absolute left-full top-10 hidden h-px w-6 bg-border/60 md:block" />
                         )}
 
-                        {/* top */}
+                        {/* Card Header */}
                         <div className="mb-6 flex items-center justify-between">
-                          <div
-                            className="
-                              flex
-                              h-12
-                              w-12
-                              items-center
-                              justify-center
-                              rounded-xl
-                              bg-primary/10
-                              text-primary
-                            "
-                          >
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                             <Icon className="h-5 w-5" />
                           </div>
-
-                          <span
-                            className="
-                              text-4xl
-                              font-bold
-                              text-primary/15
-                              select-none
-                            "
-                          >
+                          <span className="select-none text-4xl font-bold text-primary/15">
                             {step.id}
                           </span>
                         </div>
 
-                        {/* content */}
+                        {/* Card Content */}
                         <h3 className="mb-2 text-lg font-semibold text-foreground">
                           {step.title}
                         </h3>
-
                         <p className="text-sm leading-relaxed text-muted-foreground">
                           {step.description}
                         </p>
@@ -298,6 +203,7 @@ export function HowItWorksSection() {
             ))}
           </div>
         </Tabs>
+        
       </div>
     </section>
   );

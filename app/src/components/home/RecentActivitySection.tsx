@@ -3,10 +3,15 @@ import {
   ArrowRight,
   BookmarkIcon,
   History,
-  Upload,
+  Upload
 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
 
 interface RecentActivityProps {
   userName?: string;
@@ -14,29 +19,27 @@ interface RecentActivityProps {
 
 const activities = [
   {
-    title: "Continue Studying",
-    description:
-      "Resume your learning journey and quickly access recently viewed study materials.",
+    title: "Continue studying",
+    description: "Resume from Data Structures - Unit 3",
     buttonText: "Resume",
     icon: History,
     path: "/resources",
   },
   {
-    title: "Bookmarks",
-    description:
-      "Open your saved notes, practical files, question papers and important resources.",
-    buttonText: "View Bookmarks",
+    title: "Your bookmarks",
+    description: "8 saved materials ready to revisit",
+    buttonText: "View all",
     icon: BookmarkIcon,
-    path: "/dashboard/student/bookmarks",
+    path: "/profile/bookmarks",
   },
   {
-    title: "Upload Resources",
-    description:
-      "Contribute notes, PYQs and study materials to help fellow students.",
-    buttonText: "Upload Now",
+    title: "Share materials",
+    description: "Upload notes and help classmates learn faster",
+    buttonText: "Upload now",
     icon: Upload,
-    path: "/dashboard/student/uploads",
+    path: "/profile/",
   },
+
 ];
 
 export function RecentActivitySection({
@@ -45,142 +48,70 @@ export function RecentActivitySection({
   const navigate = useNavigate();
 
   return (
-    <section className="relative py-20 md:py-24 dark:bg-[radial-gradient(35%_128px_at_50%_0%,--theme(--color-foreground/.04),transparent)]">
-      {/* Top Divider & Decoration */}
-      <div className="absolute top-0 right-1/2 left-1/2 h-px w-full max-w-5xl -translate-x-1/2 bg-linear-to-r via-border/60" />
-
-      <div className="relative mx-auto max-w-5xl px-6 md:px-8">
+    <section className="py-24">
+      <div className="mx-auto max-w-5xl px-4">
         {/* Header */}
-        <div className="mx-auto mb-16 max-w-3xl text-center">
-          <div
-            className="
-              inline-flex
-              items-center
-              rounded-full
-              border
-              border-border
-              bg-muted/40
-              px-4
-              py-1.5
-              text-xs
-              font-medium
-              text-primary
-            "
+        <div className="mb-12 flex flex-col items-center text-center">
+          <Badge
+            variant="secondary"
+            className="mb-5 rounded-full px-3 py-1 font-medium"
           >
-            Personal Workspace
+            Dashboard
+          </Badge>
+
+          <div className="max-w-2xl space-y-3">
+            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl">
+              {userName
+                ? `Welcome back, ${userName.split(" ")[0]}`
+                : "Continue your study journey"}
+            </h2>
+
+            <p className="text-base leading-7 text-muted-foreground">
+              Quickly access your recent learning activity, saved resources,
+              and uploaded study materials.
+            </p>
           </div>
-
-          <h2 className="mt-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            {userName
-              ? `Welcome back, ${userName.split(" ")[0]}`
-              : "Continue Your Study Journey"}
-          </h2>
-
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            Access your recent activity, saved resources and contribution tools
-            from one place.
-          </p>
         </div>
 
-        {/* Cards */}
-        <div className="grid gap-6 md:grid-cols-3">
+        {/* Activity Grid */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {activities.map((item) => {
             const Icon = item.icon;
 
             return (
-              <div
+              <Card
                 key={item.title}
-                className="
-                  group
-                  relative
-                  overflow-hidden
-                  rounded-2xl
-                  border
-                  border-border
-                  bg-card
-                  p-7
-                  transition-all
-                  duration-300
-                  hover:-translate-y-0.5
-                  hover:border-primary/20
-                  hover:shadow-lg
-                "
+                className="group overflow-hidden border-border/60 bg-background shadow-none transition-colors hover:bg-muted/30"
               >
-                {/* Background Accent */}
-                <div
-                  className="
-                    absolute
-                    inset-x-0
-                    top-0
-                    h-px
-                    bg-gradient-to-r
-                    from-transparent
-                    via-primary/40
-                    to-transparent
-                    opacity-0
-                    transition-opacity
-                    duration-300
-                    group-hover:opacity-100
-                  "
-                />
-
-                <div className="flex h-full flex-col">
+                <CardContent className="flex h-full flex-col p-6">
                   {/* Icon */}
-                  <div
-                    className="
-                      mb-6
-                      flex
-                      h-12
-                      w-12
-                      items-center
-                      justify-center
-                      rounded-xl
-                      bg-primary/10
-                      text-primary
-                    "
-                  >
-                    <Icon className="h-5 w-5" />
+                  <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border bg-muted/40">
+                    <Icon className="h-5 w-5 text-muted-foreground" />
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1">
-                    <h3 className="mb-2 text-lg font-semibold text-foreground">
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-lg font-medium tracking-tight">
                       {item.title}
                     </h3>
 
-                    <p className="text-sm leading-relaxed text-muted-foreground">
+                    <p className="text-sm leading-6 text-muted-foreground">
                       {item.description}
                     </p>
                   </div>
 
                   {/* CTA */}
                   <Button
-                    variant="outline"
-                    className="
-                      mt-8
-                      justify-between
-                      rounded-lg
-                      border-border
-                      transition-all
-                      duration-300
-                      group-hover:border-primary/20
-                    "
+                    variant="secondary"
+                    className="mt-8 justify-between"
                     onClick={() => navigate(item.path)}
                   >
-                    <span>{item.buttonText}</span>
+                    {item.buttonText}
 
-                    <ArrowRight
-                      className="
-                        h-4
-                        w-4
-                        transition-transform
-                        duration-300
-                        group-hover:translate-x-1
-                      "
-                    />
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>

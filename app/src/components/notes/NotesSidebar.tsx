@@ -1,19 +1,40 @@
 import {
   Plus,
-  Search,
   X,
   ChevronDown,
-  ChevronsLeft,
-  Trash,
-  Undo2,
   Trash2,
+  Undo2,
   Settings,
+  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SidebarNoteItem } from "./SidebarNoteItem";
 import { SidebarTreeNode } from "./SidebarTreeNode";
 import type { NoteWithMeta, TreeNode } from "./types";
 import { useNavigate } from "react-router-dom";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  useSidebar,
+} from "../ui/sidebar";
+import {
+  Tooltip,
+  TooltipPopup,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 interface NotesSidebarProps {
   isSidebarPinned: boolean;
@@ -52,10 +73,6 @@ interface NotesSidebarProps {
 }
 
 export function NotesSidebar({
-  isSidebarPinned,
-  sidebarHovered,
-  onSidebarHover,
-  onTogglePin,
   activeNoteId,
   favorites,
   tree,
@@ -87,255 +104,293 @@ export function NotesSidebar({
   onContextMenu,
 }: NotesSidebarProps) {
   const navigate = useNavigate();
-  const sidebarVisible = isSidebarPinned || sidebarHovered;
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
 
   return (
-    <aside
-      className={cn(
-        "fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r transition-all duration-300 ease-in-out md:relative",
-        "bg-[color:var(--sidebar)] text-[color:var(--sidebar-foreground)] border-[color:var(--sidebar-border)]",
-        sidebarVisible
-          ? "translate-x-0 opacity-100 md:shadow-none"
-          : "-translate-x-full opacity-0 pointer-events-none md:w-0 md:min-w-0 md:border-0",
-      )}
-      onMouseLeave={() => {
-        if (!isSidebarPinned) onSidebarHover(false);
-      }}
-    >
-      {/* Sidebar Header */}
-      <div className="flex items-center justify-between px-3 py-3 min-h-[48px] group/header">
-        <button
-          onClick={() => navigate("/dashboard/student")}
-          className="flex items-center gap-2.5 rounded-[4px] px-2 py-1 text-sm font-medium text-[color:var(--sidebar-foreground)] hover:bg-sidebar-accent transition-colors truncate max-w-[180px]"
-        >
-          <div className="h-[22px] w-[22px] rounded-[4px] bg-foreground text-background flex items-center justify-center text-[11px] font-bold shrink-0 shadow-sm">
-            S
-          </div>
-          <span className="truncate text-[14px] font-semibold tracking-tight">Study Notes</span>
-        </button>
-        <button
-          onClick={onTogglePin}
-          className="rounded-[4px] p-1.5 text-[color:var(--sidebar-foreground)] opacity-0 group-hover/header:opacity-60 hover:!opacity-100 hover:bg-sidebar-accent transition-all"
-          title={isSidebarPinned ? "Close sidebar" : "Keep open"}
-        >
-          <ChevronsLeft
-            className={cn(
-              "h-4 w-4 transition-transform duration-200",
-              !isSidebarPinned && "rotate-180",
-            )}
-          />
-        </button>
-      </div>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="group-data-[collapsible=icon]:p-2">
+        <div className="flex flex-col gap-2">
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("/dashboard/student")}
+                    className={cn(
+                      "w-full justify-start gap-2 px-2",
+                      isCollapsed && "justify-center p-0"
+                    )}
+                  >
+                    <ArrowLeft className="h-4 w-4 shrink-0" />
+                    <span className="font-semibold group-data-[collapsible=icon]:hidden">
+                      Goto Dashboard
+                    </span>
+                  </Button>
+                }
+              />
+              <TooltipPopup side="right" hidden={!isCollapsed}>
+                Goto Dashboard
+              </TooltipPopup>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
 
-      {/* Search */}
-      <div className="px-3 pb-2 mt-1">
-        <div className="flex items-center gap-2 rounded-[6px] hover:bg-sidebar-accent px-2 py-1.5 text-[color:var(--sidebar-foreground)] transition-colors cursor-pointer group/search">
-          <Search className="h-[14px] w-[14px] opacity-40 shrink-0 group-hover/search:opacity-70 transition-opacity" />
-          <input
+        <div className="group-data-[collapsible=icon]:hidden relative px-1 pt-2">
+          <Input
             type="text"
-            placeholder="Search"
+            placeholder="Search notes"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="flex-1 bg-transparent border-none text-[13px] outline-none placeholder:opacity-40 font-medium"
+            className="h-8 shadow-none"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange("")}>
-              <X className="h-3 w-3 opacity-40 hover:opacity-80" />
-            </button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-2 h-8 w-8 hover:bg-transparent"
+              onClick={() => onSearchChange("")}
+            >
+              <X className="h-4 w-4 opacity-50" />
+            </Button>
           )}
         </div>
-      </div>
+      </SidebarHeader>
 
-      {/* Settings Navigation */}
-      <div className="px-2 pb-1">
-        <button
-          onClick={onOpenSettings}
-          className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all"
-        >
-          <Settings className="h-4 w-4 shrink-0" />
-          <span>Settings & Appearance</span>
-        </button>
-      </div>
+      <SidebarContent>
+        {/* Settings Navigation */}
+        <SidebarGroup className="py-0">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                tooltip="Settings & Appearance"
+                onClick={onOpenSettings}
+              >
+                <Settings />
+                <span>Settings & Appearance</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
-      {/* Scrollable content - overflow-x-visible allows dropdown to expand */}
-      <div className="flex-1 overflow-y-auto overflow-x-visible px-1 py-1 notion-sidebar-scroll">
         {/* Favorites Section */}
         {favorites.length > 0 && !searchQuery && (
-          <div className="mb-1">
-            <button
-              onClick={() => onToggleFavoritesExpanded()}
-              className="flex w-full items-center gap-1 px-2 py-1 text-[11px] font-semibold text-[color:var(--sidebar-foreground)] opacity-50 hover:bg-sidebar-accent rounded-[4px] hover:opacity-100 transition-all"
+          <SidebarGroup>
+            <SidebarGroupLabel
+              className="cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors group-data-[collapsible=icon]:hidden"
+              onClick={onToggleFavoritesExpanded}
             >
+              Favorites
               <ChevronDown
                 className={cn(
-                  "h-2.5 w-2.5 transition-transform",
-                  !favoritesExpanded && "-rotate-90",
+                  "ml-auto h-4 w-4 transition-transform",
+                  !favoritesExpanded && "-rotate-90"
                 )}
               />
-              Favorites
-            </button>
-            {favoritesExpanded &&
-              favorites.map((note) => (
-                <SidebarNoteItem
-                  key={`fav-${note.id}`}
-                  note={note}
-                  isActive={activeNoteId === note.id}
-                  depth={0}
-                  onSelect={() => onSelectNote(note)}
-                  onRename={(e) => onStartRename(note, e)}
-                  onTrash={() => onMoveToTrash(note.id)}
-                  onDuplicate={() => onDuplicateNote(note.id)}
-                  onAddChild={() => onCreateNote(note.id)}
-                  onToggleFavorite={() => onToggleFavorite(note.id)}
-                  renamingNoteId={renamingNoteId}
-                  renameValue={renameValue}
-                  setRenameValue={onRenameValueChange}
-                  renameInputRef={renameInputRef}
-                  commitRename={onCommitRename}
-                  cancelRename={onCancelRename}
-                  onContextMenu={(e) => onContextMenu?.(note, e)}
-                />
-              ))}
-          </div>
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              {favoritesExpanded && (
+                <SidebarMenu>
+                  {favorites.map((note) => (
+                    <SidebarNoteItem
+                      key={`fav-${note.id}`}
+                      note={note}
+                      isActive={activeNoteId === note.id}
+                      depth={0}
+                      onSelect={() => onSelectNote(note)}
+                      onRename={(e) => onStartRename(note, e)}
+                      onTrash={() => onMoveToTrash(note.id)}
+                      onDuplicate={() => onDuplicateNote(note.id)}
+                      onAddChild={() => onCreateNote(note.id)}
+                      onToggleFavorite={() => onToggleFavorite(note.id)}
+                      renamingNoteId={renamingNoteId}
+                      renameValue={renameValue}
+                      setRenameValue={onRenameValueChange}
+                      renameInputRef={renameInputRef}
+                      commitRename={onCommitRename}
+                      cancelRename={onCancelRename}
+                      onContextMenu={(e) => onContextMenu?.(note, e)}
+                    />
+                  ))}
+                </SidebarMenu>
+              )}
+            </SidebarGroupContent>
+          </SidebarGroup>
         )}
 
         {/* Private Pages */}
-        <div className="mb-1">
-          <div className="group flex items-center justify-between px-2 py-1 rounded-[4px] hover:bg-sidebar-accent transition-colors cursor-pointer">
-            <span className="text-[11px] font-semibold text-[color:var(--sidebar-foreground)] opacity-50">
-              Private
-            </span>
-            <button
-              onClick={() => onCreateNote()}
-              className="rounded-[4px] p-0.5 opacity-0 group-hover:opacity-100 hover:bg-sidebar-accent transition-all"
-              title="New page"
-            >
-              <Plus className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          {searchQuery ? (
-            filteredActiveNotes.length === 0 ? (
-              <div className="px-3 py-6 text-center text-[12px] opacity-40">
-                No results
-              </div>
-            ) : (
-              filteredActiveNotes.map((note) => (
-                <SidebarNoteItem
-                  key={note.id}
-                  note={note}
-                  isActive={activeNoteId === note.id}
-                  depth={0}
-                  onSelect={() => onSelectNote(note)}
-                  onRename={(e) => onStartRename(note, e)}
-                  onTrash={() => onMoveToTrash(note.id)}
-                  onDuplicate={() => onDuplicateNote(note.id)}
-                  onAddChild={() => onCreateNote(note.id)}
-                  onToggleFavorite={() => onToggleFavorite(note.id)}
-                  renamingNoteId={renamingNoteId}
-                  renameValue={renameValue}
-                  setRenameValue={onRenameValueChange}
-                  renameInputRef={renameInputRef}
-                  commitRename={onCommitRename}
-                  cancelRename={onCancelRename}
-                  onContextMenu={(e) => onContextMenu?.(note, e)}
-                />
-              ))
-            )
-          ) : tree.length === 0 ? (
-            <div className="px-3 py-6 text-center text-[12px] opacity-40">
-              No pages yet
-            </div>
-          ) : (
-            tree.map((node) => (
-              <SidebarTreeNode
-                key={node.note.id}
-                node={node}
-                depth={0}
-                activeNoteId={activeNoteId}
-                expandedNodes={expandedNodes}
-                toggleExpanded={onToggleExpanded}
-                onSelect={onSelectNote}
-                onRename={onStartRename}
-                onTrash={onMoveToTrash}
-                onDuplicate={onDuplicateNote}
-                onAddChild={(parentId) => onCreateNote(parentId)}
-                onToggleFavorite={onToggleFavorite}
-                renamingNoteId={renamingNoteId}
-                renameValue={renameValue}
-                setRenameValue={onRenameValueChange}
-                renameInputRef={renameInputRef}
-                commitRename={onCommitRename}
-                cancelRename={onCancelRename}
-                onContextMenu={onContextMenu}
+        <SidebarGroup>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">
+            Private
+          </SidebarGroupLabel>
+          <TooltipProvider delayDuration={300}>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <SidebarGroupAction
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCreateNote();
+                    }}
+                    title="New page"
+                  >
+                    <Plus />
+                  </SidebarGroupAction>
+                }
               />
-            ))
-          )}
-        </div>
+              <TooltipPopup side="right">New page</TooltipPopup>
+            </Tooltip>
+          </TooltipProvider>
+
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {searchQuery ? (
+                filteredActiveNotes.length === 0 ? (
+                  <div className="px-3 py-6 text-center text-xs opacity-40 group-data-[collapsible=icon]:hidden">
+                    No results
+                  </div>
+                ) : (
+                  filteredActiveNotes.map((note) => (
+                    <SidebarNoteItem
+                      key={note.id}
+                      note={note}
+                      isActive={activeNoteId === note.id}
+                      depth={0}
+                      onSelect={() => onSelectNote(note)}
+                      onRename={(e) => onStartRename(note, e)}
+                      onTrash={() => onMoveToTrash(note.id)}
+                      onDuplicate={() => onDuplicateNote(note.id)}
+                      onAddChild={() => onCreateNote(note.id)}
+                      onToggleFavorite={() => onToggleFavorite(note.id)}
+                      renamingNoteId={renamingNoteId}
+                      renameValue={renameValue}
+                      setRenameValue={onRenameValueChange}
+                      renameInputRef={renameInputRef}
+                      commitRename={onCommitRename}
+                      cancelRename={onCancelRename}
+                      onContextMenu={(e) => onContextMenu?.(note, e)}
+                    />
+                  ))
+                )
+              ) : tree.length === 0 ? (
+                <div className="px-3 py-6 text-center text-xs opacity-40 group-data-[collapsible=icon]:hidden">
+                  No pages yet
+                </div>
+              ) : (
+                tree.map((node) => (
+                  <SidebarTreeNode
+                    key={node.note.id}
+                    node={node}
+                    depth={0}
+                    activeNoteId={activeNoteId}
+                    expandedNodes={expandedNodes}
+                    toggleExpanded={onToggleExpanded}
+                    onSelect={onSelectNote}
+                    onRename={onStartRename}
+                    onTrash={onMoveToTrash}
+                    onDuplicate={onDuplicateNote}
+                    onAddChild={(parentId) => onCreateNote(parentId)}
+                    onToggleFavorite={onToggleFavorite}
+                    renamingNoteId={renamingNoteId}
+                    renameValue={renameValue}
+                    setRenameValue={onRenameValueChange}
+                    renameInputRef={renameInputRef}
+                    commitRename={onCommitRename}
+                    cancelRename={onCancelRename}
+                    onContextMenu={onContextMenu}
+                  />
+                ))
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
         {/* Trash */}
         {!searchQuery && (
-          <div className="mt-1 border-t border-[color:var(--sidebar-border)]">
-            <button
-              onClick={() => onToggleTrash()}
-              className="flex w-full items-center gap-2 px-3 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all rounded-[4px] mt-1"
+          <SidebarGroup className="mt-auto pt-4">
+            <SidebarGroupLabel
+              className="cursor-pointer hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors group-data-[collapsible=icon]:hidden"
+              onClick={onToggleTrash}
             >
-              <Trash className="h-4 w-4" />
-              <span>Trash</span>
-              {trashedNotes.length > 0 && (
-                <span className="ml-auto text-[10px] opacity-50">
-                  {trashedNotes.length}
-                </span>
-              )}
-            </button>
-            {showTrash && trashedNotes.length > 0 && (
-              <div className="py-1">
-                {trashedNotes.map((note) => (
-                  <div
-                    key={note.id}
-                    className="group flex items-center gap-2 px-3 py-1.5 rounded-[4px] text-[13px] opacity-50 hover:opacity-100 hover:bg-sidebar-accent transition-all mx-1"
-                  >
-                    <span className="text-sm">{note.meta.icon || "📄"}</span>
-                    <span className="flex-1 truncate">{note.title}</span>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => onRestoreFromTrash(note.id)}
-                        className="rounded-[3px] p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
-                        title="Restore"
-                      >
-                        <Undo2 className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => onDeletePermanently(note.id)}
-                        className="rounded p-0.5 hover:bg-destructive/10 text-destructive"
-                        title="Delete permanently"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+              Trash {trashedNotes.length > 0 && `(${trashedNotes.length})`}
+              <ChevronDown
+                className={cn(
+                  "ml-auto h-4 w-4 transition-transform",
+                  !showTrash && "-rotate-90"
+                )}
+              />
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              {showTrash && (
+                <SidebarMenu>
+                  {trashedNotes.length === 0 ? (
+                    <div className="px-4 py-3 text-xs opacity-30 text-center group-data-[collapsible=icon]:hidden">
+                      No pages in trash
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {showTrash && trashedNotes.length === 0 && (
-              <div className="px-4 py-3 text-[11px] opacity-30 text-center">
-                No pages in trash
-              </div>
-            )}
-          </div>
+                  ) : (
+                    trashedNotes.map((note) => (
+                      <SidebarMenuItem key={note.id} className="group/trash-item">
+                        <SidebarMenuButton tooltip={note.title}>
+                          <span>{note.meta.icon || "📄"}</span>
+                          <span>{note.title}</span>
+                        </SidebarMenuButton>
+                        <div className="absolute right-1 top-1 flex items-center gap-0.5 opacity-0 group-hover/trash-item:opacity-100 transition-opacity">
+                          <TooltipProvider delayDuration={300}>
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 hover:bg-black/10 dark:hover:bg-white/10"
+                                    onClick={() => onRestoreFromTrash(note.id)}
+                                  >
+                                    <Undo2 className="h-3 w-3" />
+                                  </Button>
+                                }
+                              />
+                              <TooltipPopup>Restore</TooltipPopup>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-destructive hover:bg-destructive/10"
+                                    onClick={() => onDeletePermanently(note.id)}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                }
+                              />
+                              <TooltipPopup>Delete permanently</TooltipPopup>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </SidebarMenuItem>
+                    ))
+                  )}
+                </SidebarMenu>
+              )}
+            </SidebarGroupContent>
+          </SidebarGroup>
         )}
-      </div>
+      </SidebarContent>
 
-      {/* New Page Button */}
-      <div className="border-t border-[color:var(--sidebar-border)] px-2 py-2">
-        <button
-          onClick={() => onCreateNote()}
-          className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-[13px] text-[color:var(--sidebar-foreground)] opacity-60 hover:opacity-100 hover:bg-sidebar-accent transition-all"
-        >
-          <Plus className="h-4 w-4" />
-          New page
-        </button>
-      </div>
-    </aside>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="New page" onClick={() => onCreateNote()}>
+              <Plus />
+              <span>New page</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   );
 }
+

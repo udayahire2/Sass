@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import MarkdownPreview from "@/components/ui/markdown-preview";
+import MarkdownPreview from "@/components/ui/markdown-preview"
 import {
   InputGroup,
   InputGroupAddon,
