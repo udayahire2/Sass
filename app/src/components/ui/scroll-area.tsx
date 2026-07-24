@@ -110,10 +110,8 @@ export function ScrollBar({
     >
       <ScrollAreaPrimitive.Thumb
         className={cn(
-          // Default: thin (bg-clip-padding + transparent border) and low opacity
-          "relative flex-1 rounded-full bg-foreground/20 bg-clip-padding transition-all duration-300 ease-out",
-          // Hover state: Darker and visually thicker (via group hover on the parent track)
-          "group-hover:bg-foreground/50 active:bg-foreground/70"
+          "relative flex-1 rounded-full bg-foreground/25 dark:bg-white/30 bg-clip-padding transition-all duration-300 ease-out",
+          "group-hover:bg-foreground/55 dark:group-hover:bg-white/65 active:bg-foreground/80 dark:active:bg-white/80"
         )}
         data-slot="scroll-area-thumb"
       />

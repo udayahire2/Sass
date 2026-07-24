@@ -2,6 +2,7 @@ import {
   Check,
   Copy,
   MoreHorizontal,
+  PanelLeft,
   Settings2,
   Star,
   Trash2,
@@ -12,7 +13,6 @@ import { cn } from "@/lib/utils";
 import type { NoteMetadata, PageFont } from "@/lib/notesMetadata";
 import type { NoteWithMeta } from "./types";
 import { useTheme } from "@/components/theme-provider";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -65,6 +65,7 @@ export function NotesEditorHeader({
   isSaving,
   onSelectAncestor,
   onToggleFavorite,
+  onToggleSidebar,
   onToggleFullWidth,
   onSetFont,
   onDuplicate,
@@ -78,7 +79,19 @@ export function NotesEditorHeader({
       <div className="flex min-w-0 items-center gap-2">
         <TooltipProvider delayDuration={300}>
           <Tooltip>
-            <TooltipTrigger render={<SidebarTrigger className="h-7 w-7" />} />
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={onToggleSidebar}
+                >
+                  <PanelLeft className="h-4 w-4" />
+                  <span className="sr-only">Toggle sidebar</span>
+                </Button>
+              }
+            />
             <TooltipPopup side="bottom">Toggle sidebar</TooltipPopup>
           </Tooltip>
         </TooltipProvider>

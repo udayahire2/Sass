@@ -91,6 +91,7 @@ body {
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.75rem;
   --background: var(--color-neutral-50s);
   --foreground: hsl(40 8% 20%);
@@ -162,6 +163,7 @@ body {
 }
 
 .dark {
+  color-scheme: dark;
   /* ==========================================
      NOTION INSPIRED DARK THEME
      ========================================== */
