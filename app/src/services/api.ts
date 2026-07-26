@@ -86,12 +86,28 @@ export const parseApiData = <T>(payload: unknown, fallback: T): T => {
 
 export const getErrorMessage = (payload: unknown, fallback = 'Request failed'): string => {
     if (payload && typeof payload === 'object') {
-        if ('message' in payload && typeof payload.message === 'string' && payload.message.trim()) {
+        const anyPayload = payload as any;
+
+        if (anyPayload.error && typeof anyPayload.error === 'object' && anyPayload.error.fieldErrors) {
+            const fieldErrors = anyPayload.error.fieldErrors;
+            const messages = Object.entries(fieldErrors)
+                .map(([field, errs]: [string, any]) => `${field}: ${Array.isArray(errs) ? errs.join(', ') : errs}`)
+                .filter(Boolean);
+            if (messages.length > 0) {
+                return messages.join('\n');
+            }
+        }
+
+        if ('message' in payload && typeof payload.message === 'string' && payload.message.trim() && payload.message !== 'Validation failed') {
             return payload.message;
         }
 
         if ('error' in payload && typeof payload.error === 'string' && payload.error.trim()) {
             return payload.error;
+        }
+
+        if ('message' in payload && typeof payload.message === 'string' && payload.message.trim()) {
+            return payload.message;
         }
     }
 

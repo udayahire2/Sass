@@ -47,8 +47,8 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   
-  const [branch, setBranch] = useState("");
-  const [year, setYear] = useState("");
+  const [branch, setBranch] = useState("Computer");
+  const [year, setYear] = useState("SE");
 
   const [designation, setDesignation] = useState("");
   const [department, setDepartment] = useState("");
@@ -72,8 +72,8 @@ const SignUp = () => {
       const payload: RegisterPayload = { name, email, password, role };
 
       if (role === "student") {
-        payload.branch = branch;
-        payload.year = year;
+        payload.branch = branch || "Computer";
+        payload.year = year || "SE";
       } else {
         payload.designation = designation;
         payload.department = department;
