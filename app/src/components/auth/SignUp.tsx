@@ -89,12 +89,17 @@ const SignUp = () => {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Server returned invalid response (${res.status} ${res.statusText}). Check VITE_API_URL on Vercel.`);
+      }
 
-      if (data.success) {
+      if (res.ok && data.success) {
         navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
       } else {
-        alert(getErrorMessage(data, "Registration failed"));
+        alert(getErrorMessage(data, `Registration failed (${res.status})`));
       }
     } catch (error: unknown) {
       console.error("Registration Error:", error);

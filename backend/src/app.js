@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true, limit: env.requestFormLimit }));
 app.use(sanitizeRequest);
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || env.corsOrigins.includes(origin)) {
+        if (!origin || env.corsOrigins.includes('*') || env.corsOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
             callback(null, true);
             return;
         }

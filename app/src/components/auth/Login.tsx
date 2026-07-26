@@ -54,7 +54,17 @@ const Login = () => {
         body: JSON.stringify(values),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Server returned invalid response (${res.status} ${res.statusText}). Check VITE_API_URL on Vercel.`);
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(getErrorMessage(data, "Invalid email or password"));
+      }
+
       const currentUser =
         parseApiData<Record<string, unknown> | null>(data, null) ?? data.user;
 
