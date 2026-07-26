@@ -13,13 +13,19 @@ function getTransporter() {
         return null;
     }
 
+    const cleanUser = String(env.smtpUser).trim();
+    const cleanPass = String(env.smtpPass).trim().replace(/\s+/g, '');
+
     transporter = nodemailer.createTransport({
-        host: env.smtpHost,
-        port: env.smtpPort,
-        secure: env.smtpPort === 465,
+        host: env.smtpHost.trim(),
+        port: Number(env.smtpPort || 587),
+        secure: Number(env.smtpPort) === 465,
         auth: {
-            user: env.smtpUser,
-            pass: env.smtpPass,
+            user: cleanUser,
+            pass: cleanPass,
+        },
+        tls: {
+            rejectUnauthorized: false,
         },
     });
 
@@ -30,23 +36,30 @@ async function sendEmail({ email, subject, message, html }) {
     const mailer = getTransporter();
 
     if (!mailer) {
-        console.log(`[MAIL FALLBACK] To: ${email} | Subject: ${subject} | Message: ${message}`);
+        console.log(`[MAIL FALLBACK] SMTP not configured (SMTP_HOST/USER/PASS missing). To: ${email} | Subject: ${subject}`);
         return { delivered: false, fallback: true };
     }
 
+    const cleanUser = String(env.smtpUser || '').trim();
     const fromAddress = (env.smtpFrom && !env.smtpFrom.includes('no-reply@nmu-studyhub.local'))
         ? env.smtpFrom
-        : `NMU Study Hub <${env.smtpUser || 'no-reply@nmu-studyhub.local'}>`;
+        : `NMU Study Hub <${cleanUser || 'no-reply@nmu-studyhub.local'}>`;
 
-    await mailer.sendMail({
-        from: fromAddress,
-        to: email,
-        subject,
-        text: message,
-        html,
-    });
-
-    return { delivered: true, fallback: false };
+    try {
+        console.log(`[MAIL] Attempting to send email to ${email} via ${env.smtpHost}:${env.smtpPort}...`);
+        const info = await mailer.sendMail({
+            from: fromAddress,
+            to: email,
+            subject,
+            text: message,
+            html,
+        });
+        console.log(`[MAIL SUCCESS] Email sent successfully to ${email}. MessageID: ${info.messageId}`);
+        return { delivered: true, fallback: false };
+    } catch (err) {
+        console.error(`[MAIL ERROR] Failed to send email to ${email}:`, err.message || err);
+        throw err;
+    }
 }
 
 module.exports = sendEmail;

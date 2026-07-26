@@ -75,6 +75,7 @@ async function processNextJob() {
             [new Date().toISOString(), new Date().toISOString(), job.id]
         );
     } catch (error) {
+        console.error(`[JOB QUEUE ERROR] Job ${job.id} (${job.type}) failed:`, error.message);
         const attempts = job.attempts + 1;
         const nextStatus = attempts >= job.max_attempts ? 'failed' : 'pending';
         run(
