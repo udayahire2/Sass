@@ -227,6 +227,7 @@ interface SlashMenuProps {
   isOpen: boolean;
   selectedIndex: number;
   filteredItems: SlashItem[];
+  onClose?: () => void;
 }
 
 export default function SlashMenu({

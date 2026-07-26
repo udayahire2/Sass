@@ -82,6 +82,6 @@ export const NotionTableNode = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(NotionTableWrapper);
+    return ReactNodeViewRenderer(NotionTableWrapper as any);
   }
 });

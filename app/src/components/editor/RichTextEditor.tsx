@@ -50,7 +50,7 @@ export default function RichTextEditor({
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const editorWrapperRef = useRef<HTMLDivElement>(null);
-  const isInternalUpdate = useRef(false);
+  const lastMarkdownRef = useRef(content);
 
   const onChangeRef = useRef(onChange);
   useEffect(() => {
@@ -256,9 +256,9 @@ export default function RichTextEditor({
       },
     },
     onUpdate: ({ editor }) => {
-      isInternalUpdate.current = true;
       const html = editor.getHTML();
       const markdown = htmlToMarkdown(html);
+      lastMarkdownRef.current = markdown;
       onChangeRef.current(markdown);
       checkSlashMenu(editor);
     },
@@ -288,13 +288,16 @@ export default function RichTextEditor({
 
   useEffect(() => {
     if (!editor) return;
-    if (isInternalUpdate.current) {
-      isInternalUpdate.current = false;
+    
+    // Skip if the incoming content matches our latest internal markdown state
+    if (content === lastMarkdownRef.current) {
       return;
     }
+    
     const htmlContent = markdownToHtml(content);
     if (editor.getHTML() !== htmlContent) {
       editor.commands.setContent(htmlContent, { emitUpdate: false });
+      lastMarkdownRef.current = content;
     }
   }, [content, editor]);
 

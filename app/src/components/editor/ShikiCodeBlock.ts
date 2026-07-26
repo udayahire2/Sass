@@ -250,7 +250,7 @@ export const ShikiCodeBlock = CodeBlock.extend({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(CodeBlockComponent);
+    return ReactNodeViewRenderer(CodeBlockComponent as any);
   },
 
   addKeyboardShortcuts() {
@@ -270,7 +270,7 @@ export const ShikiCodeBlock = CodeBlock.extend({
           init(_, { doc }) {
             return getDecorations(doc);
           },
-          apply(tr, set, oldState, newState) {
+          apply(tr, set, _oldState, newState) {
             const shikiMeta = tr.getMeta('shikiLoaded');
             const themeMeta = tr.getMeta('themeChanged');
             if (tr.docChanged || shikiMeta || themeMeta) {

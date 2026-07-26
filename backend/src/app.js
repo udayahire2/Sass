@@ -40,11 +40,11 @@ app.use('/uploads/resources', (req, res, next) => {
     next();
 }, express.static(path.join(__dirname, '../uploads/resources')));
 
-// Static syllabus files — cross-origin for frontend access
-app.use('/uploads/syllabus', (req, res, next) => {
+// Static upload files — cross-origin for frontend access
+app.use('/uploads', (req, res, next) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     next();
-}, express.static(path.join(__dirname, '../uploads/syllabus')));
+}, express.static(path.join(__dirname, '../uploads')));
 
 app.use(helmet());
 

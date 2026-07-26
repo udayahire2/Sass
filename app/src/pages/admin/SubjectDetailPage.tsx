@@ -363,7 +363,7 @@ export default function SubjectDetailPage() {
         {editingUnit ? "Update the unit details." : "Add a new unit to this subject."}
       </DialogDescription>
     </DialogHeader>
-    <Form onSubmit={handleUnitSubmit} className="contents">
+    <form onSubmit={handleUnitSubmit} className="contents">
       <DialogPanel className="grid gap-4 py-4">
         <Field>
           <FieldLabel>Unit Number</FieldLabel>
@@ -414,7 +414,7 @@ export default function SubjectDetailPage() {
           )}
         </Button>
       </DialogFooter>
-    </Form>
+    </form>
   </DialogPopup>
 </Dialog>
 
@@ -427,7 +427,7 @@ export default function SubjectDetailPage() {
         {editingTopic ? "Update the topic content." : "Add a new topic to this unit."}
       </DialogDescription>
     </DialogHeader>
-    <Form onSubmit={handleTopicSubmit} className="contents">
+    <form onSubmit={handleTopicSubmit} className="contents">
       <DialogPanel className="grid gap-4 py-4">
         <Field>
           <FieldLabel>Title</FieldLabel>
@@ -482,7 +482,7 @@ export default function SubjectDetailPage() {
           )}
         </Button>
       </DialogFooter>
-    </Form>
+    </form>
   </DialogPopup>
 </Dialog>
 

@@ -152,6 +152,7 @@ export interface Unit {
     _id?: string;
     number: number;
     unitNumber?: number;
+    unit_number?: number;
     title: string;
     description?: string | null;
     topics: Topic[];
@@ -267,7 +268,7 @@ export const fetchTopicById = async (topicId: string): Promise<Topic | null> => 
     return null;
 };
 
-export const updateTopic = async (topicId: string, data: Partial<Topic> & { content_markdown?: string; estimated_time?: string; video_url?: string; summary_points?: string[]; is_active?: boolean; order_index?: number }): Promise<Topic> => {
+export const updateTopic = async (topicId: string, data: Partial<Topic> & { content_markdown?: string; content_json?: string; estimated_time?: string; video_url?: string; summary_points?: string[]; is_active?: boolean; order_index?: number }): Promise<Topic> => {
     const response = await fetch(buildApiUrl(`/topics/${topicId}`), {
         method: 'PUT',
         headers: {

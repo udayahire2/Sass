@@ -1,11 +1,6 @@
-import { useLocalAuth } from "@/hooks/use-local-auth";
-import { FeatureGrid } from "@/components/home/FeatureGrid";
 import { Hero } from "@/components/home/Hero";
-import { HowItWorksSection } from "@/components/home/HowItWorksSection";
-import { RecentActivitySection } from "@/components/home/RecentActivitySection";
 
 export default function HomePage() {
-  const { user } = useLocalAuth();
 
   return (
     <main className="flex min-h-screen w-full flex-col sm:pt-8">

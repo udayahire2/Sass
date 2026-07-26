@@ -114,7 +114,7 @@ export default function CodeBlockComponent({
             <SelectClean
               value={currentLang}
               onValueChange={(value) =>
-                updateAttributes({ language: value })
+                updateAttributes({ language: value ?? '' })
               }
             >
               <SelectCleanTrigger>
@@ -199,7 +199,7 @@ export default function CodeBlockComponent({
           "
         >
           <NodeViewContent
-            as="code"
+            as="div"
             className="
               block
               whitespace-pre

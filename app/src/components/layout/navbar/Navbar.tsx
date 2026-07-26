@@ -240,7 +240,8 @@ function NavbarSearch() {
 
 /* -------------------------------------------------------------------------- */
 /*  Desktop Navigation – regrouped links into “Study” & “Support” dropdowns   */
-/* -------------------------------------------------------------------------- */
+/* ----------------------------------------------------------
+---------------- */
 function DesktopNavLinks() {
   const location = useLocation();
   const { user } = useLocalAuth();
