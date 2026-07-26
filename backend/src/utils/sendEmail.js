@@ -53,10 +53,76 @@ function getTransporter() {
 }
 
 async function sendEmail({ email, subject, message, html }) {
+    const resendApiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : '';
+    const brevoApiKey = process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.trim() : '';
+
+    // 1. Resend HTTP REST API (Bypasses Render SMTP port blocking)
+    if (resendApiKey) {
+        try {
+            console.log(`[MAIL] Attempting HTTPS API send to ${email} via Resend...`);
+            const sender = process.env.RESEND_FROM || 'NMU Study Hub <onboarding@resend.dev>';
+            const res = await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${resendApiKey}`,
+                },
+                body: JSON.stringify({
+                    from: sender,
+                    to: [email],
+                    subject,
+                    text: message,
+                    html,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || JSON.stringify(data));
+            }
+            console.log(`[MAIL SUCCESS] Email sent via Resend HTTP API to ${email}. ID: ${data.id}`);
+            return { delivered: true, fallback: false };
+        } catch (err) {
+            console.error(`[MAIL ERROR] Resend HTTP API failed to send to ${email}:`, err.message || err);
+            throw err;
+        }
+    }
+
+    // 2. Brevo HTTP REST API (Bypasses Render SMTP port blocking)
+    if (brevoApiKey) {
+        try {
+            console.log(`[MAIL] Attempting HTTPS API send to ${email} via Brevo...`);
+            const senderEmail = env.smtpUser || 'no-reply@nmu-studyhub.com';
+            const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': brevoApiKey,
+                },
+                body: JSON.stringify({
+                    sender: { name: 'NMU Study Hub', email: senderEmail },
+                    to: [{ email }],
+                    subject,
+                    textContent: message,
+                    htmlContent: html,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || JSON.stringify(data));
+            }
+            console.log(`[MAIL SUCCESS] Email sent via Brevo HTTP API to ${email}. ID: ${data.messageId || 'ok'}`);
+            return { delivered: true, fallback: false };
+        } catch (err) {
+            console.error(`[MAIL ERROR] Brevo HTTP API failed to send to ${email}:`, err.message || err);
+            throw err;
+        }
+    }
+
+    // 3. Fallback to Nodemailer SMTP (Note: Render free tier blocks outbound SMTP ports 25, 465, 587)
     const mailer = getTransporter();
 
     if (!mailer) {
-        console.log(`[MAIL FALLBACK] SMTP not configured (SMTP_HOST/USER/PASS missing). To: ${email} | Subject: ${subject}`);
+        console.log(`[MAIL FALLBACK] Mail provider not configured. To: ${email} | Subject: ${subject}`);
         return { delivered: false, fallback: true };
     }
 
@@ -66,7 +132,7 @@ async function sendEmail({ email, subject, message, html }) {
         : `NMU Study Hub <${cleanUser || 'no-reply@nmu-studyhub.local'}>`;
 
     try {
-        console.log(`[MAIL] Attempting to send email to ${email} via ${env.smtpHost}:${env.smtpPort}...`);
+        console.log(`[MAIL] Attempting SMTP send to ${email}...`);
         const info = await mailer.sendMail({
             from: fromAddress,
             to: email,
@@ -74,10 +140,10 @@ async function sendEmail({ email, subject, message, html }) {
             text: message,
             html,
         });
-        console.log(`[MAIL SUCCESS] Email sent successfully to ${email}. MessageID: ${info.messageId}`);
+        console.log(`[MAIL SUCCESS] Email sent successfully via SMTP to ${email}. MessageID: ${info.messageId}`);
         return { delivered: true, fallback: false };
     } catch (err) {
-        console.error(`[MAIL ERROR] Failed to send email to ${email}:`, err.message || err);
+        console.error(`[MAIL ERROR] Failed to send email via SMTP to ${email}:`, err.message || err);
         throw err;
     }
 }
