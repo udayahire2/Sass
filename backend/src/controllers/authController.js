@@ -128,9 +128,21 @@ function persistOtp(user) {
 
     enqueueJob('email.send', {
         email: user.email,
-        subject: 'Your Study Hub OTP',
-        message: `Your Study Hub verification code is ${otp}. It expires in 10 minutes.`,
-        html: `<p>Your Study Hub verification code is <strong>${otp}</strong>.</p><p>It expires in 10 minutes.</p>`,
+        subject: `${otp} is your NMU Study Hub verification code`,
+        message: `Your NMU Study Hub verification code is ${otp}. It expires in 10 minutes.`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 24px; color: #1e293b; max-width: 520px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+                <h2 style="color: #2563eb; font-size: 20px; margin-top: 0;">NMU Study Hub Verification</h2>
+                <p style="font-size: 14px; color: #475569;">Hello,</p>
+                <p style="font-size: 14px; color: #475569;">Use the following One-Time Password (OTP) code to complete your signup process:</p>
+                <div style="background-color: #f1f5f9; padding: 18px; border-radius: 8px; text-align: center; margin: 24px 0;">
+                    <span style="font-size: 32px; font-weight: 700; letter-spacing: 8px; color: #0f172a; font-family: monospace;">${otp}</span>
+                </div>
+                <p style="font-size: 13px; color: #64748b;">This code expires in <strong>10 minutes</strong>. Please do not share this code with anyone.</p>
+                <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 20px 0;" />
+                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 0;">If you did not request this code, you can safely ignore this email.</p>
+            </div>
+        `,
     });
 }
 

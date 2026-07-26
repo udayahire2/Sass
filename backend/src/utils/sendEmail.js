@@ -34,8 +34,12 @@ async function sendEmail({ email, subject, message, html }) {
         return { delivered: false, fallback: true };
     }
 
+    const fromAddress = (env.smtpFrom && !env.smtpFrom.includes('no-reply@nmu-studyhub.local'))
+        ? env.smtpFrom
+        : `NMU Study Hub <${env.smtpUser || 'no-reply@nmu-studyhub.local'}>`;
+
     await mailer.sendMail({
-        from: env.smtpFrom,
+        from: fromAddress,
         to: email,
         subject,
         text: message,
