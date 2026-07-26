@@ -13,21 +13,41 @@ function getTransporter() {
         return null;
     }
 
+    const host = String(env.smtpHost).trim().toLowerCase();
     const cleanUser = String(env.smtpUser).trim();
     const cleanPass = String(env.smtpPass).trim().replace(/\s+/g, '');
 
-    transporter = nodemailer.createTransport({
-        host: env.smtpHost.trim(),
-        port: Number(env.smtpPort || 587),
-        secure: Number(env.smtpPort) === 465,
-        auth: {
-            user: cleanUser,
-            pass: cleanPass,
-        },
-        tls: {
-            rejectUnauthorized: false,
-        },
-    });
+    // For Gmail accounts, using service: 'gmail' uses Port 465 SSL directly,
+    // avoiding outbound port 587 STARTTLS timeouts on cloud providers like Render.
+    if (host.includes('gmail') || cleanUser.endsWith('@gmail.com')) {
+        transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: cleanUser,
+                pass: cleanPass,
+            },
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 15000,
+        });
+    } else {
+        const isSecure = Number(env.smtpPort) === 465;
+        transporter = nodemailer.createTransport({
+            host: env.smtpHost.trim(),
+            port: Number(env.smtpPort || 587),
+            secure: isSecure,
+            auth: {
+                user: cleanUser,
+                pass: cleanPass,
+            },
+            tls: {
+                rejectUnauthorized: false,
+            },
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 15000,
+        });
+    }
 
     return transporter;
 }
