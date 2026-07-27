@@ -53,8 +53,8 @@ function getTransporter() {
 }
 
 async function sendEmail({ email, subject, message, html }) {
-    const resendApiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : '';
-    const brevoApiKey = process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.trim() : '';
+    const resendApiKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim().replace(/^['"]|['"]$/g, '') : '';
+    const brevoApiKey = process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.trim().replace(/^['"]|['"]$/g, '') : '';
 
     // 1. Brevo HTTP REST API (Allows sending to ANY recipient email without domain restrictions, 300 free/day)
     if (brevoApiKey) {
@@ -64,7 +64,8 @@ async function sendEmail({ email, subject, message, html }) {
             const res = await fetch('https://api.brevo.com/v3/smtp/email', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
+                    'content-type': 'application/json',
                     'api-key': brevoApiKey,
                 },
                 body: JSON.stringify({
