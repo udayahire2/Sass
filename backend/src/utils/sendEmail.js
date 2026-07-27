@@ -91,12 +91,12 @@ async function sendEmail({ email, subject, message, html }) {
     // 1. Brevo HTTP REST API (Bypasses Render SMTP port restrictions, 300 free emails/day)
     if (brevoApiKey) {
         try {
-            console.log(`[MAIL] Attempting HTTPS API send to ${email} via Brevo (Key: ${maskKey(brevoApiKey)})...`);
-
             let senderEmail = (env.brevoFrom || env.smtpUser || process.env.BREVO_FROM || env.adminEmail || '').trim();
             if (!senderEmail || !senderEmail.includes('@')) {
                 senderEmail = 'no-reply@nmu-studyhub.com';
             }
+
+            console.log(`[MAIL] Attempting HTTPS API send to ${email} via Brevo (Sender: ${senderEmail}, Key: ${maskKey(brevoApiKey)})...`);
 
             const payload = {
                 sender: {
