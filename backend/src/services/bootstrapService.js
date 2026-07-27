@@ -50,6 +50,7 @@ async function runMigrations() {
 
 async function ensureDefaultAdmin() {
     await runMigrations();
+    run('UPDATE users SET is_verified = 1 WHERE is_verified = 0');
 
     if (!env.adminEmail || !env.adminPassword) {
         return null;

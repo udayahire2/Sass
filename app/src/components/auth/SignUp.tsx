@@ -97,7 +97,23 @@ const SignUp = () => {
       }
 
       if (res.ok && data.success) {
-        navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
+        const currentUser = data.data?.user || data.user || data.legacy?.user;
+        const token = typeof data.token === "string" ? data.token : (data.data?.token || data.legacy?.token);
+
+        if (token && currentUser) {
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", JSON.stringify(currentUser));
+          if (currentUser.role === "admin") {
+            window.location.href = "/admin/dashboard";
+          } else if (currentUser.role === "faculty") {
+            window.location.href = "/dashboard/faculty";
+          } else {
+            window.location.href = "/";
+          }
+        } else {
+          alert("Account created successfully! Please sign in with your credentials.");
+          navigate("/login");
+        }
       } else {
         alert(getErrorMessage(data, `Registration failed (${res.status})`));
       }

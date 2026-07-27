@@ -211,7 +211,7 @@ async function register(req, res, next) {
                 `INSERT INTO users (
                     id, first_name, last_name, email, password_hash, avatar_url, role, is_verified, is_approved,
                     branch, academic_year, designation, department, college_name, created_at, updated_at, deleted_at
-                ) VALUES (?, ?, ?, ?, ?, NULL, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+                ) VALUES (?, ?, ?, ?, ?, NULL, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
                 [
                     userId,
                     nameParts.firstName,
@@ -249,16 +249,15 @@ async function register(req, res, next) {
         });
 
         const createdUser = formatUserWithRelations(getUserById(userId));
-        persistOtp(createdUser);
+        const session = createSession({ user: createdUser, req, res });
 
         return sendSuccess(res, {
             statusCode: 201,
-            message: 'Registration successful. Verify your email with the OTP sent to your inbox.',
-            data: {
-                email: createdUser.email,
-                requiresApproval: createdUser.role === 'faculty',
-            },
+            message: 'Registration successful.',
+            data: session,
             legacy: {
+                token: session.token,
+                user: session.user,
                 email: createdUser.email,
                 requiresApproval: createdUser.role === 'faculty',
             },
@@ -343,11 +342,6 @@ async function login(req, res, next) {
         const passwordMatches = await comparePassword(req.body.password, userRow.password_hash);
         if (!passwordMatches) {
             return next(new AppError('Invalid email or password', 401));
-        }
-
-        if (!userRow.is_verified) {
-            persistOtp(formatUserWithRelations(userRow));
-            return next(new AppError('Please verify your email first. A fresh OTP has been sent.', 403));
         }
 
         const user = formatUserWithRelations(userRow);
