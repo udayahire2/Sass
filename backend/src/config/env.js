@@ -45,6 +45,10 @@ const env = {
     adminEmail: process.env.ADMIN_EMAIL || '',
     adminPassword: process.env.ADMIN_PASSWORD || '',
     adminName: process.env.ADMIN_NAME || 'Study Hub Admin',
+    brevoApiKey: (process.env.BREVO_API_KEY || '').trim().replace(/^['"]|['"]$/g, ''),
+    brevoFrom: process.env.BREVO_FROM || process.env.SMTP_USER || '',
+    resendApiKey: (process.env.RESEND_API_KEY || '').trim().replace(/^['"]|['"]$/g, ''),
+    resendFrom: process.env.RESEND_FROM || '',
 };
 
 module.exports = { env };
