@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type FormEvent } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sun,
@@ -18,21 +17,52 @@ import {
   ArrowRight,
   FolderOpen,
   Home,
-  Search
+  Search,
+  Menu as MenuIcon,
+  X,
 } from "lucide-react";
-import { gsap } from "gsap";
-import Menu from "@/svgs/menu";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
-import { Kbd,KbdGroup } from "@/components/ui/kbd";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
-import { NAV_LINKS } from "@/config/nav-config";
+import { Badge } from "@/components/ui/badge";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipPopup,
+} from "@/components/ui/tooltip";
 import { useTheme } from "@/components/theme-provider";
 import { type User as AuthUser, useLocalAuth } from "@/hooks/use-local-auth";
 import { cn } from "@/lib/utils";
-import { Drawer, DrawerTrigger, DrawerPopup, DrawerHeader, DrawerPanel } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerPopup,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerPanel,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import {
+  Menu,
+  MenuTrigger,
+  MenuPopup,
+  MenuItem,
+  MenuGroup,
+  MenuGroupLabel,
+  MenuSeparator,
+} from "@/components/ui/menu";
+
+// SVG imports
 import Folder from "@/components/svgs/folder";
+import UserSVG from "@/components/svgs/user";
+import NotesSVG from "@/components/svgs/notes";
+import ClipboardSVG from "@/components/svgs/clipboard";
+import QuestionPaperSVG from "@/components/svgs/question-paper";
+import { ChatBubbleSVG } from "@/components/svgs/bubble-question";
+import { OpenBookSVG } from "@/components/svgs/open-book";
 
 function getDashboardPath(user: AuthUser | null) {
   if (user?.role === "admin") return "/admin/dashboard";
@@ -42,175 +72,18 @@ function getDashboardPath(user: AuthUser | null) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  GSAP-powered dropdown (replaces Radix DropdownMenuContent)                */
-/* -------------------------------------------------------------------------- */
-function GsapDropdown({
-  trigger,
-  children,
-  panelClassName,
-  wrapperClassName,
-  lockScroll = false,
-}: {
-  trigger: (props: {
-    open: boolean;
-    toggle: () => void;
-  }) => React.ReactNode;
-  children: (close: () => void) => React.ReactNode;
-  panelClassName?: string;
-  wrapperClassName?: string;
-  lockScroll?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-
-  const rootRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const isInitialMount = useRef(true);
-
-  const location = useLocation();
-
-  const close = () => setOpen(false);
-
-  const toggle = () => {
-    setOpen((prev) => !prev);
-  };
-
-  // Auto close on route change
-  useEffect(() => {
-    setOpen(false);
-  }, [location.pathname]);
-
-  // Lock page scroll (use only for mobile menu)
-  useEffect(() => {
-    if (!lockScroll || !open) return;
-
-    const bodyOverflow = document.body.style.overflow;
-    const htmlOverflow = document.documentElement.style.overflow;
-
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = bodyOverflow;
-      document.documentElement.style.overflow = htmlOverflow;
-    };
-  }, [open, lockScroll]);
-
-  // Animation
-  useEffect(() => {
-    const panel = panelRef.current;
-
-    if (!panel) return;
-
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-
-      gsap.set(panel, {
-        autoAlpha: 0,
-        scale: 0.96,
-        y: -8,
-        force3D: true,
-      });
-
-      return;
-    }
-
-    gsap.killTweensOf(panel);
-
-    if (open) {
-      panel.style.pointerEvents = "auto";
-
-      gsap.fromTo(
-        panel,
-        {
-          autoAlpha: 0,
-          scale: 0.96,
-          y: -8,
-        },
-        {
-          autoAlpha: 1,
-          scale: 1,
-          y: 0,
-          duration: 0.25,
-          ease: "power3.out",
-        },
-      );
-    } else {
-      gsap.to(panel, {
-        autoAlpha: 0,
-        scale: 0.97,
-        y: -4,
-        duration: 0.18,
-        ease: "power2.out",
-        onComplete: () => {
-          panel.style.pointerEvents = "none";
-        },
-      });
-    }
-  }, [open]);
-
-  // Outside click + ESC
-  useEffect(() => {
-    const handlePointerDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) {
-        close();
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        close();
-      }
-    };
-
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  return (
-    <div
-      ref={rootRef}
-      className="relative"
-    >
-      {trigger({
-        open,
-        toggle,
-      })}
-
-      <div
-        className={cn(
-          "absolute top-full z-50 mt-1",
-          open
-            ? "visible"
-            : "invisible pointer-events-none",
-          wrapperClassName ?? "right-0",
-        )}
-      >
-        <div
-          ref={panelRef}
-          className={cn(
-            "min-w-48 overflow-hidden overscroll-contain rounded-xl border border-neutral-200 bg-white shadow-xl shadow-black/5 dark:border-neutral-800 dark:bg-[#1f1f1f] dark:shadow-black/30",
-            panelClassName,
-          )}
-        >
-          {children(close)}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Search bar (unchanged)                                                    */
+/*  Search Trigger Component with OS-Aware Shortcut                           */
 /* -------------------------------------------------------------------------- */
 function NavbarSearch() {
   const navigate = useNavigate();
+  const [isMac, setIsMac] = useState(false);
 
-  // Global keyboard shortcut: Ctrl+K / Cmd+K
+  useEffect(() => {
+    if (typeof navigator !== "undefined") {
+      setIsMac(/Mac|iPod|iPhone|iPad/.test(navigator.userAgent));
+    }
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -225,13 +98,16 @@ function NavbarSearch() {
   return (
     <Button
       variant="outline"
+      size="sm"
       onClick={() => navigate("/search")}
-      className="gap-2"
+      className="group h-8 gap-2 rounded-full border-border/60 bg-muted/30 px-3 text-xs font-normal text-muted-foreground shadow-2xs transition-all duration-200 hover:border-border hover:bg-accent/50 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/20"
+      aria-label="Open search dialog (Press Ctrl+K or Cmd+K)"
     >
-      <Search className="h-4 w-4" aria-hidden="true" />
-      Search
-      <KbdGroup className="-me-1">
-        <Kbd>Ctrl</Kbd>
+      <Search className="h-3.5 w-3.5 text-muted-foreground/70 transition-colors group-hover:text-foreground" aria-hidden="true" />
+      <span className="hidden sm:inline">Search resources...</span>
+      <span className="inline sm:hidden">Search...</span>
+      <KbdGroup className="-me-1 ms-1 opacity-80 group-hover:opacity-100">
+        <Kbd>{isMac ? "⌘" : "Ctrl"}</Kbd>
         <Kbd>K</Kbd>
       </KbdGroup>
     </Button>
@@ -239,9 +115,8 @@ function NavbarSearch() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Desktop Navigation – regrouped links into “Study” & “Support” dropdowns   */
-/* ----------------------------------------------------------
----------------- */
+/*  Desktop Navigation Links with Coss Menu Primitives                       */
+/* -------------------------------------------------------------------------- */
 function DesktopNavLinks() {
   const location = useLocation();
   const { user } = useLocalAuth();
@@ -251,403 +126,419 @@ function DesktopNavLinks() {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
-  const studyLinks = NAV_LINKS.filter((link) =>
-    ["/study-stock", "/resources", "/syllabus"].includes(link.path),
+  const studyLinks = [
+    "/study-stock",
+    "/resources",
+    "/syllabus",
+    "/study-material/imp-questions",
+    "/study-material/sample-papers",
+  ];
+
+  const isStudyActive = useMemo(
+    () => studyLinks.some((l) => isActive(l)),
+    [location.pathname]
   );
-  const supportLinks = user && user.role !== "admin"
-    ? [
-      { path: "/feedback", label: "Feedback" },
-      { path: "/how-to-use", label: "How to use" },
-    ]
-    : [];
+
+  const supportLinks =
+    user && user.role !== "admin"
+      ? [
+          { path: "/feedback", label: "Feedback" },
+          { path: "/how-to-use", label: "How to use" },
+        ]
+      : [];
+
+  const isSupportActive = useMemo(
+    () => supportLinks.some((l) => isActive(l.path)),
+    [location.pathname, user]
+  );
 
   return (
-    <nav className="flex items-center gap-1">
-      {/* Home link */}
+    <nav className="flex items-center gap-1.5" aria-label="Main Navigation">
+      {/* Home Link */}
       <Link
         to="/"
         className={cn(
-          "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 border border-transparent",
+          "inline-flex h-8 items-center rounded-lg px-3 text-xs font-medium transition-all duration-200",
           isActive("/")
-            ? "bg-neutral-100 dark:bg-white/6 border-neutral-200 dark:border-neutral-800 text-foreground"
-            : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/3 hover:text-foreground",
+            ? "border border-border/50 bg-accent/90 font-semibold text-foreground shadow-2xs"
+            : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
         )}
-        aria-current={isActive("/") ? "page" : undefined}
       >
         Home
       </Link>
 
-      {/* Study Dropdown - Notion-Themed Mega Menu Grid */}
-      <GsapDropdown
-        wrapperClassName="left-0 -translate-x-[60px] mt-2"
-        panelClassName="w-[580px] p-0 grid grid-cols-3 bg-white dark:bg-[#1f1f1f]"
-        trigger={({ open, toggle }) => (
-          <button
-            type="button"
-            onClick={toggle}
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
-              studyLinks.some((l) => isActive(l.path)) || open
-                ? "bg-neutral-100 dark:bg-white/6 border-neutral-200 dark:border-neutral-800 text-foreground"
-                : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/3 hover:text-foreground",
-            )}
-          >
-            Study
-            <ChevronDown
+      {/* Study Dropdown Menu */}
+      <Menu>
+        <MenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                "h-3.5 w-3.5 opacity-60 transition-transform duration-200 ease-out",
-                open && "rotate-180 text-foreground opacity-100",
-              )}
-            />
-          </button>
-        )}
-      >
-        {(close) => (
-          <>
-            {/* Left promo banner card */}
-            <div className="col-span-1 bg-neutral-50 dark:bg-neutral-900/40 p-5 flex flex-col justify-between border-r border-neutral-200 dark:border-neutral-800">
-              <div className="space-y-2">
-                <span className="inline-flex items-center rounded-md bg-neutral-200/50 dark:bg-neutral-800 px-2 py-0.5 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tracking-wide uppercase">
-                  Knowledge Base
-                </span>
-                <h4 className="text-sm font-bold text-foreground tracking-tight leading-snug">Master Your Courses</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Your all-in-one academic companion with curated resources, syllabus guides, and exam prep materials to help you excel.
-                </p>
-              </div>
-              <Link
-                to="/resources"
-                onClick={close}
-                className="group/btn inline-flex items-center gap-1 text-xs font-semibold text-neutral-600 hover:text-foreground dark:text-neutral-400 dark:hover:text-foreground transition-colors mt-4"
-              >
-                Explore repository
-                <ArrowRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
-              </Link>
-            </div>
-
-            {/* Right side navigation items grid */}
-            <div className="col-span-2 p-3 flex flex-col gap-2 bg-white dark:bg-[#1f1f1f]">
-              <div className="grid grid-cols-2 gap-1.5">
-                {/* Library */}
-                <Link
-                  to="/study-stock"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div >
-                    <Folder />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Digital Library
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Access textbooks, lecture notes, and study guides.
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Syllabus */}
-                <Link
-                  to="/syllabus"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                    <Compass className="h-4.5 w-4.5" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Course Syllabus
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>  
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Explore course structures, modules, and grading criteria.
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Question Bank */}
-                <Link
-                  to="/study-material/imp-questions"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                    <Sparkles className="h-4.5 w-4.5" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Question Bank
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Practice with curated, high-yield exam questions.
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Past Papers */}
-                <Link
-                  to="/study-material/sample-papers"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                    <FileText className="h-4.5 w-4.5" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Past Papers
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Test your knowledge with previous years' papers.
-                    </p>
-                  </div>
-                </Link>
-              </div>
-
-              {/* View All Material row */}
-              <Link
-                to="/resources"
-                onClick={close}
-                className="group mt-1 flex items-center justify-between rounded-lg bg-neutral-50 dark:bg-neutral-900/30 border border-neutral-200/60 dark:border-neutral-800/60 p-2.5 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-3xs">
-                    <FolderOpen className="h-4 w-4" />
-                  </div>
-                  <div className="space-y-0.5 text-left">
-                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
-                      Browse All Resources
-                    </span>
-                    <p className="text-[10px] text-muted-foreground leading-none">
-                      Explore our full collection of academic assets.
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
-              </Link>
-            </div>
-          </>
-        )}
-      </GsapDropdown>
-
-      {/* Support Dropdown - Notion-Themed Compact List */}
-      {supportLinks.length > 0 && (
-        <GsapDropdown
-          wrapperClassName="left-1/2 -translate-x-1/2 mt-2"
-          panelClassName="w-[300px] p-1 bg-white dark:bg-[#1f1f1f]"
-          trigger={({ open, toggle }) => (
-            <button
-              type="button"
-              onClick={toggle}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
-                supportLinks.some((l) => isActive(l.path)) || open
-                  ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
-                  : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground",
+                "h-8 gap-1.5 rounded-lg px-3 text-xs font-medium text-muted-foreground transition-all duration-200 hover:bg-accent/40 hover:text-foreground",
+                isStudyActive && "border border-border/50 bg-accent/90 font-semibold text-foreground shadow-2xs"
               )}
             >
-              Resources
-              <ChevronDown
-                className={cn(
-                  "h-3.5 w-3.5 opacity-60 transition-transform duration-200 ease-out",
-                  open && "rotate-180 text-foreground opacity-100",
-                )}
-              />
-            </button>
-          )}
-        >
-          {(close) => (
-            <div className="flex flex-col gap-0.5">
-              {/* Give Feedback */}
-              <Link
-                to="/feedback"
-                onClick={close}
-                className="group flex gap-3 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-pink-500/10 bg-pink-500/5 text-pink-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                  <MessageSquare className="h-4.5 w-4.5" />
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
-                      Give Feedback
-                    </span>
-                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                  </div>
-                  <p className="text-[10px] leading-normal text-muted-foreground">
-                    Suggest ideas or report any platform issues.
-                  </p>
-                </div>
-              </Link>
+              <span>Study</span>
+              <ChevronDown className="h-3.5 w-3.5 opacity-70 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </Button>
+          }
+        />
+        <MenuPopup align="start" sideOffset={8} className="w-[530px] rounded-xl border border-border/50 bg-popover/95 p-2 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/25">
+          <MenuGroup>
+            <MenuGroupLabel className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+              Study Hub & Materials
+            </MenuGroupLabel>
 
-              {/* How to Use */}
-              <Link
-                to="/how-to-use"
-                onClick={close}
-                className="group flex gap-3 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
+            <div className="grid grid-cols-2 gap-1 p-1">
+              <MenuItem
+                render={
+                  <Link
+                    to="/study-stock"
+                    className="flex items-start gap-3 rounded-lg p-2.5 transition-all duration-150 hover:bg-accent/70"
+                  />
+                }
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-cyan-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                  <HelpCircle className="h-4.5 w-4.5" />
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+                  <OpenBookSVG />
                 </div>
                 <div className="space-y-0.5 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
-                      How to Use
-                    </span>
-                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                    <span className="truncate">Digital Library</span>
+                    <Badge variant="info" size="sm" className="h-4 px-1.5 text-[9px] font-semibold">
+                      Popular
+                    </Badge>
                   </div>
-                  <p className="text-[10px] leading-normal text-muted-foreground">
-                    Quick platform walkthrough and FAQ guides.
+                  <p className="line-clamp-1 text-[11px] text-muted-foreground">
+                    Textbooks, notes & study guides
                   </p>
                 </div>
-              </Link>
+              </MenuItem>
+
+              <MenuItem
+                render={
+                  <Link
+                    to="/syllabus"
+                    className="flex items-start gap-3 rounded-lg p-2.5 transition-all duration-150 hover:bg-accent/70"
+                  />
+                }
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+                  <ClipboardSVG />
+                </div>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="text-xs font-semibold text-foreground truncate">Course Syllabus</div>
+                  <p className="line-clamp-1 text-[11px] text-muted-foreground">
+                    Module structures & grading criteria
+                  </p>
+                </div>
+              </MenuItem>
+
+              <MenuItem
+                render={
+                  <Link
+                    to="/study-material/imp-questions"
+                    className="flex items-start gap-3 rounded-lg p-2.5 transition-all duration-150 hover:bg-accent/70"
+                  />
+                }
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400">
+                  <ChatBubbleSVG />
+                </div>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="text-xs font-semibold text-foreground truncate">Question Bank</div>
+                  <p className="line-clamp-1 text-[11px] text-muted-foreground">
+                    High-yield practice questions
+                  </p>
+                </div>
+              </MenuItem>
+
+              <MenuItem
+                render={
+                  <Link
+                    to="/study-material/sample-papers"
+                    className="flex items-start gap-3 rounded-lg p-2.5 transition-all duration-150 hover:bg-accent/70"
+                  />
+                }
+              >
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">
+                  <QuestionPaperSVG />
+                </div>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="text-xs font-semibold text-foreground truncate">Past Exam Papers</div>
+                  <p className="line-clamp-1 text-[11px] text-muted-foreground">
+                    Previous years solved archives
+                  </p>
+                </div>
+              </MenuItem>
             </div>
-          )}
-        </GsapDropdown>
+          </MenuGroup>
+
+          <MenuSeparator className="my-1.5 border-border/40" />
+
+          <MenuItem
+            render={
+              <Link
+                to="/resources"
+                className="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 hover:bg-accent/80"
+              />
+            }
+          >
+            <div className="flex items-center gap-2">
+              <FolderOpen className="h-4 w-4 text-amber-500" />
+              <span className="font-semibold text-foreground">Explore All Resources</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="outline" size="sm" className="h-4 px-1.5 text-[9px] font-medium">
+                Catalog
+              </Badge>
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </div>
+          </MenuItem>
+        </MenuPopup>
+      </Menu>
+
+      {/* Support / Resources Menu */}
+      {supportLinks.length > 0 && (
+        <Menu>
+          <MenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 gap-1.5 rounded-lg px-3 text-xs font-medium text-muted-foreground transition-all duration-200 hover:bg-accent/40 hover:text-foreground",
+                  isSupportActive && "border border-border/50 bg-accent/90 font-semibold text-foreground shadow-2xs"
+                )}
+              >
+                <span>Resources</span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-70 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </Button>
+            }
+          />
+          <MenuPopup align="start" sideOffset={8} className="w-60 rounded-xl border border-border/50 bg-popover/95 p-1.5 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/25">
+            <MenuGroup>
+              <MenuGroupLabel className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                Help & Community
+              </MenuGroupLabel>
+
+              <MenuItem
+                render={
+                  <Link
+                    to="/feedback"
+                    className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-xs transition-colors hover:bg-accent/70"
+                  />
+                }
+              >
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-pink-500/10 text-pink-500 dark:bg-pink-500/20">
+                  <MessageSquare className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-foreground">Give Feedback</div>
+                  <p className="text-[10px] text-muted-foreground truncate">Submit suggestions & ideas</p>
+                </div>
+              </MenuItem>
+
+              <MenuItem
+                render={
+                  <Link
+                    to="/how-to-use"
+                    className="flex items-center gap-3 rounded-lg px-2.5 py-2 text-xs transition-colors hover:bg-accent/70"
+                  />
+                }
+              >
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-cyan-500/10 text-cyan-500 dark:bg-cyan-500/20">
+                  <HelpCircle className="h-3.5 w-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="font-semibold text-foreground">How to Use</div>
+                  <p className="text-[10px] text-muted-foreground truncate">Platform guides & FAQ</p>
+                </div>
+              </MenuItem>
+            </MenuGroup>
+          </MenuPopup>
+        </Menu>
       )}
     </nav>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Theme toggle, user menu, mobile menu (adapted to use GsapDropdown)        */
+/*  Theme Toggle Component                                                    */
 /* -------------------------------------------------------------------------- */
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="h-9 w-9 rounded-md bg-transparent hover:bg-muted/50"
-      aria-label="Toggle theme"
-    >
-      {theme === "dark" ? (
-        <Sun className="h-4 w-4 text-foreground" />
-      ) : (
-        <Moon className="h-4 w-4 text-foreground" />
-      )}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="h-8 w-8 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/20"
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4 text-amber-400 transition-transform duration-300 hover:rotate-45" />
+            ) : (
+              <Moon className="h-4 w-4 text-slate-700 transition-transform duration-300 dark:text-slate-200 hover:-rotate-12" />
+            )}
+          </Button>
+        }
+      />
+      <TooltipPopup side="bottom" sideOffset={6} className="rounded-md border border-border/40 bg-popover px-2.5 py-1 text-[11px] font-medium shadow-md">
+        {theme === "dark" ? "Switch to Light mode" : "Switch to Dark mode"}
+      </TooltipPopup>
+    </Tooltip>
   );
 }
 
-function UserMenuDesktop() {
+/* -------------------------------------------------------------------------- */
+/*  Desktop User Menu                                                          */
+/* -------------------------------------------------------------------------- */
+function UserMenu() {
   const { user, logout, getInitials } = useLocalAuth();
 
   return (
-    <div className="hidden items-center md:flex">
-      <GsapDropdown
-        trigger={({ toggle }) => (
-          <button
-            type="button"
-            onClick={toggle}
-            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-foreground/90 to-foreground/70 text-background ring-1 ring-border/50 transition-all duration-200 hover:ring-2 hover:ring-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
-            aria-label="User menu"
-          >
-            {user?.avatar ? (
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="bg-transparent text-[11px] font-semibold text-background">
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-            ) : user ? (
-              <DefaultAvatar name={user.name} size={32} />
-            ) : (
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-transparent text-background">
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-            )}
-          </button>
-        )}
-        panelClassName="w-64 p-0 bg-white dark:bg-[#1f1f1f]"
-      >
-        {(close) =>
-          user ? (
+    <div className="flex items-center">
+      <Menu>
+        <MenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="relative h-8 w-8 rounded-full p-0 ring-1 ring-border/60 transition-all duration-200 hover:ring-2 hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label="User account menu"
+            >
+              {user?.avatar ? (
+                <Avatar className="h-7.5 w-7.5">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback className="bg-primary/10 text-[10px] font-bold text-primary">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+              ) : user ? (
+                <DefaultAvatar name={user.name} size={30} />
+              ) : (
+                <Avatar className="h-7.5 w-7.5">
+                  <AvatarFallback className="bg-muted text-muted-foreground">
+                    <User className="h-3.5 w-3.5" />
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </Button>
+          }
+        />
+        <MenuPopup align="end" sideOffset={8} className="w-64 rounded-xl border border-border/50 bg-popover/95 p-1.5 backdrop-blur-xl shadow-xl shadow-black/5 dark:shadow-black/25">
+          {user ? (
             <>
-              <div className="border-b border-border/40 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-foreground/90 to-foreground/70 text-background">
-                    {user.avatar ? (
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="bg-transparent text-xs font-semibold text-background">
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <DefaultAvatar name={user.name} size={36} />
-                    )}
+              <div className="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/40 px-3 py-2.5">
+                <div className="relative shrink-0">
+                  {user.avatar ? (
+                    <Avatar className="h-9 w-9 border border-border/50">
+                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <DefaultAvatar name={user.name} size={36} />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className="flex items-center justify-between gap-1">
+                    <p className="truncate text-xs font-semibold text-foreground">{user.name}</p>
+                    <Badge variant="outline" size="sm" className="h-4 px-1.5 capitalize text-[9px] font-medium">
+                      {user.role}
+                    </Badge>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium leading-tight">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                  </div>
+                  <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
                 </div>
               </div>
-              <div className="p-1.5">
-                <Link
-                  to={user.role === "admin" ? "/admin/dashboard" : user.role === "faculty" ? "/dashboard/faculty" : "/dashboard/student"}
-                  onClick={close}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+
+              <MenuSeparator className="my-1.5 border-border/40" />
+
+              <MenuGroup>
+                <MenuItem
+                  render={
+                    <Link
+                      to={
+                        user.role === "admin"
+                          ? "/admin/dashboard"
+                          : user.role === "faculty"
+                          ? "/dashboard/faculty"
+                          : "/dashboard/student"
+                      }
+                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent/70"
+                    />
+                  }
                 >
-                  <User className="h-4 w-4" />
-                  {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
-                </Link>
-                <Link
-                  to="/notes"
-                  onClick={close}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+                  <UserSVG className="h-4 w-4 opacity-80" />
+                  <span>{user.role === "student" || !user.role ? "View Profile" : "Dashboard"}</span>
+                </MenuItem>
+
+                <MenuItem
+                  render={
+                    <Link
+                      to="/notes"
+                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent/70"
+                    />
+                  }
                 >
-                  <FileText className="h-4 w-4" />
-                  My Notes
-                </Link>
-              </div>
-              <div className="border-t border-border/40 mx-2" />
-              <div className="p-1.5">
-                <button
-                  onClick={() => { close(); logout(); }}
-                  className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="mr-2.5 h-4 w-4" />
-                  Log out
-                </button>
-              </div>
+                  <NotesSVG className="h-4 w-4 opacity-80" />
+                  <span>My Saved Notes</span>
+                </MenuItem>
+              </MenuGroup>
+
+              <MenuSeparator className="my-1.5 border-border/40" />
+
+              <MenuItem
+                variant="destructive"
+                onClick={logout}
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Log out</span>
+              </MenuItem>
             </>
           ) : (
-            <div className="p-1.5">
-              <Link
-                to="/login"
-                onClick={close}
-                className="flex items-center rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
+            <MenuGroup>
+              <MenuItem
+                render={
+                  <Link
+                    to="/login"
+                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent/70"
+                  />
+                }
               >
-                <User className="mr-2.5 h-4 w-4" />
-                Log in
-              </Link>
-            </div>
-          )
-        }
-      </GsapDropdown>
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>Log in</span>
+              </MenuItem>
+              <MenuItem
+                render={
+                  <Link
+                    to="/signup"
+                    className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent/70"
+                  />
+                }
+              >
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span>Create Account</span>
+              </MenuItem>
+            </MenuGroup>
+          )}
+        </MenuPopup>
+      </Menu>
     </div>
   );
 }
 
-function PopoverMobileMenu() {
+/* -------------------------------------------------------------------------- */
+/*  Mobile Menu Coss Drawer (Full Screen / Full Height Top Drawer)            */
+/* -------------------------------------------------------------------------- */
+function MobileMenuDrawer() {
   const location = useLocation();
   const { user, logout, getInitials } = useLocalAuth();
   const { theme, setTheme } = useTheme();
@@ -661,288 +552,259 @@ function PopoverMobileMenu() {
   const supportLinks =
     user && user.role !== "admin"
       ? [
-          { path: "/feedback", label: "Feedback" },
-          { path: "/how-to-use", label: "How to use" },
+          { path: "/feedback", label: "Give Feedback", icon: MessageSquare, color: "text-pink-500" },
+          { path: "/how-to-use", label: "How to Use", icon: HelpCircle, color: "text-cyan-500" },
         ]
       : [];
 
   const close = () => setOpen(false);
 
   return (
-    <Drawer open={open} onOpenChange={setOpen} position="right">
-      <DrawerTrigger render={
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "h-9 w-9 rounded-md bg-transparent hover:bg-muted/50 lg:hidden border border-transparent cursor-pointer",
-            open && "bg-muted text-foreground border-border/40",
-          )}
-          aria-label="Open navigation menu"
-        >
-          <Menu />
-        </Button>
-      } />
-      <DrawerPopup showCloseButton className="w-[300px] sm:w-[360px] bg-background border-l border-border/40">
-        <DrawerHeader className="border-b border-border/40 pb-4">
-          <div className="flex items-center gap-2">
-            <Logo />
-          </div>
-        </DrawerHeader>
-        <DrawerPanel className="p-4 flex flex-col gap-6">
-          {/* Mobile Search button */}
-          <Link
-            to="/search"
-            onClick={close}
-            className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/20 px-3.5 py-2.5 text-sm text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
+    <Drawer open={open} onOpenChange={setOpen} position="top">
+      <DrawerTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className={cn(
+              "h-8 w-8 rounded-lg text-muted-foreground transition-all hover:bg-accent/60 hover:text-foreground lg:hidden",
+              open && "bg-accent text-foreground"
+            )}
+            aria-label="Toggle navigation menu"
           >
-            <Search className="h-4 w-4" />
-            <span>Search courses & materials...</span>
-          </Link>
+            {open ? <X className="h-4.5 w-4.5" /> : <MenuIcon className="h-4.5 w-4.5" />}
+          </Button>
+        }
+      />
+      <DrawerPopup className="fixed inset-0 z-[100] h-screen h-dvh w-full max-h-none border-none rounded-none bg-background p-0 overflow-hidden flex flex-col">
+        {/* Header - Horizontal Flex Row */}
+        <div className="flex items-center justify-between border-b border-border/40 px-4 py-3 shrink-0">
+          <DrawerTitle className="sr-only">Navigation Menu</DrawerTitle>
+          <Logo />
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4 w-4 text-amber-400" />
+              ) : (
+                <Moon className="h-4 w-4 text-slate-700" />
+              )}
+            </Button>
+            <DrawerClose
+              render={
+                <Button variant="ghost" size="icon-xs" onClick={close} aria-label="Close drawer">
+                  <X className="h-4 w-4" />
+                </Button>
+              }
+            />
+          </div>
+        </div>
 
-          {/* Nav Categories */}
+        {/* Full Height Scrollable Panel */}
+        <DrawerPanel className="flex-1 flex flex-col justify-between gap-4 p-4 sm:p-6 overflow-y-auto min-h-0">
           <div className="space-y-4">
-            {/* General */}
-            <div className="space-y-1">
-              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                General
+            {/* Quick Search */}
+            <Link
+              to="/search"
+              onClick={close}
+              className="flex items-center justify-between rounded-lg bg-muted/40 px-3.5 py-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
+            >
+              <div className="flex items-center gap-2.5">
+                <Search className="h-3.5 w-3.5 text-muted-foreground/80" />
+                <span>Search resources & papers...</span>
               </div>
+              <KbdGroup>
+                <Kbd>⌘K</Kbd>
+              </KbdGroup>
+            </Link>
+
+            {/* Clean Navigation Links */}
+            <div className="space-y-1">
+              <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                Navigation
+              </div>
+
               <Link
                 to="/"
                 onClick={close}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
                   isActive("/")
-                    ? "bg-muted text-foreground shadow-2xs"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                    ? "bg-accent text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
                 )}
               >
-                <Home className="h-4.5 w-4.5" />
-                Home
+                <Home className="h-4 w-4 text-primary" />
+                <span>Home</span>
               </Link>
-            </div>
 
-            {/* Study Hub */}
-            <div className="space-y-1">
-              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                Study Hub
-              </div>
               <Link
                 to="/study-stock"
                 onClick={close}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
                   isActive("/study-stock")
-                    ? "bg-muted text-foreground shadow-2xs"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                    ? "bg-accent text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
                 )}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-500/10 bg-blue-500/5 text-blue-500">
-                  <Library className="h-4 w-4" />
-                </div>
-                Digital Library
+                <Library className="h-4 w-4 text-blue-500" />
+                <span>Digital Library</span>
               </Link>
+
               <Link
                 to="/syllabus"
                 onClick={close}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
                   isActive("/syllabus")
-                    ? "bg-muted text-foreground shadow-2xs"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                    ? "bg-accent text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
                 )}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/10 bg-emerald-500/5 text-emerald-500">
-                  <Compass className="h-4 w-4" />
-                </div>
-                Course Syllabus
+                <Compass className="h-4 w-4 text-emerald-500" />
+                <span>Course Syllabus</span>
               </Link>
-            </div>
 
-            {/* Materials */}
-            <div className="space-y-1">
-              <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                Materials
-              </div>
-              <Link
-                to="/resources"
-                onClick={close}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                  isActive("/resources") && !location.pathname.includes("/study-material/")
-                    ? "bg-muted text-foreground shadow-2xs"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-                )}
-              >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/10 bg-amber-500/5 text-amber-500">
-                  <FolderOpen className="h-4 w-4" />
-                </div>
-                Browse All Resources
-              </Link>
               <Link
                 to="/study-material/imp-questions"
                 onClick={close}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
                   isActive("/study-material/imp-questions")
-                    ? "bg-muted text-foreground shadow-2xs"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                    ? "bg-accent text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
                 )}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-purple-500/10 bg-purple-500/5 text-purple-500">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                Question Bank
+                <Sparkles className="h-4 w-4 text-purple-500" />
+                <span>Question Bank</span>
               </Link>
+
               <Link
                 to="/study-material/sample-papers"
                 onClick={close}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
+                  "flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
                   isActive("/study-material/sample-papers")
-                    ? "bg-muted text-foreground shadow-2xs"
-                    : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                    ? "bg-accent text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
                 )}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-rose-500/10 bg-rose-500/5 text-rose-500">
-                  <FileText className="h-4 w-4" />
+                <FileText className="h-4 w-4 text-rose-500" />
+                <span>Past Papers</span>
+              </Link>
+
+              <Link
+                to="/resources"
+                onClick={close}
+                className={cn(
+                  "flex items-center justify-between rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors",
+                  isActive("/resources")
+                    ? "bg-accent text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <FolderOpen className="h-4 w-4 text-amber-500" />
+                  <span>All Learning Resources</span>
                 </div>
-                Past Papers
+                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
               </Link>
             </div>
 
-            {/* Support */}
+            {/* Support Section */}
             {supportLinks.length > 0 && (
-              <div className="space-y-1">
-                <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+              <div className="space-y-1 pt-2 border-t border-border/30">
+                <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
                   Support
                 </div>
-                <Link
-                  to="/feedback"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/feedback")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-                  )}
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-pink-500/10 bg-pink-500/5 text-pink-500">
-                    <MessageSquare className="h-4 w-4" />
-                  </div>
-                  Give Feedback
-                </Link>
-                <Link
-                  to="/how-to-use"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/how-to-use")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
-                  )}
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-cyan-500">
-                    <HelpCircle className="h-4 w-4" />
-                  </div>
-                  How to Use
-                </Link>
+                {supportLinks.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={close}
+                      className="flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+                    >
+                      <Icon className={cn("h-4 w-4", item.color)} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          <div className="my-1 border-t border-border/40" />
-
-          {/* Theme & User actions */}
-          <div className="space-y-4">
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground cursor-pointer transition-all"
-            >
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-muted/30">
-                {theme === "dark" ? (
-                  <Sun className="h-4 w-4 text-amber-500" />
-                ) : (
-                  <Moon className="h-4 w-4 text-blue-500" />
-                )}
-              </div>
-              <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-            </button>
-
+          {/* User / Auth Bar at bottom of screen */}
+          <div className="pt-3 border-t border-border/40 shrink-0">
             {user ? (
-              <div className="space-y-2.5">
-                <div className="flex items-center gap-3 rounded-xl bg-muted/30 border border-border/40 p-3">
+              <div className="flex items-center justify-between rounded-xl bg-muted/20 px-3.5 py-3 border border-border/30">
+                <div className="flex items-center gap-3 min-w-0">
                   {user.avatar ? (
-                    <Avatar className="h-9 w-9 border border-border">
+                    <Avatar className="h-8 w-8 border border-border/40">
                       <AvatarImage src={user.avatar} alt={user.name} />
-                      <AvatarFallback className="text-xs">
+                      <AvatarFallback className="bg-primary/10 text-[10px] font-bold text-primary">
                         {getInitials(user.name)}
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    <DefaultAvatar name={user.name} size={36} />
+                    <DefaultAvatar name={user.name} size={32} />
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold leading-none">{user.name}</p>
-                    <p className="truncate text-[10px] text-muted-foreground mt-1">
-                      {user.email}
-                    </p>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-foreground">{user.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    to={
-                      user.role === "admin"
-                        ? "/admin/dashboard"
-                        : user.role === "faculty"
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    asChild
+                    onClick={close}
+                  >
+                    <Link
+                      to={
+                        user.role === "admin"
+                          ? "/admin/dashboard"
+                          : user.role === "faculty"
                           ? "/dashboard/faculty"
                           : "/dashboard/student"
-                    }
-                    onClick={close}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
+                      }
+                    >
+                      Profile
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="destructive-outline"
+                    size="xs"
+                    onClick={() => {
+                      close();
+                      logout();
+                    }}
                   >
-                    <User className="h-3.5 w-3.5" />
-                    Profile
-                  </Link>
-
-                  <Link
-                    to="/notes"
-                    onClick={close}
-                    className="flex items-center justify-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
-                  >
-                    <FileText className="h-3.5 w-3.5" />
-                    My Notes
-                  </Link>
+                    Logout
+                  </Button>
                 </div>
-
-                <button
-                  onClick={() => {
-                    close();
-                    logout();
-                  }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 border border-destructive/20 px-3 py-2.5 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  Log out
-                </button>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
-                <Link
-                  to="/login"
-                  onClick={close}
-                  className="flex items-center justify-center rounded-xl border border-border/40 px-3 py-2.5 text-xs font-semibold text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={close}
-                  className="flex items-center justify-center rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90"
-                >
-                  Get started
-                </Link>
+                <Button variant="outline" size="sm" className="h-10" asChild>
+                  <Link to="/login" onClick={close}>
+                    Log in
+                  </Link>
+                </Button>
+                <Button size="sm" className="h-10 font-semibold" asChild>
+                  <Link to="/signup" onClick={close}>
+                    Sign up
+                  </Link>
+                </Button>
               </div>
             )}
           </div>
@@ -953,54 +815,56 @@ function PopoverMobileMenu() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Main Navbar (unchanged structure)                                         */
+/*  Main Sticky Navbar Component                                              */
 /* -------------------------------------------------------------------------- */
 export function Navbar() {
   const { user } = useLocalAuth();
   const dashboardPath = getDashboardPath(user);
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-6 lg:gap-8">
-          <Link to={dashboardPath} className="shrink-0" aria-label="Go to dashboard">
-            <Logo />
-          </Link>
-
-          <div className="hidden lg:block">
-            <DesktopNavLinks />
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <div className="hidden md:block">
-            <NavbarSearch />
-          </div>
-
-          <ThemeToggle />
-
-          {user ? (
-            <UserMenuDesktop />
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
-              <Button
-                size="sm"
-                variant="ghost"
-              >
-                <Link to="/login">Login</Link>
-              </Button>
-
-              <Button
-                size="sm"
-              >
-                <Link to="/signup">Create Account</Link>
-              </Button>
+    <TooltipProvider>
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all">
+        <div className="mx-auto flex h-12 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+          {/* Left section: Top Drawer Trigger (mobile) + Brand Logo + Desktop Nav */}
+          <div className="flex min-w-0 items-center gap-3 lg:gap-5">
+            <MobileMenuDrawer />
+            <Link
+              to={dashboardPath}
+              className="shrink-0 transition-opacity hover:opacity-90 focus-visible:outline-none"
+              aria-label="Go to dashboard"
+            >
+              <Logo />
+            </Link>
+            <div className="hidden lg:block">
+              <DesktopNavLinks />
             </div>
-          )}
+          </div>
 
-          <PopoverMobileMenu />
+          {/* Right section: Search bar + Theme Toggle + User Menu / Auth buttons */}
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="hidden md:block">
+              <NavbarSearch />
+            </div>
+            <ThemeToggle />
+
+            {user ? (
+              <UserMenu />
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <UserMenu />
+                <div className="hidden items-center gap-1.5 md:flex">
+                  <Button size="sm" variant="ghost" className="h-8 text-xs" asChild>
+                    <Link to="/login">Log in</Link>
+                  </Button>
+                  <Button size="sm" className="h-8 text-xs font-semibold" asChild>
+                    <Link to="/signup">Sign up</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </TooltipProvider>
   );
 }
