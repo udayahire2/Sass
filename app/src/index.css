@@ -145,10 +145,7 @@ body {
   --sidebar-border: hsl(40 8% 88%);
   --sidebar-ring: var(--color-blue-500);
 
-  /* Logo */
-  --logo-back: 262.1 83.3% 57.8%;
-  --logo-front: 263.4 70% 50.4%;
-
+ 
   /* Charts */
   --chart-1: var(--color-blue-500);
   --chart-2: hsl(142 71% 35%);
