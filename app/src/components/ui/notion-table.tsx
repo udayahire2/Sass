@@ -10,14 +10,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
-  EditorTable as Table, 
-  EditorTableHeader as TableHeader, 
-  EditorTableBody as TableBody, 
-  EditorTableRow as TableRow, 
-  EditorTableHead as TableHead, 
-  EditorTableCell as TableCell 
-} from '@/components/ui/editor-table';
-import { Frame } from '@/components/ui/frame';
+  Table, 
+  TableHeader, 
+  TableBody, 
+  TableRow, 
+  TableHead, 
+  TableCell 
+} from '@/components/ui/table';
 
 // Interfaces for Table Data Structure
 export interface TableColumn {
@@ -525,8 +524,8 @@ export function NotionTable({
   };
 
   return (
-    <Frame 
-      ref={containerRef as any}
+    <div 
+      ref={containerRef}
       className={cn("w-full relative group/table-container my-3", className)}
       onKeyDown={handleKeyDown}
       onMouseEnter={() => setIsHovered(true)}
@@ -788,7 +787,7 @@ export function NotionTable({
           </div>
         </div>
       )}
-    </Frame>
+    </div>
   );
 }
 
