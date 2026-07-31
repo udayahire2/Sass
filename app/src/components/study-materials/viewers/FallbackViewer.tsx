@@ -9,7 +9,7 @@ export function FallbackViewer({ resource }: { resource: StudyMaterial }) {
   
   return (
     <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-      <div className={cn("mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-[16px] border border-border/80 bg-card shadow-sm", colors.text)}>
+      <div className={cn("mb-6 flex h-[72px] w-[72px] items-center justify-center rounded-2xl border border-border bg-card shadow-sm", colors.text)}>
         {getIcon(resource.type)}
       </div>
       <h3 className="mb-2 text-xl font-semibold tracking-tight text-foreground">
@@ -19,7 +19,7 @@ export function FallbackViewer({ resource }: { resource: StudyMaterial }) {
         This file type cannot be previewed natively in the browser. Please download it directly to view its contents.
       </p>
       <a href={resource.url} target="_blank" rel="noreferrer">
-        <Button className="h-10 rounded-[8px] border border-transparent px-6 text-[13px] font-medium tracking-tight shadow-sm">
+        <Button className="h-10 rounded-lg px-6 text-[13px] font-medium tracking-tight shadow-sm">
           <Download className="mr-2 h-4 w-4 opacity-90" />
           Download {resource.type}
         </Button>

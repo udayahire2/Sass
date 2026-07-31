@@ -50,7 +50,7 @@ export function StudyMaterialFilter({
   return (
     <div className="flex h-full flex-col px-1 pb-2">
       {/* Filter Options */}
-      <div className="flex-1 space-y-8 py-5">
+      <div className="flex-1 space-y-6 py-5">
         
         {/* Branch Section */}
         <div className="space-y-3">
@@ -59,13 +59,13 @@ export function StudyMaterialFilter({
             Branch
           </Label>
           <Select value={selectedBranch} onValueChange={(val) => val && setSelectedBranch(val)}>
-            <SelectTrigger className="h-10 w-full rounded-[8px] border border-border/80 bg-background shadow-sm transition-colors duration-200 hover:bg-muted/30 focus:ring-1 focus:ring-primary/20">
+            <SelectTrigger className="h-10 w-full rounded-lg border border-border/80 bg-background shadow-sm transition-colors duration-200 hover:bg-muted/30 focus:ring-1 focus:ring-primary/20">
               <SelectValue placeholder="Select branch" className="text-[13px]" />
             </SelectTrigger>
-            <SelectContent className="rounded-[8px] border-border/80 shadow-md">
-              <SelectItem value="All" className="text-[13px] rounded-[6px]">All Branches</SelectItem>
+            <SelectContent className="rounded-lg border-border/80 shadow-md">
+              <SelectItem value="All" className="text-[13px] rounded-md">All Branches</SelectItem>
               {BRANCHES.map((branch) => (
-                <SelectItem key={branch} value={branch} className="text-[13px] rounded-[6px] py-2">
+                <SelectItem key={branch} value={branch} className="text-[13px] rounded-md py-2">
                   {branch}
                 </SelectItem>
               ))}
@@ -80,13 +80,13 @@ export function StudyMaterialFilter({
             Semester
           </Label>
           <Select value={selectedSemester} onValueChange={(val) => val && setSelectedSemester(val)}>
-            <SelectTrigger className="h-10 w-full rounded-[8px] border border-border/80 bg-background shadow-sm transition-colors duration-200 hover:bg-muted/30 focus:ring-1 focus:ring-primary/20">
+            <SelectTrigger className="h-10 w-full rounded-lg border border-border/80 bg-background shadow-sm transition-colors duration-200 hover:bg-muted/30 focus:ring-1 focus:ring-primary/20">
               <SelectValue placeholder="Select semester" className="text-[13px]" />
             </SelectTrigger>
-            <SelectContent className="rounded-[8px] border-border/80 shadow-md">
-              <SelectItem value="All" className="text-[13px] rounded-[6px]">All Semesters</SelectItem>
+            <SelectContent className="rounded-lg border-border/80 shadow-md">
+              <SelectItem value="All" className="text-[13px] rounded-md">All Semesters</SelectItem>
               {SEMESTERS.map((sem) => (
-                <SelectItem key={sem} value={sem} className="text-[13px] rounded-[6px] py-2">
+                <SelectItem key={sem} value={sem} className="text-[13px] rounded-md py-2">
                   {sem}
                 </SelectItem>
               ))}
@@ -103,7 +103,7 @@ export function StudyMaterialFilter({
           <span className="text-[13px] font-medium text-muted-foreground">Active filters</span>
           <Badge 
             variant="secondary" 
-            className="h-5 min-w-[20px] items-center justify-center rounded-[6px] bg-muted/60 px-1.5 text-[11px] font-medium text-foreground transition-colors"
+            className="h-5 min-w-[20px] items-center justify-center rounded-md bg-muted/60 px-1.5 text-[11px] font-medium text-foreground transition-colors"
           >
             {activeFiltersCount}
           </Badge>
@@ -115,7 +115,7 @@ export function StudyMaterialFilter({
             variant="outline"
             onClick={onClearFilters}
             disabled={activeFiltersCount === 0}
-            className="h-9 w-full rounded-[8px] border-border/80 text-[13px] font-medium tracking-tight transition-colors hover:bg-muted/60"
+            className="h-9 w-full rounded-lg border-border/80 text-[13px] font-medium tracking-tight transition-colors hover:bg-muted/60"
           >
             <RotateCcw className="mr-1.5 h-3.5 w-3.5 text-muted-foreground opacity-80" />
             Reset
@@ -123,7 +123,7 @@ export function StudyMaterialFilter({
           <SheetClose render={
             <Button 
               variant="default"
-              className="h-9 w-full rounded-[8px] text-[13px] font-medium tracking-tight shadow-sm"
+              className="h-9 w-full rounded-lg text-[13px] font-medium tracking-tight shadow-sm"
             >
               Apply Filter
             </Button>

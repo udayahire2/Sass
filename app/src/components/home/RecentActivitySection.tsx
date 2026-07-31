@@ -39,7 +39,6 @@ const activities = [
     icon: Upload,
     path: "/profile/",
   },
-
 ];
 
 export function RecentActivitySection({
@@ -53,14 +52,14 @@ export function RecentActivitySection({
         {/* Header */}
         <div className="mb-12 flex flex-col items-center text-center">
           <Badge
-            variant="secondary"
-            className="mb-5 rounded-full px-3 py-1 font-medium"
+            variant="outline"
+            className="border-border/60 text-muted-foreground mb-5 rounded-full px-3 py-1 font-medium"
           >
             Dashboard
           </Badge>
 
           <div className="max-w-2xl space-y-3">
-            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl">
+            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl text-foreground">
               {userName
                 ? `Welcome back, ${userName.split(" ")[0]}`
                 : "Continue your study journey"}
@@ -81,17 +80,17 @@ export function RecentActivitySection({
             return (
               <Card
                 key={item.title}
-                className="group overflow-hidden border-border/60 bg-background shadow-none transition-colors hover:bg-muted/30"
+                className="group overflow-hidden border-border bg-card shadow-sm transition-all hover:shadow-md"
               >
                 <CardContent className="flex h-full flex-col p-6">
                   {/* Icon */}
-                  <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border bg-muted/40">
+                  <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl border border-border/50 bg-muted/30">
                     <Icon className="h-5 w-5 text-muted-foreground" />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 space-y-2">
-                    <h3 className="text-lg font-medium tracking-tight">
+                    <h3 className="text-lg font-medium tracking-tight text-foreground">
                       {item.title}
                     </h3>
 
@@ -102,12 +101,11 @@ export function RecentActivitySection({
 
                   {/* CTA */}
                   <Button
-                    variant="secondary"
-                    className="mt-8 justify-between"
+                    variant="outline"
+                    className="mt-8 justify-between border-border/60 hover:bg-muted/30"
                     onClick={() => navigate(item.path)}
                   >
                     {item.buttonText}
-
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </CardContent>

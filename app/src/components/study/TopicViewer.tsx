@@ -17,7 +17,6 @@ import {
   Minimize2,
 } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -167,15 +166,11 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
   };
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3 }}
-      className="mx-auto w-full min-w-0 max-w-3xl px-3 pb-28 sm:px-6 sm:pb-20 overflow-x-hidden sm:overflow-x-visible space-y-6"
+    <article
+      className="mx-auto w-full min-w-0 max-w-3xl px-3 pb-28 sm:px-6 sm:pb-20 overflow-x-hidden sm:overflow-x-visible space-y-6 animate-in fade-in slide-in-from-top-5 duration-300"
     >
       {/* Header Card */}
-      <Card ref={heroRef}>
+      <Card ref={heroRef} className="shadow-sm">
         <CardHeader>
           <div className="flex items-start gap-2">
             <Button
@@ -220,7 +215,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
             </div>
             <div className="shrink-0">
               {isCompleted ? (
-                <Badge variant="default" className="gap-1 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs">
+                <Badge variant="default" className="gap-1 bg-success/10 text-success text-xs">
                   <CheckCircle2 className="h-3 w-3" /> Done
                 </Badge>
               ) : (
@@ -269,7 +264,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
 
       {/* Video Section */}
       {hasVideo && (
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden shadow-sm">
           <CardPanel className="p-0">
             <div ref={videoContainerRef} className="relative aspect-video w-full max-w-full overflow-hidden bg-black/5">
               {isVideoLoading && !hasVideoError && (
@@ -323,14 +318,14 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       {hasSummary && topic.summaryPoints && (
         <Alert variant="warning">
           <Lightbulb className="h-4 w-4" />
-          <AlertTitle className="font-semibold text-amber-900 dark:text-amber-300">
+          <AlertTitle className="font-semibold">
             Key Takeaways
           </AlertTitle>
           <AlertDescription>
             <ul className="space-y-1.5 mt-1">
               {topic.summaryPoints.map((point, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm leading-relaxed">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500/60" />
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-warning/60" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -342,8 +337,8 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       {/* Topic Content / Notes */}
       <Card
         className={cn(
-          "transition-all",
-          isFullscreen ? "fixed inset-0 z-[100] h-screen w-screen rounded-none border-0" : ""
+          "shadow-sm transition-all",
+          isFullscreen ? "fixed inset-0 z-[100] h-screen w-screen rounded-none border-0 shadow-none" : ""
         )}
       >
         {hasNotes ? (
@@ -357,7 +352,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
                 className="h-8 gap-1.5 text-xs"
               >
                 {isCopied ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}
@@ -486,44 +481,41 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
         </div>
       </nav>
 
-      {/* Floating Sticky Bar */}
-      <AnimatePresence>
-        {showStickyBar && !isCompleted && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 35 }}
-            className="fixed inset-x-0 bottom-0 z-50 sm:bottom-6 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md px-4"
-          >
-            <Card className="shadow-lg border bg-background/95 backdrop-blur-xl">
-              <CardPanel className="flex items-center justify-between gap-3 p-3 sm:px-5">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{topic.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {currentIndex} of {totalTopics}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={handleMarkComplete}
-                  disabled={isMarkingComplete}
-                  className="gap-2 shrink-0"
-                >
-                  {isMarkingComplete ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle2 className="h-4 w-4" />
-                      Complete
-                    </>
-                  )}
-                </Button>
-              </CardPanel>
-            </Card>
-          </motion.div>
+      {/* Floating Sticky Bar – pure CSS transition */}
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 transition-all duration-300 ease-out sm:bottom-6 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md px-4",
+          showStickyBar && !isCompleted
+            ? "translate-y-0 opacity-100"
+            : "translate-y-12 opacity-0 pointer-events-none"
         )}
-      </AnimatePresence>
-    </motion.article>
+      >
+        <Card className="shadow-lg border bg-card/95 backdrop-blur-xl">
+          <CardPanel className="flex items-center justify-between gap-3 p-3 sm:px-5">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-foreground">{topic.title}</p>
+              <p className="text-xs text-muted-foreground">
+                {currentIndex} of {totalTopics}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleMarkComplete}
+              disabled={isMarkingComplete}
+              className="gap-2 shrink-0"
+            >
+              {isMarkingComplete ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Complete
+                </>
+              )}
+            </Button>
+          </CardPanel>
+        </Card>
+      </div>
+    </article>
   );
 };

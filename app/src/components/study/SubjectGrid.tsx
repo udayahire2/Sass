@@ -1,6 +1,5 @@
 import { BookOpen, ChevronRight, Layers } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion, type Variants } from "framer-motion";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,19 +12,6 @@ interface SubjectGridProps {
   branch: string;
   semester: string;
 }
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
-};
 
 export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
   if (subjects.length === 0) {
@@ -65,12 +51,7 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
       </div>
 
       {/* Card Grid */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {subjects.map((subject) => {
           const unitCount = subject.unitCount ?? subject.units.length;
           const topicCount =
@@ -78,7 +59,7 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
             subject.units.reduce((count, unit) => count + unit.topics.length, 0);
 
           return (
-            <motion.div key={subject.id} variants={cardVariants} className="h-full">
+            <div key={subject.id} className="h-full">
               <Link to={`${subject.id}`} className="group block h-full">
                 <Card className="h-full transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/40 group-hover:shadow-xl group-hover:shadow-primary/5">
                   <CardHeader className="flex flex-row items-start gap-3.5 space-y-0">
@@ -110,10 +91,10 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
                   </CardFooter>
                 </Card>
               </Link>
-            </motion.div>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
     </section>
   );
 }

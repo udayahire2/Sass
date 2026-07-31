@@ -17,19 +17,19 @@ function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) {
   const colors = getResourceColor(resource.type);
 
   return (
-    <Card className="group flex h-full flex-col rounded-md border border-border/40 bg-transparent transition-colors hover:border-border">
+    <Card className="group flex h-full flex-col rounded-lg border border-border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md">
       <CardHeader className="space-y-3 p-4 pb-2">
         {/* Icon and Type */}
         <div className="flex items-start justify-between">
-          <div className={`rounded-md border border-border/40 p-2 ${colors.text}`}>
+          <div className={`rounded-md border border-border/50 p-2 ${colors.text}`}>
             {getIcon(resource.type)}
           </div>
           <div className="flex gap-1">
-            <Badge variant="outline" className="rounded-md border-border/40 text-xs font-normal">
+            <Badge variant="outline" className="rounded-md border-border/50 text-xs font-normal">
               {resource.type}
             </Badge>
             {resource.isNew && (
-              <Badge variant="outline" className="rounded-md border-border/40 text-xs font-normal">
+              <Badge variant="outline" className="rounded-md border-border/50 text-xs font-normal">
                 New
               </Badge>
             )}
@@ -65,7 +65,7 @@ function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) {
         </p>
 
         {/* Metadata row */}
-        <div className="flex items-center justify-between border-t border-border/40 pt-3 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between border-t border-border/50 pt-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
               <Eye className="h-3 w-3" />
@@ -91,7 +91,7 @@ function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-md border border-border/40"
+          className="h-9 w-9 rounded-md border border-border/50"
           onClick={(e) => e.stopPropagation()}
         >
           <Download className="h-4 w-4" />

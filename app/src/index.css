@@ -10,6 +10,7 @@ body {
   font-feature-settings: "cv11", "ss01", "ss03";
   letter-spacing: -0.01em;
 }
+
 @theme inline {
   --border: hsl(40 8% 90%);
   --font-heading: "Plus Jakarta Sans", sans-serif;
@@ -93,6 +94,13 @@ body {
 :root {
   color-scheme: light;
   --radius: 0.75rem;
+
+  /* --- REPAIRED: defined missing tokens --- */
+  --color-neutral-50s: hsl(40, 5%, 98%);   /* very light warm off-white */
+  --color-neutral-900: hsl(0, 0%, 8%);    /* very dark (matches dark sidebar) */
+  --color-blue-500: hsl(221, 83%, 53%);   /* vivid blue (consistent with --info) */
+  --code-bg: var(--code);                 /* uses existing --code variable */
+
   --background: var(--color-neutral-50s);
   --foreground: hsl(40 8% 20%);
 
@@ -102,8 +110,6 @@ body {
   --popover: hsl(0 0% 100%);
   --popover-foreground: hsl(40 8% 20%);
 
-  /* Keep Existing Brand Purple */
-  /* --primary: var(--color-blue-500); */
   --primary: var(--color-blue-500);
   --primary-foreground: hsl(0 0% 100%);
 
@@ -135,17 +141,17 @@ body {
   /* Sidebar */
   --sidebar: hsl(40 10% 97%);
   --sidebar-foreground: hsl(40 8% 22%);
-
   --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: hsl(0 0% 100%);
-
   --sidebar-accent: hsl(40 10% 94%);
   --sidebar-accent-foreground: hsl(40 8% 20%);
-
   --sidebar-border: hsl(40 8% 88%);
   --sidebar-ring: var(--color-blue-500);
 
- 
+  /* Logo (light) – matched to primary blue */
+  --logo-back: 221 83% 53%;
+  --logo-front: 221 70% 45%;
+
   /* Charts */
   --chart-1: var(--color-blue-500);
   --chart-2: hsl(142 71% 35%);
@@ -162,7 +168,7 @@ body {
 .dark {
   color-scheme: dark;
   /* ==========================================
-     NOTION INSPIRED DARK THEME
+     NOTION INSPIRED DARK THEME (unchanged)
      ========================================== */
 
   --background: var(--color-neutral-900);
@@ -174,8 +180,6 @@ body {
   --popover: hsl(0 0% 12%);
   --popover-foreground: hsl(0 0% 90%);
 
-  /* Same Purple Brand */
-  /* --primary: var(--color-blue-500); */
   --primary: var(--color-blue-500);
   --primary-foreground: hsl(0 0% 100%);
 
@@ -207,17 +211,14 @@ body {
   /* Sidebar */
   --sidebar: hsl(0 0% 8%);
   --sidebar-foreground: hsl(0 0% 75%);
-
   --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: hsl(0 0% 100%);
-
   --sidebar-accent: hsl(0 0% 14%);
   --sidebar-accent-foreground: hsl(0 0% 90%);
-
   --sidebar-border: hsl(0 0% 16%);
   --sidebar-ring: var(--color-blue-500);
 
-  /* Logo */
+  /* Logo (dark) – already defined */
   --logo-back: 262.1 83.3% 57.8%;
   --logo-front: 263.4 70% 50.4%;
 
@@ -234,7 +235,7 @@ body {
   --code-highlight: hsl(0 0% 16%);
 }
 
-/* Scrollbars customized to dynamically scale using native variables */
+/* The rest of the styles remain unchanged */
 .markdown-scrollbar::-webkit-scrollbar {
   width: 8px;
 }
@@ -320,7 +321,7 @@ body {
   font-family: var(--font-mono), "SFMono-Regular", "Menlo", monospace;
 }
 
-/* Notion-Style Editor Themes */
+/* Notion-Style Editor Themes (unchanged) */
 .theme-light-editor {
   background-color: #ffffff !important;
   color: #37352f !important;

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
 import type { ElementType } from "react";
 import {
     Building2,
@@ -53,19 +52,6 @@ const BRANCH_META: Record<
     },
 };
 
-const staggerContainer: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { staggerChildren: 0.05 },
-    },
-};
-
-const fadeUpVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
-};
-
 export function BranchSemesterSelection({
     selectedBranch,
     selectedSemester,
@@ -74,6 +60,7 @@ export function BranchSemesterSelection({
 }: BranchSemesterSelectionProps) {
     const [branches, setBranches] = useState<BranchData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showSemesters, setShowSemesters] = useState(false);
 
     useEffect(() => {
         let mounted = true;
@@ -86,11 +73,21 @@ export function BranchSemesterSelection({
         return () => { mounted = false; };
     }, []);
 
+    // Show semester section only when a branch is selected
+    useEffect(() => {
+        if (selectedBranch) {
+            setShowSemesters(true);
+        } else {
+            setShowSemesters(false);
+        }
+    }, [selectedBranch]);
+
     const selectedBranchData = branches.find(b => b.name === selectedBranch);
 
     return (
         <div className="mx-auto w-full max-w-5xl space-y-6">
-            <section className="space-y-5 rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-5">
+            {/* Branch selection */}
+            <section className="space-y-5 rounded-2xl border border-border/60 bg-card/70 p-4 sm:p-5 shadow-sm">
                 <div className="space-y-3">
                     <Badge variant="outline" className="w-fit rounded-full border-border/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                         Step 1
@@ -115,12 +112,7 @@ export function BranchSemesterSelection({
                             No branches available at the moment.
                         </div>
                     ) : (
-                        <motion.div
-                            variants={staggerContainer}
-                            initial="hidden"
-                            animate="visible"
-                            className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-                        >
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                             {branches.map((branch) => {
                                 const meta = BRANCH_META[branch.name] || { icon: Folder, desc: "Explore subjects and resources." };
                                 const Icon = meta.icon;
@@ -128,20 +120,19 @@ export function BranchSemesterSelection({
                                 const isComingSoon = branch.status === 'Coming Soon';
 
                                 return (
-                                    <motion.button
+                                    <button
                                         key={branch.id}
-                                        variants={fadeUpVariants}
                                         onClick={() => {
                                             if (!isComingSoon) onBranchSelect(branch.name);
                                         }}
                                         disabled={isComingSoon}
                                         aria-pressed={isActive}
                                         className={cn(
-                                            "group relative flex w-full items-start gap-4 rounded-xl border p-4 text-left outline-none transition-colors duration-200 overflow-hidden",
-                                            isComingSoon ? "opacity-60 cursor-not-allowed bg-muted/30" : "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+                                            "group relative flex w-full items-start gap-4 rounded-xl border p-4 text-left outline-none transition-all duration-200 overflow-hidden",
+                                            isComingSoon ? "opacity-60 cursor-not-allowed bg-muted/30" : "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background hover:shadow-sm",
                                             isActive
-                                                ? "border-primary bg-primary/5"
-                                                : (!isComingSoon ? "border-border bg-background hover:bg-muted" : "border-border/40")
+                                                ? "border-primary bg-primary/5 scale-[1.02]"
+                                                : (!isComingSoon ? "border-border bg-card hover:bg-muted" : "border-border/40")
                                         )}
                                     >
                                         <div
@@ -172,80 +163,70 @@ export function BranchSemesterSelection({
                                                 {meta.desc}
                                             </p>
                                         </div>
-                                    </motion.button>
+                                    </button>
                                 );
                             })}
-                        </motion.div>
+                        </div>
                     )}
                 </div>
             </section>
 
-            <AnimatePresence mode="popLayout">
-                {selectedBranch && selectedBranchData && (
-                    <motion.div
-                        key="semester-section"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto", transition: { duration: 0.3, ease: "easeOut" } }}
-                        exit={{ opacity: 0, height: 0, transition: { duration: 0.2, ease: "easeIn" } }}
-                        className="overflow-hidden"
-                    >
-                        <section className="space-y-5 rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-5">
-                            <div className="space-y-3">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <Badge variant="outline" className="rounded-full border-border/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                                        Step 2
-                                    </Badge>
-                                    <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
-                                        {selectedBranchData.name}
-                                    </Badge>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <h2 className="text-lg font-semibold tracking-tight text-foreground">Select semester</h2>
-                                    <p className="text-sm leading-6 text-muted-foreground">
-                                        Choose the semester you want to study right now.
-                                    </p>
-                                </div>
-                                <Separator className="bg-border/50" />
-                            </div>
-
-                            <div>
-                                <motion.div
-                                    variants={staggerContainer}
-                                    initial="hidden"
-                                    animate="visible"
-                                    className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 md:grid-cols-8"
-                                >
-                                    {SEMESTERS.map((sem) => {
-                                        const isActive = selectedSemester === sem.toString();
-                                        return (
-                                            <motion.button
-                                                variants={fadeUpVariants}
-                                                key={sem}
-                                                onClick={() => onSemesterSelect(sem.toString())}
-                                                aria-pressed={isActive}
-                                                className={cn(
-                                                    "relative flex h-14 flex-col items-center justify-center rounded-lg p-3 outline-none transition-colors duration-200 overflow-hidden",
-                                                    "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-                                                    isActive
-                                                        ? "border-primary bg-primary text-primary-foreground"
-                                                        : "border border-border bg-background text-foreground hover:bg-muted"
-                                                )}
-                                            >
-                                                <span className={cn("relative z-10 text-[10px] font-medium uppercase tracking-wider", isActive ? "text-primary-foreground/90" : "text-muted-foreground")}>
-                                                    Sem
-                                                </span>
-                                                <span className={cn("relative z-10 mt-0.5 text-[15px] font-semibold", isActive ? "text-white" : "text-foreground")}>
-                                                    {sem}
-                                                </span>
-                                            </motion.button>
-                                        );
-                                    })}
-                                </motion.div>
-                            </div>
-                        </section>
-                    </motion.div>
+            {/* Semester selection – animated with pure CSS */}
+            <div
+                className={cn(
+                    "overflow-hidden transition-all duration-300 ease-out",
+                    showSemesters ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
                 )}
-            </AnimatePresence>
+            >
+                <section className="space-y-5 rounded-2xl border border-border/60 bg-card/70 p-4 sm:p-5 shadow-sm">
+                    <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline" className="rounded-full border-border/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                                Step 2
+                            </Badge>
+                            <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                                {selectedBranchData?.name}
+                            </Badge>
+                        </div>
+                        <div className="space-y-1.5">
+                            <h2 className="text-lg font-semibold tracking-tight text-foreground">Select semester</h2>
+                            <p className="text-sm leading-6 text-muted-foreground">
+                                Choose the semester you want to study right now.
+                            </p>
+                        </div>
+                        <Separator className="bg-border/50" />
+                    </div>
+
+                    <div>
+                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 md:grid-cols-8">
+                            {SEMESTERS.map((sem) => {
+                                const isActive = selectedSemester === sem.toString();
+                                return (
+                                    <button
+                                        key={sem}
+                                        onClick={() => onSemesterSelect(sem.toString())}
+                                        aria-pressed={isActive}
+                                        className={cn(
+                                            "relative flex h-14 flex-col items-center justify-center rounded-lg p-3 outline-none transition-all duration-200 overflow-hidden",
+                                            "focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+                                            isActive
+                                                ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                                                : "border border-border bg-card text-foreground hover:bg-muted hover:shadow-sm"
+                                        )}
+                                    >
+                                        <span className={cn("relative z-10 text-[10px] font-medium uppercase tracking-wider", isActive ? "text-primary-foreground/90" : "text-muted-foreground")}>
+                                            Sem
+                                        </span>
+                                        <span className={cn("relative z-10 mt-0.5 text-[15px] font-semibold", isActive ? "text-white" : "text-foreground")}>
+                                            {sem}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
     );
 }

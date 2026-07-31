@@ -51,12 +51,12 @@ export function SubjectDashboard({ subject }: SubjectDashboardProps) {
   return (
     <section className="space-y-6">
       {/* Subject Hero Header Card */}
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <Badge variant="default">{subject.branch}</Badge>
             <Badge variant="secondary">Sem {subject.semester}</Badge>
-            <Badge variant="outline" className="gap-1 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 bg-emerald-500/10">
+            <Badge variant="outline" className="gap-1 text-success border-success/20 bg-success/10">
               <CheckCircle className="h-3 w-3" />
               Faculty approved
             </Badge>
@@ -104,7 +104,7 @@ export function SubjectDashboard({ subject }: SubjectDashboardProps) {
 
         {/* Topics Panel */}
         <TabsPanel value="syllabus" className="space-y-4">
-          <Frame>
+          <Frame className="shadow-sm">
             <FrameHeader>
               <FrameTitle>Course syllabus</FrameTitle>
               <FrameDescription>
@@ -164,7 +164,7 @@ export function SubjectDashboard({ subject }: SubjectDashboardProps) {
                                       {topic.estimatedTime}
                                     </span>
                                   )}
-                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-500">
+                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-warning">
                                     <Sparkles className="h-3 w-3" /> 4.8
                                   </span>
                                   <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
@@ -186,7 +186,7 @@ export function SubjectDashboard({ subject }: SubjectDashboardProps) {
 
         {/* Papers Panel */}
         <TabsPanel value="papers" className="space-y-4">
-          <Frame>
+          <Frame className="shadow-sm">
             <FrameHeader>
               <FrameTitle>Previous papers</FrameTitle>
               <FrameDescription>Use them for revision and exam practice.</FrameDescription>
@@ -266,10 +266,10 @@ function EmptyDashboardState() {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex flex-col sm:flex-row items-center gap-3">
-        <Button size="sm" >
+        <Button size="sm">
           <Link to="/add-study-content">Upload materials</Link>
         </Button>
-        <Button variant="outline" size="sm" >
+        <Button variant="outline" size="sm">
           <Link to="/resources">Browse other materials</Link>
         </Button>
       </EmptyContent>

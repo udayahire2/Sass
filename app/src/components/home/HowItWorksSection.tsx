@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   BookOpen,
   CheckCircle2,
@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import gsap from "gsap";
 
 const roleSteps = {
   students: [
@@ -87,36 +86,12 @@ const roleSteps = {
   ],
 };
 
-// Moved outside to prevent recreation on every render
 const roles = Object.keys(roleSteps);
 
 export function HowItWorksSection() {
   const [activeTab, setActiveTab] = useState(roles[0]);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Handle GSAP Animations safely for React 18+
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Use gsap.context for automatic cleanup in Strict Mode
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".workflow-card",
-        { opacity: 0, y: 15 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.4,
-          stagger: 0.12,
-          ease: "power1.out",
-        }
-      );
-    }, containerRef);
-
-    return () => ctx.revert(); // Cleanup function
-  }, [activeTab]);
-
-  // Handle auto-tab rotation
+  // Auto-rotate tabs
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveTab((current) => {
@@ -125,21 +100,19 @@ export function HowItWorksSection() {
       });
     }, 5000);
 
-    // Clears the interval on unmount OR if activeTab changes manually
     return () => clearInterval(interval);
-  }, [activeTab]);
+  }, []);
 
   return (
-    <section className="relative py-20 md:py-24">
+    <section className="relative py-16 md:py-20">
       <div className="relative mx-auto max-w-5xl px-6 md:px-8">
-        
         {/* Header */}
         <div className="mx-auto mb-16 max-w-3xl text-center">
-          <Badge variant="secondary" className="p-2">
+          <Badge variant="outline" className="border-border/60 text-muted-foreground">
             Platform Workflow
           </Badge>
 
-          <h2 className="mt-6 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+          <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             How Study Mate Works
           </h2>
 
@@ -161,23 +134,18 @@ export function HowItWorksSection() {
           </div>
 
           {/* Cards Container */}
-          <div ref={containerRef}>
+          <div>
             {Object.entries(roleSteps).map(([role, steps]) => (
               <TabsContent key={role} value={role} className="mt-0">
                 <div className="grid gap-6 md:grid-cols-3">
-                  {steps.map((step, index) => {
+                  {steps.map((step) => {
                     const Icon = step.icon;
 
                     return (
                       <div
                         key={step.title}
-                        className="workflow-card group relative rounded-2xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg"
+                        className="group relative rounded-2xl border border-border bg-card p-7 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md animate-in fade-in slide-in-from-bottom-4 duration-300"
                       >
-                        {/* Connector Line */}
-                        {index !== steps.length - 1 && (
-                          <div className="absolute left-full top-10 hidden h-px w-6 bg-border/60 md:block" />
-                        )}
-
                         {/* Card Header */}
                         <div className="mb-6 flex items-center justify-between">
                           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -203,7 +171,6 @@ export function HowItWorksSection() {
             ))}
           </div>
         </Tabs>
-        
       </div>
     </section>
   );
