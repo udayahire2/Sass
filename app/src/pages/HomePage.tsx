@@ -38,8 +38,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-border/40 rounded-4xl bg-card/50 py-16 md:py-20">
-        <div className="container mx-auto px-4 sm:px-6">
+      <section className="border-t border-border/40 rounded-4xl bg-card/50 ">
+        <div className="">
           <CallToAction />
         </div>
       </section>

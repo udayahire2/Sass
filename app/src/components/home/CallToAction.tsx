@@ -1,13 +1,25 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import Background from "../../assets/images/back.png";
 
 export function CallToAction() {
   const navigate = useNavigate();
 
   return (
-    <section className="py-16 md:py-24">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-8 text-center flex flex-col items-center">
+    <section className="relative overflow-hidden py-16 md:py-24 bg-background/50 border-2 rounded-4xl">
+      {/* Background Image – decorative, full‑cover */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <img
+          src={Background}
+          alt=""
+          className="h-full w-full object-fill"
+          loading="lazy"
+        />
+      </div>
+
+      {/* Content – with subtle backdrop for readability */}
+      <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 md:px-8 text-center flex flex-col items-center backdrop-blur-sm bg-background/20 rounded-2xl p-6 sm:p-8">
         <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
           Ready to boost your grades?
         </h2>
