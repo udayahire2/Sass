@@ -783,9 +783,7 @@ export default function NotesPage() {
               sidebarVisible={sidebarVisible}
               onSelectAncestor={selectNote}
               onToggleFavorite={() => handleToggleFavorite(activeNoteId!)}
-              onToggleSidebar={() => {
-                setIsSidebarPinned(true);
-              }}
+              onToggleSidebar={() => {}}
               onToggleFullWidth={toggleFullWidth}
               onSetFont={setPageFont}
               onDuplicate={() => handleDuplicateNote(activeNoteId!)}

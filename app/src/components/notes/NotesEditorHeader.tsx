@@ -39,6 +39,8 @@ import {
 } from "@/components/ui/menu";
 import { Switch } from "@/components/ui/switch";
 
+import { useSidebar } from "@/components/ui/sidebar";
+
 interface NotesEditorHeaderProps {
   title: string;
   metadata: NoteMetadata;
@@ -73,6 +75,14 @@ export function NotesEditorHeader({
   onToggleTheme,
 }: NotesEditorHeaderProps) {
   const { theme } = useTheme();
+  const { toggleSidebar } = useSidebar();
+
+  const handleToggleSidebar = () => {
+    toggleSidebar();
+    if (onToggleSidebar) {
+      onToggleSidebar();
+    }
+  };
 
   return (
     <header className="relative z-40 flex h-11 shrink-0 select-none items-center justify-between border-b bg-background/80 px-2 backdrop-blur-sm">
@@ -84,8 +94,8 @@ export function NotesEditorHeader({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
-                  onClick={onToggleSidebar}
+                  className="h-7 w-7 cursor-pointer"
+                  onClick={handleToggleSidebar}
                 >
                   <PanelLeft className="h-4 w-4" />
                   <span className="sr-only">Toggle sidebar</span>
