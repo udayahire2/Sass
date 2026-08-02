@@ -1,5 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Averia+Sans+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
 @import "tailwindcss";
+@import "@heroui/styles"; 
 @import "@fontsource-variable/inter";
+
+
 
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
@@ -13,7 +17,7 @@ body {
 
 @theme inline {
   --border: hsl(40 8% 90%);
-  --font-heading: "Plus Jakarta Sans", sans-serif;
+  --font-heading: "Averia Sans Libre", sans-serif;
   --font-sans: "Inter", sans-serif;
   --font-mono: "Geist Mono", monospace;
   --color-background: var(--background);
