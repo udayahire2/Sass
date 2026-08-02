@@ -173,7 +173,7 @@ export function Hero() {
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-foreground leading-[1.15]">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-heading tracking-tight text-foreground leading-[1.15]">
           Get exam‑ready with material built for your semester.
         </h1>
 

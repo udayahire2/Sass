@@ -29,7 +29,7 @@ export function FeatureGrid() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6 md:px-8">
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl sm:text-4xl md:text-3xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-3xl  font-heading tracking-tight text-foreground">
             Everything you need to excel
           </h2>
           <p className="mt-4 text-base text-muted-foreground leading-relaxed">

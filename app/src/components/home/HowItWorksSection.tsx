@@ -112,7 +112,7 @@ export function HowItWorksSection() {
             Platform Workflow
           </Badge>
 
-          <h2 className="mt-6 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="mt-6 text-3xl font-heading tracking-tight text-foreground ">
             How Study Mate Works
           </h2>
 

@@ -19,8 +19,8 @@ export function CallToAction() {
       </div>
 
       {/* Content – with subtle backdrop for readability */}
-      <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 md:px-8 text-center flex flex-col items-center backdrop-blur-sm bg-background/20 rounded-2xl p-6 sm:p-8">
-        <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+      <div className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 md:px-8 text-center flex flex-col items-center  rounded-2xl p-6 sm:p-8">
+        <h2 className="text-3xl sm:text-4xl font-heading tracking-tight text-foreground">
           Ready to boost your grades?
         </h2>
         

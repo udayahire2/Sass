@@ -19,8 +19,8 @@ export default function HomePage() {
       <Hero />
 
       {user && (
-        <section className="border-t border-border/40 bg-card/50 py-16 md:py-20 rounded-4xl">
-          <div className="container mx-auto px-4 sm:px-6">
+        <section className="border-t border-border/40 bg-card/50 rounded-4xl mt-6">
+          <div className=" mx-auto px-4 sm:px-6">
             <RecentActivitySection userName={user.name} />
           </div>
         </section>

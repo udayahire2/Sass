@@ -59,7 +59,7 @@ export function RecentActivitySection({
           </Badge>
 
           <div className="max-w-2xl space-y-3">
-            <h2 className="text-3xl font-semibold tracking-tight text-balance md:text-4xl text-foreground">
+            <h2 className="text-3xl font-heading tracking-tight text-balance  text-foreground">
               {userName
                 ? `Welcome back, ${userName.split(" ")[0]}`
                 : "Continue your study journey"}
