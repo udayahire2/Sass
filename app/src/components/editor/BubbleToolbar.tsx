@@ -269,6 +269,7 @@ export default function BubbleToolbar({ editor }: BubbleToolbarProps) {
             value={urlValue}
             onChange={(e) => setUrlValue(e.target.value)}
             placeholder="Paste link or type URL..."
+            aria-label="Link URL"
             className="flex-1 bg-transparent border-none text-xs outline-none focus:ring-0 placeholder:text-muted-foreground/50 text-foreground font-medium min-w-45"
             autoFocus
           />

@@ -173,7 +173,8 @@ export default function CodeBlockComponent({
             flex
             flex-col
             py-4
-            pl-4
+            min-w-[40px]
+            px-2
             text-right
             text-[12px]
             leading-6

@@ -362,9 +362,7 @@ export default function RichTextEditor({
 
         {editable && showWordCount && (
           <div className={cn(
-            "flex justify-start text-xs text-muted-foreground/40 pt-16 pb-8 select-none font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-            // Hide on small screens to save space; visible on hover on larger screens
-            "hidden sm:flex"
+            "flex justify-start text-[10px] sm:text-xs text-muted-foreground/40 pt-16 pb-8 select-none font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           )}>
             <span>{wordCount} {wordCount === 1 ? 'word' : 'words'}</span>
             <span className="mx-2">·</span>

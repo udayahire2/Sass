@@ -307,13 +307,15 @@ export default function SlashMenu({
                 key={item.id}
                 ref={currentIndex === selectedIndex ? selectedRef : undefined}
                 type="button"
+                role="option"
+                aria-selected={currentIndex === selectedIndex}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   item.action(editor);
                 }}
                 className={cn(
-                  "flex w-full min-h-8 cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1 text-sm text-foreground outline-none text-left transition-all cursor-pointer sm:min-h-7 [&>svg]:pointer-events-none [&>svg]:shrink-0",
+                  "flex w-full min-h-8 cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1 text-sm text-foreground outline-none text-left transition-all sm:min-h-7 [&>svg]:pointer-events-none [&>svg]:shrink-0",
                   currentIndex === selectedIndex
                     ? "bg-accent text-accent-foreground font-semibold"
                     : "text-foreground/80 hover:bg-muted/70"
@@ -347,6 +349,8 @@ export default function SlashMenu({
     <div
       ref={menuRef}
       data-slash-menu
+      role="listbox"
+      aria-label="Slash commands"
       className={cn(
         "fixed rounded-lg border bg-popover not-dark:bg-clip-padding shadow-lg/5 outline-none before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus:outline-none dark:before:shadow-[0_-1px_--theme(--color-white/6%)] h-[320px] w-64 overflow-hidden z-[9999] flex flex-col select-none",
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-1 pointer-events-none"
