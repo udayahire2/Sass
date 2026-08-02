@@ -50,24 +50,10 @@ export default function StudentLayout() {
 
         <SidebarInset className="flex flex-col flex-1 h-screen w-full min-w-0 overflow-hidden">
           {/* Header */}
-          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-4 border-b border-border bg-background px-4 sm:gap-6 sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-4 sm:gap-6 sm:px-6 lg:px-8">
             <SidebarTrigger className="h-8 w-8 -ml-2 text-muted-foreground" />
 
-            <div className="min-w-0 flex-1 flex items-center">
-              <Breadcrumb>
-                <BreadcrumbList>
-                  <BreadcrumbItem>
-                    <span className="text-muted-foreground">Student</span>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage className="font-semibold text-foreground">
-                      {currentPage}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </BreadcrumbList>
-              </Breadcrumb>
-            </div>
+            
 
             <div className="flex items-center gap-3 shrink-0">
               <Button

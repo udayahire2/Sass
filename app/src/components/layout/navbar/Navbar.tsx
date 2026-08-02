@@ -1,132 +1,137 @@
 "use client";
 
-import { useState, useEffect, useRef, type FormEvent } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 import {
-  Sun,
-  Moon,
-  LogOut,
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionTemplate,
+  useReducedMotion,
+  AnimatePresence,
+} from "framer-motion";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Menu,
+  Search,
   User,
-  ChevronDown,
+  LogOut,
   FileText,
+  ChevronDown,
+  Library,
   Compass,
   Sparkles,
-  Library,
-  HelpCircle,
-  MessageSquare,
-  ArrowRight,
   FolderOpen,
-  Home,
-  Search,
+  MessageSquare,
+  HelpCircle,
+  ArrowRight,
 } from "lucide-react";
-import Menu from "@/svgs/menu";
 import { Logo } from "@/components/ui/logo";
-import { Button } from "@/components/ui/button";
-import { Kbd, KbdGroup } from "@/components/ui/kbd";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
-import { NAV_LINKS } from "@/config/nav-config";
 import { useTheme } from "@/components/theme-provider";
-import { type User as AuthUser, useLocalAuth } from "@/hooks/use-local-auth";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocalAuth } from "@/hooks/use-local-auth";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Drawer, DrawerTrigger, DrawerPopup, DrawerHeader, DrawerPanel } from "@/components/ui/drawer";
-import Folder from "@/components/svgs/folder";
 
-function getDashboardPath(user: AuthUser | null) {
-  if (user?.role === "admin") return "/admin/dashboard";
-  if (user?.role === "faculty") return "/dashboard/faculty";
-  if (user?.role === "student") return "/dashboard/student";
-  return "/";
-}
-
-/* -------------------------------------------------------------------------- */
-/*  SimpleDropdown – lightweight CSS transition (no GSAP)                    */
-/* -------------------------------------------------------------------------- */
-function SimpleDropdown({
-  trigger,
-  children,
-  panelClassName,
-  wrapperClassName,
-  lockScroll = false,
-}: {
-  trigger: (props: { open: boolean; toggle: () => void }) => React.ReactNode;
-  children: (close: () => void) => React.ReactNode;
-  panelClassName?: string;
-  wrapperClassName?: string;
-  lockScroll?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const location = useLocation();
-
-  const close = () => setOpen(false);
-  const toggle = () => setOpen((prev) => !prev);
-
-  // Auto close on route change
+// --- Sound Hook (unchanged) ---
+const AUDIO_FILE_PATH = "/mixkit-camera-shutter-click-1133.wav";
+const useSound = (url: string) => {
+  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   useEffect(() => {
-    setOpen(false);
-  }, [location.pathname]);
+    const audioObj = new Audio(url);
+    setAudio(audioObj);
+  }, [url]);
+  const play = () => {
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch((e) => console.log("Audio play failed", e));
+    }
+  };
+  return play;
+};
 
-  // Lock scroll for mobile menu
-  useEffect(() => {
-    if (!lockScroll || !open) return;
-    const bodyOverflow = document.body.style.overflow;
-    const htmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = bodyOverflow;
-      document.documentElement.style.overflow = htmlOverflow;
-    };
-  }, [open, lockScroll]);
+// --- Theme Trigger (simplified classes) ---
+const ThemeTrigger = ({ progress }: { progress?: any }) => {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const playSound = useSound(AUDIO_FILE_PATH);
+  const scrollRotation = useTransform(progress || 0, [0, 1], [0, 45]);
 
-  // Outside click + ESC
-  useEffect(() => {
-    const handlePointerDown = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) close();
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
+  if (!mounted) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="icon-btn"
+        aria-label="Theme toggle placeholder"
+      />
+    );
+  }
+
+  const isDark = theme === "dark";
   return (
-    <div ref={rootRef} className="relative">
-      {trigger({ open, toggle })}
-      <div
-        className={cn(
-          "absolute top-full z-50 mt-1 transition-all duration-200 ease-out",
-          open ? "opacity-100 scale-100 visible" : "opacity-0 scale-95 invisible",
-          wrapperClassName ?? "right-0"
-        )}
-        style={{ pointerEvents: open ? "auto" : "none" }}
-      >
-        <div
-          className={cn(
-            "min-w-48 overflow-hidden overscroll-contain rounded-xl border border-neutral-200 bg-white shadow-xl shadow-black/5 dark:border-neutral-800 dark:bg-[#1f1f1f] dark:shadow-black/30",
-            panelClassName
-          )}
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => { playSound(); setTheme(isDark ? "light" : "dark"); }}
+      className="icon-btn group"
+      aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
+    >
+      <div className="relative flex h-full w-full items-center justify-center">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-foreground"
+          aria-hidden="true"
         >
-          {children(close)}
-        </div>
+          <motion.circle
+            cx="12"
+            cy="12"
+            initial={false}
+            animate={{ r: isDark ? 9 : 5 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          />
+          <motion.g
+            initial={false}
+            animate={{
+              opacity: isDark ? 0 : 1,
+              rotate: isDark ? 90 : 0,
+              scale: isDark ? 0.5 : 1,
+            }}
+            style={{ originX: "12px", originY: "12px", rotate: scrollRotation }}
+            transition={{ duration: 0.2 }}
+          >
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+          </motion.g>
+        </svg>
+        <motion.div
+          className="absolute top-[30%] right-[30%] h-1.5 w-1.5 rounded-md bg-background"
+          initial={false}
+          animate={{ scale: isDark ? 1 : 0, opacity: isDark ? 0.4 : 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        />
       </div>
-    </div>
+    </Button>
   );
-}
+};
 
-/* -------------------------------------------------------------------------- */
-/*  Search bar (unchanged)                                                    */
-/* -------------------------------------------------------------------------- */
+// --- Search Button (simplified) ---
 function NavbarSearch() {
   const navigate = useNavigate();
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -139,786 +144,428 @@ function NavbarSearch() {
   }, [navigate]);
 
   return (
-    <Button variant="outline" onClick={() => navigate("/search")} className="gap-2">
-      <Search className="h-4 w-4" aria-hidden="true" />
-      Search
-      <KbdGroup className="-me-1">
-        <Kbd>Ctrl</Kbd>
-        <Kbd>K</Kbd>
-      </KbdGroup>
-    </Button>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Desktop Navigation – simplified dropdowns                                 */
-/* -------------------------------------------------------------------------- */
-function DesktopNavLinks() {
-  const location = useLocation();
-  const { user } = useLocalAuth();
-
-  const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
-  };
-
-  const studyLinks = NAV_LINKS.filter((link) =>
-    ["/study-stock", "/resources", "/syllabus"].includes(link.path)
-  );
-  const supportLinks =
-    user && user.role !== "admin"
-      ? [
-          { path: "/feedback", label: "Feedback" },
-          { path: "/how-to-use", label: "How to use" },
-        ]
-      : [];
-
-  return (
-    <nav className="flex items-center gap-1">
-      {/* Home */}
-      <Link
-        to="/"
-        className={cn(
-          "rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 border border-transparent",
-          isActive("/")
-            ? "bg-neutral-100 dark:bg-white/6 border-neutral-200 dark:border-neutral-800 text-foreground"
-            : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/3 hover:text-foreground"
-        )}
-      >
-        Home
-      </Link>
-
-      {/* Study Dropdown */}
-      <SimpleDropdown
-        wrapperClassName="left-0 -translate-x-[60px] mt-2"
-        panelClassName="w-[580px] p-0 grid grid-cols-3 bg-white dark:bg-[#1f1f1f]"
-        trigger={({ open, toggle }) => (
-          <button
-            type="button"
-            onClick={toggle}
-            className={cn(
-              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
-              studyLinks.some((l) => isActive(l.path)) || open
-                ? "bg-neutral-100 dark:bg-white/6 border-neutral-200 dark:border-neutral-800 text-foreground"
-                : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/3 hover:text-foreground"
-            )}
-          >
-            Study
-            <ChevronDown
-              className={cn(
-                "h-3.5 w-3.5 opacity-60 transition-transform duration-200",
-                open && "rotate-180 text-foreground opacity-100"
-              )}
-            />
-          </button>
-        )}
-      >
-        {(close) => (
-          <>
-            {/* Left promo */}
-            <div className="col-span-1 bg-neutral-50 dark:bg-neutral-900/40 p-5 flex flex-col justify-between border-r border-neutral-200 dark:border-neutral-800">
-              <div className="space-y-2">
-                <span className="inline-flex items-center rounded-md bg-neutral-200/50 dark:bg-neutral-800 px-2 py-0.5 text-[9px] font-bold text-neutral-600 dark:text-neutral-300 tracking-wide uppercase">
-                  Knowledge Base
-                </span>
-                <h4 className="text-sm font-bold text-foreground tracking-tight leading-snug">
-                  Master Your Courses
-                </h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Your all-in-one academic companion with curated resources, syllabus guides, and exam prep materials to help you excel.
-                </p>
-              </div>
-              <Link
-                to="/resources"
-                onClick={close}
-                className="group/btn inline-flex items-center gap-1 text-xs font-semibold text-neutral-600 hover:text-foreground dark:text-neutral-400 dark:hover:text-foreground transition-colors mt-4"
-              >
-                Explore repository
-                <ArrowRight className="h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform duration-200" />
-              </Link>
-            </div>
-
-            {/* Right grid */}
-            <div className="col-span-2 p-3 flex flex-col gap-2 bg-white dark:bg-[#1f1f1f]">
-              <div className="grid grid-cols-2 gap-1.5">
-                {/* Library */}
-                <Link
-                  to="/study-stock"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div>
-                    <Folder />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Digital Library
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Access textbooks, lecture notes, and study guides.
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Syllabus */}
-                <Link
-                  to="/syllabus"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                    <Compass className="h-4.5 w-4.5" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Course Syllabus
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Explore course structures, modules, and grading criteria.
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Question Bank */}
-                <Link
-                  to="/study-material/imp-questions"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-purple-500/20 bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                    <Sparkles className="h-4.5 w-4.5" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Question Bank
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Practice with curated, high-yield exam questions.
-                    </p>
-                  </div>
-                </Link>
-
-                {/* Past Papers */}
-                <Link
-                  to="/study-material/sample-papers"
-                  onClick={close}
-                  className="group flex gap-2.5 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                    <FileText className="h-4.5 w-4.5" />
-                  </div>
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors truncate">
-                        Past Papers
-                      </span>
-                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                    </div>
-                    <p className="text-[10px] leading-normal text-muted-foreground">
-                      Test your knowledge with previous years' papers.
-                    </p>
-                  </div>
-                </Link>
-              </div>
-
-              {/* View All */}
-              <Link
-                to="/resources"
-                onClick={close}
-                className="group mt-1 flex items-center justify-between rounded-lg bg-neutral-50 dark:bg-neutral-900/30 border border-neutral-200/60 dark:border-neutral-800/60 p-2.5 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400 shadow-3xs">
-                    <FolderOpen className="h-4 w-4" />
-                  </div>
-                  <div className="space-y-0.5 text-left">
-                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
-                      Browse All Resources
-                    </span>
-                    <p className="text-[10px] text-muted-foreground leading-none">
-                      Explore our full collection of academic assets.
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all duration-150 shrink-0" />
-              </Link>
-            </div>
-          </>
-        )}
-      </SimpleDropdown>
-
-      {/* Support Dropdown */}
-      {supportLinks.length > 0 && (
-        <SimpleDropdown
-          wrapperClassName="left-1/2 -translate-x-1/2 mt-2"
-          panelClassName="w-[300px] p-1 bg-white dark:bg-[#1f1f1f]"
-          trigger={({ open, toggle }) => (
-            <button
-              type="button"
-              onClick={toggle}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150 outline-none border border-transparent cursor-pointer",
-                supportLinks.some((l) => isActive(l.path)) || open
-                  ? "bg-neutral-100 dark:bg-white/[0.06] border-neutral-200 dark:border-neutral-800 text-foreground"
-                  : "text-muted-foreground hover:bg-neutral-100/50 dark:hover:bg-white/[0.03] hover:text-foreground"
-              )}
-            >
-              Resources
-              <ChevronDown
-                className={cn(
-                  "h-3.5 w-3.5 opacity-60 transition-transform duration-200",
-                  open && "rotate-180 text-foreground opacity-100"
-                )}
-              />
-            </button>
-          )}
-        >
-          {(close) => (
-            <div className="flex flex-col gap-0.5">
-              <Link
-                to="/feedback"
-                onClick={close}
-                className="group flex gap-3 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-pink-500/10 bg-pink-500/5 text-pink-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                  <MessageSquare className="h-4.5 w-4.5" />
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
-                      Give Feedback
-                    </span>
-                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                  </div>
-                  <p className="text-[10px] leading-normal text-muted-foreground">
-                    Suggest ideas or report any platform issues.
-                  </p>
-                </div>
-              </Link>
-              <Link
-                to="/how-to-use"
-                onClick={close}
-                className="group flex gap-3 rounded-lg p-2 hover:bg-neutral-100 dark:hover:bg-white/[0.05] transition-all duration-150"
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-cyan-500 shadow-3xs transition-transform duration-200 group-hover:scale-[1.02]">
-                  <HelpCircle className="h-4.5 w-4.5" />
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs font-medium text-foreground group-hover:text-foreground transition-colors">
-                      How to Use
-                    </span>
-                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 text-neutral-500 transition-all duration-150 shrink-0" />
-                  </div>
-                  <p className="text-[10px] leading-normal text-muted-foreground">
-                    Quick platform walkthrough and FAQ guides.
-                  </p>
-                </div>
-              </Link>
-            </div>
-          )}
-        </SimpleDropdown>
-      )}
-    </nav>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/*  Theme toggle, user menu, mobile menu (simplified)                        */
-/* -------------------------------------------------------------------------- */
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="h-9 w-9 rounded-md bg-transparent hover:bg-muted/50"
-      aria-label="Toggle theme"
+      onClick={() => navigate("/search")}
+      className="icon-btn hidden md:flex"
+      aria-label="Search"
     >
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      <Search className="h-4 w-4 text-foreground" />
     </Button>
   );
 }
 
-function UserMenuDesktop() {
-  const { user, logout, getInitials } = useLocalAuth();
+// --- Cinematic Dropdown (simplified classes) ---
+function CinematicDropdown({
+  label,
+  items,
+  footerLink,
+  isActive,
+}: {
+  label: string;
+  items: any[];
+  footerLink?: any;
+  isActive: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  let timeout: NodeJS.Timeout;
+
+  const handleEnter = () => { clearTimeout(timeout); setIsOpen(true); };
+  const handleLeave = () => { timeout = setTimeout(() => setIsOpen(false), 150); };
 
   return (
-    <div className="hidden items-center md:flex">
-      <SimpleDropdown
-        trigger={({ toggle }) => (
-          <button
-            type="button"
-            onClick={toggle}
-            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-foreground/90 to-foreground/70 text-background ring-1 ring-border/50 transition-all duration-200 hover:ring-2 hover:ring-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground/40"
-            aria-label="User menu"
-          >
-            {user?.avatar ? (
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="bg-transparent text-[11px] font-semibold text-background">
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-            ) : user ? (
-              <DefaultAvatar name={user.name} size={32} />
-            ) : (
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-transparent text-background">
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-            )}
-          </button>
+    <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      <button
+        className={cn(
+          "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+          isActive || isOpen
+            ? "bg-muted text-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
         )}
-        panelClassName="w-64 p-0 bg-white dark:bg-[#1f1f1f]"
       >
-        {(close) =>
-          user ? (
-            <>
-              <div className="border-b border-border/40 px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-foreground/90 to-foreground/70 text-background">
-                    {user.avatar ? (
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="bg-transparent text-xs font-semibold text-background">
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <DefaultAvatar name={user.name} size={36} />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium leading-tight">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                  </div>
+        {label}
+        <ChevronDown
+          className={cn("h-3 w-3 transition-transform duration-300", isOpen && "rotate-180")}
+        />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute left-1/2 top-full -translate-x-1/2 pt-3 z-[60]"
+          >
+            <div className="min-w-[320px] overflow-hidden rounded-2xl border border-border/50 bg-background shadow-2xl backdrop-blur-xl">
+              <div className="flex flex-col gap-1 p-2">
+                {items.map((item, idx) => (
+                  <Link
+                    key={idx}
+                    to={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="group flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg  bg-background transition-transform group-hover:scale-105">
+                      <item.icon className="h-4 w-4 text-foreground/70 group-hover:text-foreground" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-foreground">{item.name}</span>
+                      <span className="text-xs text-muted-foreground">{item.description}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              {footerLink && (
+                <div className="border-t border-border/50 bg-muted/10 p-2">
+                  <Link
+                    to={footerLink.href}
+                    onClick={() => setIsOpen(false)}
+                    className="group flex items-center justify-between rounded-xl p-2.5 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/50 bg-background shadow-sm">
+                        <footerLink.icon className="h-3.5 w-3.5 text-foreground/70" />
+                      </div>
+                      <span className="text-xs font-medium text-foreground">{footerLink.name}</span>
+                    </div>
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-foreground" />
+                  </Link>
                 </div>
-              </div>
-              <div className="p-1.5">
-                <Link
-                  to={
-                    user.role === "admin"
-                      ? "/admin/dashboard"
-                      : user.role === "faculty"
-                      ? "/dashboard/faculty"
-                      : "/dashboard/student"
-                  }
-                  onClick={close}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
-                >
-                  <User className="h-4 w-4" />
-                  {user.role === "student" || !user.role ? "View Profile" : "Dashboard"}
-                </Link>
-                <Link
-                  to="/notes"
-                  onClick={close}
-                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
-                >
-                  <FileText className="h-4 w-4" />
-                  My Notes
-                </Link>
-              </div>
-              <div className="border-t border-border/40 mx-2" />
-              <div className="p-1.5">
-                <button
-                  onClick={() => {
-                    close();
-                    logout();
-                  }}
-                  className="flex w-full items-center rounded-lg px-3 py-2 text-sm text-destructive hover:bg-destructive/10"
-                >
-                  <LogOut className="mr-2.5 h-4 w-4" />
-                  Log out
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="p-1.5">
-              <Link
-                to="/login"
-                onClick={close}
-                className="flex items-center rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50"
-              >
-                <User className="mr-2.5 h-4 w-4" />
-                Log in
-              </Link>
+              )}
             </div>
-          )
-        }
-      </SimpleDropdown>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function PopoverMobileMenu() {
-  const location = useLocation();
-  const { user, logout, getInitials } = useLocalAuth();
-  const { theme, setTheme } = useTheme();
-  const [open, setOpen] = useState(false);
+// --- User Avatar Dropdown (simplified) ---
+function UserAvatarDropdown({ user, logout }: { user: any; logout: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  let timeout: NodeJS.Timeout;
 
-  const isActive = (path: string) => {
-    if (path === "/") return location.pathname === "/";
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
-  };
-
-  const supportLinks =
-    user && user.role !== "admin"
-      ? [
-          { path: "/feedback", label: "Feedback" },
-          { path: "/how-to-use", label: "How to use" },
-        ]
-      : [];
-
-  const close = () => setOpen(false);
+  const handleEnter = () => { clearTimeout(timeout); setIsOpen(true); };
+  const handleLeave = () => { timeout = setTimeout(() => setIsOpen(false), 150); };
 
   return (
-    <Drawer open={open} onOpenChange={setOpen} position="top">
-      <DrawerTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-9 w-9 rounded-md bg-transparent hover:bg-muted/50 lg:hidden border border-transparent cursor-pointer",
-              open && "bg-muted text-foreground border-border/40"
-            )}
-            aria-label="Open navigation menu"
+    <div className="relative ml-2" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      <button className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-muted/50 outline-none transition-transform hover:scale-105 active:scale-95">
+        {user?.avatar ? (
+          <Avatar className="h-full w-full">
+            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+          </Avatar>
+        ) : (
+          <User className="h-4 w-4 text-foreground/70" />
+        )}
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute right-0 top-full pt-3 z-[60]"
           >
-            <Menu />
-          </Button>
-        }
-      />
-      <DrawerPopup
-        showCloseButton
-        className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" // overlay with backdrop
-        // Let the panel be separate; we'll render it inside DrawerPanel
-      >
-        {/* We need the DrawerPanel to be scrollable */}
-        <DrawerPanel
-          className="absolute top-0 left-0 right-0 max-h-screen overflow-y-auto bg-background border-b border-border/40 shadow-lg"
-          // override any max-h from previous usage
-          style={{ maxHeight: "100vh" }}
-        >
-          {/* Header */}
-          <div className="sticky top-0 z-10 bg-background border-b border-border/40 px-4 py-3 flex items-center justify-between">
-            <Logo />
-            {/* You can keep the close button from DrawerPopup, or add your own */}
-          </div>
-
-          {/* Content - same as before but without the extra wrapper */}
-          <div className="p-4 flex flex-col gap-6">
-            {/* Search */}
-            <Link
-              to="/search"
-              onClick={close}
-              className="flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/20 px-3.5 py-2.5 text-sm text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
-            >
-              <Search className="h-4 w-4" />
-              <span>Search courses & materials...</span>
-            </Link>
-
-            {/* Navigation links – same as before */}
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                  General
-                </div>
-                <Link
-                  to="/"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                  )}
-                >
-                  <Home className="h-4.5 w-4.5" />
-                  Home
-                </Link>
+            <div className="min-w-[220px] flex-col gap-1 rounded-2xl border border-border/50 bg-background/95 p-2 shadow-2xl backdrop-blur-xl">
+              <div className="mb-1 border-b border-border/50 px-3 py-2.5">
+                <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
               </div>
-
-              <div className="space-y-1">
-                <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                  Study Hub
-                </div>
-                <Link
-                  to="/study-stock"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/study-stock")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                  )}
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-blue-500/10 bg-blue-500/5 text-blue-500">
-                    <Library className="h-4 w-4" />
-                  </div>
-                  Digital Library
-                </Link>
-                <Link
-                  to="/syllabus"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/syllabus")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                  )}
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/10 bg-emerald-500/5 text-emerald-500">
-                    <Compass className="h-4 w-4" />
-                  </div>
-                  Course Syllabus
-                </Link>
-              </div>
-
-              <div className="space-y-1">
-                <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                  Materials
-                </div>
-                <Link
-                  to="/resources"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/resources") && !location.pathname.includes("/study-material/")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                  )}
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/10 bg-amber-500/5 text-amber-500">
-                    <FolderOpen className="h-4 w-4" />
-                  </div>
-                  Browse All Resources
-                </Link>
-                <Link
-                  to="/study-material/imp-questions"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/study-material/imp-questions")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                  )}
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-purple-500/10 bg-purple-500/5 text-purple-500">
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  Question Bank
-                </Link>
-                <Link
-                  to="/study-material/sample-papers"
-                  onClick={close}
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                    isActive("/study-material/sample-papers")
-                      ? "bg-muted text-foreground shadow-2xs"
-                      : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                  )}
-                >
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-rose-500/10 bg-rose-500/5 text-rose-500">
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  Past Papers
-                </Link>
-              </div>
-
-              {supportLinks.length > 0 && (
-                <div className="space-y-1">
-                  <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                    Support
-                  </div>
-                  <Link
-                    to="/feedback"
-                    onClick={close}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                      isActive("/feedback")
-                        ? "bg-muted text-foreground shadow-2xs"
-                        : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                    )}
-                  >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-pink-500/10 bg-pink-500/5 text-pink-500">
-                      <MessageSquare className="h-4 w-4" />
-                    </div>
-                    Give Feedback
-                  </Link>
-                  <Link
-                    to="/how-to-use"
-                    onClick={close}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all",
-                      isActive("/how-to-use")
-                        ? "bg-muted text-foreground shadow-2xs"
-                        : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-                    )}
-                  >
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-cyan-500">
-                      <HelpCircle className="h-4 w-4" />
-                    </div>
-                    How to Use
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            <div className="my-1 border-t border-border/40" />
-
-            {/* Theme & User actions */}
-            <div className="space-y-4">
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground cursor-pointer transition-all"
+              <Link
+                to={getDashboardPath(user)}
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-muted/30">
-                  {theme === "dark" ? (
-                    <Sun className="h-4 w-4 text-amber-500" />
-                  ) : (
-                    <Moon className="h-4 w-4 text-blue-500" />
-                  )}
-                </div>
-                <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                <User className="h-4 w-4" /> Profile
+              </Link>
+              <Link
+                to="/notes"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
+              >
+                <FileText className="h-4 w-4" /> My Notes
+              </Link>
+              <div className="my-1 h-px bg-border/50" />
+              <button
+                onClick={() => { setIsOpen(false); logout(); }}
+                className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <LogOut className="h-4 w-4" /> Log out
               </button>
-
-              {user ? (
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-3 rounded-xl bg-muted/30 border border-border/40 p-3">
-                    {user.avatar ? (
-                      <Avatar className="h-9 w-9 border border-border">
-                        <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="text-xs">
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <DefaultAvatar name={user.name} size={36} />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-semibold leading-none">{user.name}</p>
-                      <p className="truncate text-[10px] text-muted-foreground mt-1">
-                        {user.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <Link
-                      to={
-                        user.role === "admin"
-                          ? "/admin/dashboard"
-                          : user.role === "faculty"
-                          ? "/dashboard/faculty"
-                          : "/dashboard/student"
-                      }
-                      onClick={close}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
-                    >
-                      <User className="h-3.5 w-3.5" />
-                      Profile
-                    </Link>
-                    <Link
-                      to="/notes"
-                      onClick={close}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
-                    >
-                      <FileText className="h-3.5 w-3.5" />
-                      My Notes
-                    </Link>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      close();
-                      logout();
-                    }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-destructive/10 border border-destructive/20 px-3 py-2.5 text-xs font-semibold text-destructive transition-all hover:bg-destructive/20"
-                  >
-                    <LogOut className="h-3.5 w-3.5" />
-                    Log out
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    to="/login"
-                    onClick={close}
-                    className="flex items-center justify-center rounded-xl border border-border/40 px-3 py-2.5 text-xs font-semibold text-muted-foreground transition-all hover:bg-muted/40 hover:text-foreground"
-                  >
-                    Sign in
-                  </Link>
-                  <Link
-                    to="/signup"
-                    onClick={close}
-                    className="flex items-center justify-center rounded-xl bg-primary px-3 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90"
-                  >
-                    Get started
-                  </Link>
-                </div>
-              )}
             </div>
-          </div>
-        </DrawerPanel>
-      </DrawerPopup>
-    </Drawer>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Main Navbar                                                               */
-/* -------------------------------------------------------------------------- */
+// --- Navigation Data (unchanged) ---
+const navGroups = [
+  { name: "Home", href: "/" },
+  {
+    name: "Study",
+    dropdown: [
+      { name: "Digital Library", href: "/study-stock", icon: Library, description: "Access textbooks & notes" },
+      { name: "Course Syllabus", href: "/syllabus", icon: Compass, description: "Explore course structures" },
+      { name: "Question Bank", href: "/study-material/imp-questions", icon: Sparkles, description: "High-yield exam questions" },
+      { name: "Past Papers", href: "/study-material/sample-papers", icon: FileText, description: "Previous years' papers" },
+    ],
+    footerLink: { name: "Browse All Resources", href: "/resources", icon: FolderOpen },
+  },
+  {
+    name: "Support",
+    dropdown: [
+      { name: "Give Feedback", href: "/feedback", icon: MessageSquare, description: "Suggest ideas or report issues" },
+      { name: "How to Use", href: "/how-to-use", icon: HelpCircle, description: "Platform walkthrough & FAQ" },
+    ],
+  },
+];
+
+function getDashboardPath(user: any) {
+  if (user?.role === "admin") return "/admin/dashboard";
+  if (user?.role === "faculty") return "/dashboard/faculty";
+  if (user?.role === "student") return "/dashboard/student";
+  return "/";
+}
+
+// --- Main Navbar (cleaned) ---
 export function Navbar() {
-  const { user } = useLocalAuth();
+  const { scrollY } = useScroll();
+  const { theme } = useTheme();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  const [isLogoHovered, setIsLogoHovered] = useState(false);
+  const location = useLocation();
+  const { user, logout } = useLocalAuth();
+  const isDark = theme === "dark";
+
+  useEffect(() => { setIsMobileOpen(false); }, [location.pathname]);
+
+  const scrollRaw = useTransform(scrollY, [0, 200], [0, 1]);
+  const scrollSpring = useSpring(scrollRaw, { stiffness: 280, damping: 32, mass: 1.2, restDelta: 0.001 });
+  const progress = shouldReduceMotion ? scrollRaw : scrollSpring;
+
+  const y = useTransform(progress, [0, 1], [-10, 0]);
+  const gap = useTransform(progress, [0, 1], ["16px", "0px"]);
+  const padding = useTransform(progress, [0.4, 1], ["0px", "6px"]);
+  const bgOpacity = useTransform(progress, [0.4, 1], [0, 0.98]);
+  const blurValue = useTransform(progress, [0.4, 1], [0, 12]);
+  const borderOpacity = useTransform(progress, [0, 1], [0.1, isDark ? 0.4 : 0.2]);
+
+  const containerBg = useMotionTemplate`oklch(from var(--background) l c h / ${bgOpacity})`;
+  const containerBorder = useMotionTemplate`oklch(from var(--foreground) l c h / ${borderOpacity})`;
+
   const dashboardPath = getDashboardPath(user);
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-screen-2xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 items-center gap-6 lg:gap-8">
-          <Link to={dashboardPath} className="shrink-0" aria-label="Go to dashboard">
-            <Logo />
+    <div className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-around px-4 md:px-0">
+      <motion.div
+        style={{
+          y,
+          gap,
+          padding,
+          background: containerBg,
+          backdropFilter: useMotionTemplate`blur(${blurValue}px)`,
+         
+        }}
+        className="pointer-events-auto flex max-w-5xl items-center bg-background  transition-colors"
+        role="banner"
+      >
+        {/* Logo */}
+        <motion.div
+          className=" relative flex h-10 cursor-pointer items-center overflow-hidden rounded-md  bg-transparent px-3 py-2 shrink-0"
+          onHoverStart={() => setIsLogoHovered(true)}
+          onHoverEnd={() => setIsLogoHovered(false)}
+        >
+          <Link to={dashboardPath} className="flex items-center gap-1 px-2">
+            <motion.div
+              animate={{ scale: isLogoHovered ? 1.05 : 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="flex shrink-0 items-center justify-center"
+            >
+              <Logo showText={false} className="h-7 w-7 text-foreground [&_img]:h-full [&_img]:w-full" />
+            </motion.div>
+            <AnimatePresence initial={false}>
+              {isLogoHovered && (
+                <motion.div
+                  initial={{ width: 0, opacity: 0, x: -5 }}
+                  animate={{ width: "auto", opacity: 1, x: 0 }}
+                  exit={{ width: 0, opacity: 0, x: -5 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="overflow-hidden whitespace-nowrap"
+                >
+                  <div className="flex flex-col justify-center leading-none">
+                    <span className="ml-1.5 text-xs font-semibold text-foreground">NMU</span>
+                    <span className="ml-1.5 mt-0.5 text-[8px] font-bold uppercase tracking-wider text-muted-foreground">StudyHub</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Link>
-          <div className="hidden lg:block">
-            <DesktopNavLinks />
-          </div>
-        </div>
+        </motion.div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <div className="hidden md:block">
-            <NavbarSearch />
-          </div>
+        {/* Desktop Navigation */}
+        <motion.div
+          className="hidden h-10 items-center rounded-md border border-border bg-background px-1.5 lg:flex shrink-0"
+          role="navigation"
+        >
+          <nav className="flex items-center gap-1">
+            {navGroups.map((item) =>
+              item.dropdown ? (
+                <CinematicDropdown
+                  key={item.name}
+                  label={item.name}
+                  items={item.dropdown}
+                  footerLink={item.footerLink}
+                  isActive={location.pathname.includes(item.name.toLowerCase())}
+                />
+              ) : (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-sm font-medium transition",
+                    location.pathname === item.href
+                      ? "bg-muted/50 text-foreground"
+                      : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              )
+            )}
+          </nav>
+        </motion.div>
 
-          <ThemeToggle />
+        {/* Actions */}
+        <motion.div className="flex h-10 items-center gap-1 rounded-md border border-border bg-background px-1.5 shrink-0">
+          <NavbarSearch />
+          <ThemeTrigger progress={progress} />
 
           {user ? (
-            <UserMenuDesktop />
-          ) : (
-            <div className="hidden items-center gap-2 md:flex">
-              <Button size="sm" variant="ghost">
-                <Link to="/login">Login</Link>
-              </Button>
-              <Button size="sm">
-                <Link to="/signup">Create Account</Link>
-              </Button>
+            <div className="hidden md:flex items-center">
+              <UserAvatarDropdown user={user} logout={logout} />
             </div>
+          ) : (
+            <>
+            
+            <Link to="/signup" className="ml-1 hidden md:flex">
+              <Button size={"sm"}>
+                Get Started
+              </Button>
+            </Link>
+            </>
           )}
 
-          <PopoverMobileMenu />
-        </div>
-      </div>
-    </header>
+          <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+            <SheetTrigger >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="ml-1 h-8 w-8 shrink-0 rounded-md lg:hidden"
+                aria-label="Open menu"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 8.5h16" />
+                  <path d="M4 15.5h16" />
+                </svg>
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="top"
+              className="h-[100dvh] w-full overflow-y-auto border-none bg-background/95 pt-16 backdrop-blur-md"
+              aria-describedby="menu-description"
+            >
+              <div className="sr-only"><SheetTitle>Menu</SheetTitle></div>
+              <div className="flex flex-col items-center gap-6 px-6 pb-20" id="menu-description">
+                <div className="flex w-full max-w-sm flex-col items-center gap-2">
+                  {navGroups.map((group) => (
+                    <div key={group.name} className="flex w-full flex-col items-center gap-2">
+                      {group.dropdown ? (
+                        <>
+                          <div className="mb-2 mt-4 text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                            {group.name}
+                          </div>
+                          {group.dropdown.map((item) => (
+                            <Link
+                              key={item.name}
+                              to={item.href}
+                              className="w-full rounded-xl py-2 text-center text-xl font-medium transition-colors hover:bg-muted/50"
+                            >
+                              {item.name}
+                            </Link>
+                          ))}
+                          {group.footerLink && (
+                            <Link
+                              to={group.footerLink.href}
+                              className="w-full rounded-xl py-2 text-center text-lg font-medium text-blue-500 transition-colors hover:bg-blue-500/10"
+                            >
+                              {group.footerLink.name}
+                            </Link>
+                          )}
+                        </>
+                      ) : (
+                        <Link
+                          to={group.href}
+                          className="w-full rounded-xl py-2 text-center text-xl font-medium transition-colors hover:bg-muted/50"
+                        >
+                          {group.name}
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                  <div className="my-4 h-px w-12 bg-border" />
+                  <Link
+                    to="/search"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl py-2 text-center text-xl font-medium transition-colors hover:bg-muted/50"
+                  >
+                    <Search className="h-5 w-5" /> Search
+                  </Link>
+                </div>
+
+                {user ? (
+                  <div className="mt-4 flex w-full max-w-sm flex-col gap-3">
+                    <Link to={dashboardPath} className="w-full">
+                      <Button className="w-full">
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="destructive"
+                     
+                      onClick={() => logout()}
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                ) : (
+                  <Link to="/login" className="mt-4 w-full max-w-sm">
+                    <Button >
+                      Sign in
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 }
