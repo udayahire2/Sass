@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const studyMaterialRoutes = require('./routes/studyMaterials');
+const examIntelligenceRoutes = require('./routes/examIntelligence');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/study_mater
 
 // Routes
 app.use('/api/materials', studyMaterialRoutes);
+app.use('/api/exam-intelligence', examIntelligenceRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');
