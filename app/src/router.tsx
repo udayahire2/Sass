@@ -44,6 +44,7 @@ import FeedbackManagerPage from "./pages/admin/FeedbackManagerPage";
 import SearchPage from "./pages/SearchPage";
 import NotesPage from "./pages/NotesPage";
 import TopicEditorPage from "./pages/admin/TopicEditorPage";
+import ExamIntelligencePage from "./pages/admin/ExamIntelligencePage";
 
 import ErrorPage from "./pages/ErrorPage";
 
@@ -177,6 +178,10 @@ export const router = createBrowserRouter([
                     {
                         path: "resources",
                         element: <ResourceManagerPage />,
+                    },
+                    {
+                        path: "exam-intelligence",
+                        element: <ExamIntelligencePage />,
                     },
                     {
                         path: "imp-questions",
