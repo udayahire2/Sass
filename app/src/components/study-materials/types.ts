@@ -14,5 +14,7 @@ export interface StudyMaterial {
     isNew?: boolean;
     url?: string;
     content?: string;
+    topic?: string;
+    examPriority?: 'high' | 'medium' | 'regular';
     updatedAt?: string;
 }
