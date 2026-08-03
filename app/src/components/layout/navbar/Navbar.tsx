@@ -157,7 +157,8 @@ function NavbarSearch() {
 }
 
 // --- Cinematic Dropdown (simplified classes) ---
-function CinematicDropdown({
+
+export function CinematicDropdown({
   label,
   items,
   footerLink,
@@ -169,16 +170,25 @@ function CinematicDropdown({
   isActive: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
 
-  const handleEnter = () => { clearTimeout(timeout); setIsOpen(true); };
-  const handleLeave = () => { timeout = setTimeout(() => setIsOpen(false), 150); };
+  const handleEnter = () => {
+    clearTimeout(timeout);
+    setIsOpen(true);
+  };
+  const handleLeave = () => {
+    timeout = setTimeout(() => setIsOpen(false), 150);
+  };
 
   return (
-    <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <div
+      className="relative"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
       <button
         className={cn(
-          "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+          "group flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
           isActive || isOpen
             ? "bg-muted text-foreground"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -186,7 +196,14 @@ function CinematicDropdown({
       >
         {label}
         <ChevronDown
-          className={cn("h-3 w-3 transition-transform duration-300", isOpen && "rotate-180")}
+          className={cn(
+            "h-3 w-3 transition-transform duration-300",
+            isOpen && "rotate-180",
+            /* SVG color explicitly set here rather than inheriting */
+            isActive || isOpen
+              ? "text-foreground"
+              : "text-muted-foreground group-hover:text-foreground"
+          )}
         />
       </button>
       <AnimatePresence>
@@ -196,7 +213,7 @@ function CinematicDropdown({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.96 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute left-1/2 top-full -translate-x-1/2 pt-3 z-[60]"
+            className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-3"
           >
             <div className="min-w-[320px] overflow-hidden rounded-2xl border border-border/50 bg-background shadow-2xl backdrop-blur-xl">
               <div className="flex flex-col gap-1 p-2">
@@ -207,12 +224,17 @@ function CinematicDropdown({
                     onClick={() => setIsOpen(false)}
                     className="group flex items-start gap-3 rounded-xl p-2.5 transition-colors hover:bg-muted/50"
                   >
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg  bg-background transition-transform group-hover:scale-105">
-                      <item.icon className="h-4 w-4 text-foreground/70 group-hover:text-foreground" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background transition-transform group-hover:scale-105">
+                      {/* Color and transition explicitly applied to the SVG */}
+                      <item.icon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-foreground">{item.name}</span>
-                      <span className="text-xs text-muted-foreground">{item.description}</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {item.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.description}
+                      </span>
                     </div>
                   </Link>
                 ))}
@@ -226,10 +248,14 @@ function CinematicDropdown({
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/50 bg-background shadow-sm">
-                        <footerLink.icon className="h-3.5 w-3.5 text-foreground/70" />
+                        {/* Color explicitly applied to the SVG */}
+                        <footerLink.icon className="h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-foreground" />
                       </div>
-                      <span className="text-xs font-medium text-foreground">{footerLink.name}</span>
+                      <span className="text-xs font-medium text-foreground">
+                        {footerLink.name}
+                      </span>
                     </div>
+                    {/* Color explicitly applied to the SVG */}
                     <ArrowRight className="h-3.5 w-3.5 text-muted-foreground transition-all group-hover:translate-x-0.5 group-hover:text-foreground" />
                   </Link>
                 </div>
@@ -245,7 +271,7 @@ function CinematicDropdown({
 // --- User Avatar Dropdown (simplified) ---
 function UserAvatarDropdown({ user, logout }: { user: any; logout: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
 
   const handleEnter = () => { clearTimeout(timeout); setIsOpen(true); };
   const handleLeave = () => { timeout = setTimeout(() => setIsOpen(false), 150); };

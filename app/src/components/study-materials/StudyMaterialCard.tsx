@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DefaultAvatar } from "@/components/ui/DefaultAvatar";
 import { getIcon, getResourceColor } from "./utils";
 import type { StudyMaterial } from "./types";
+import { ExamPriorityBadge } from "./ExamPriorityBadge";
 
 interface StudyMaterialCardProps {
   resource: StudyMaterial;
@@ -24,7 +25,10 @@ function StudyMaterialCard({ resource, onView }: StudyMaterialCardProps) {
           <div className={`rounded-md border border-border/50 p-2 ${colors.text}`}>
             {getIcon(resource.type)}
           </div>
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1 items-center justify-end">
+            {resource.examPriority && (
+              <ExamPriorityBadge priority={resource.examPriority} size="sm" showDetails={false} />
+            )}
             <Badge variant="outline" className="rounded-md border-border/50 text-xs font-normal">
               {resource.type}
             </Badge>
