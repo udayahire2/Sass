@@ -105,8 +105,8 @@ export default function ResourceCollectionPage({
         }
       />
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-        <InputGroup className="w-full sm:max-w-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+        <InputGroup className="w-full shadow-sm sm:max-w-sm">
           <InputGroupAddon>
             <Search
               aria-hidden="true"
@@ -118,91 +118,144 @@ export default function ResourceCollectionPage({
             placeholder="Search title, subject, branch..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            className="text-base sm:text-sm" // Prevents iOS input zoom
           />
         </InputGroup>
-        <p className="text-sm text-muted-foreground">{filtered.length} items</p>
+        <p className="text-sm font-medium text-muted-foreground hidden sm:block">
+          {filtered.length} {filtered.length === 1 ? "item" : "items"}
+        </p>
       </div>
 
-      <Frame className="w-full">
-        <Table variant="card" className="min-w-190">
-          <TableHeader className="bg-muted/30">
-            <TableRow>
-              <TableHead className="w-90">Title</TableHead>
-              <TableHead>Subject</TableHead>
-              <TableHead>Branch / Semester</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead className="text-right">Open</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-48 text-center">
-                  <Loader2 className="mx-auto h-7 w-7 animate-spin text-muted-foreground" />
-                </TableCell>
-              </TableRow>
-            ) : resources.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="p-8">
-                  <EmptyState
-                    title={emptyTitle}
-                    description={emptyDescription}
-                    icon={FileText}
-                  />
-                </TableCell>
-              </TableRow>
-            ) : filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="p-8">
-                  <EmptyState
-                    title="No matching results"
-                    description="Try adjusting your search query."
-                    icon={Search}
-                  />
-                </TableCell>
-              </TableRow>
-            ) : (
-              filtered.map((resource) => (
-                <TableRow key={resource._id}>
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-md bg-muted p-2">
-                        {getTypeIcon(resource.type)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="truncate font-medium">
-                          {resource.title}
+      {loading ? (
+        <div className="flex min-h-[300px] items-center justify-center rounded-xl border border-border/50 bg-muted/20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : resources.length === 0 ? (
+        <EmptyState
+          title={emptyTitle}
+          description={emptyDescription}
+          icon={FileText}
+        />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          title="No matching results"
+          description="Try adjusting your search query."
+          icon={Search}
+        />
+      ) : (
+        <>
+          {/* MOBILE VIEW: Card Grid (Visible < 768px) */}
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            <p className="text-sm font-medium text-muted-foreground mb-1">
+              {filtered.length} {filtered.length === 1 ? "item" : "items"}
+            </p>
+            {filtered.map((resource) => (
+              <div 
+                key={resource._id} 
+                className="flex flex-col rounded-xl border border-border/50 bg-background p-4 shadow-sm transition-all hover:border-primary/30 hover:shadow-md"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/50 border border-border/50">
+                    {getTypeIcon(resource.type)}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <h4 className="line-clamp-2 text-sm font-semibold text-foreground leading-tight">
+                      {resource.title}
+                    </h4>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {resource.description}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="block text-muted-foreground mb-0.5">Subject</span>
+                    <span className="font-medium text-foreground truncate block">{resource.subject}</span>
+                  </div>
+                  <div>
+                    <span className="block text-muted-foreground mb-0.5">Branch/Sem</span>
+                    <span className="font-medium text-foreground truncate block">
+                      {resource.branch || "—"} {resource.semester ? `• ${resource.semester}` : ""}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-border/40 flex items-center justify-between gap-3">
+                  <span className="text-xs text-muted-foreground truncate">
+                    By {resource.author}
+                  </span>
+                  <Button asChild size="sm" className="shrink-0 rounded-lg">
+                    <a href={resource.url} target="_blank" rel="noreferrer">
+                      Open <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP VIEW: Data Table (Visible >= 768px) */}
+          <div className="hidden md:block">
+            <Frame className="w-full overflow-hidden">
+              <Table variant="card" className="min-w-[600px]">
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="w-[35%]">Title</TableHead>
+                    <TableHead className="w-[20%]">Subject</TableHead>
+                    <TableHead className="w-[20%]">Branch / Sem</TableHead>
+                    <TableHead className="w-[15%]">Author</TableHead>
+                    <TableHead className="w-[10%] text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((resource) => (
+                    <TableRow key={resource._id} className="group transition-colors hover:bg-muted/30">
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted/50 border border-border/50 transition-colors group-hover:bg-background">
+                            {getTypeIcon(resource.type)}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="truncate font-medium text-foreground">
+                              {resource.title}
+                            </div>
+                            <div className="line-clamp-1 text-xs text-muted-foreground mt-0.5">
+                              {resource.description}
+                            </div>
+                          </div>
                         </div>
-                        <div className="line-clamp-1 text-xs text-muted-foreground">
-                          {resource.description}
+                      </TableCell>
+                      <TableCell className="text-sm font-medium text-foreground/80">
+                        {resource.subject}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium text-foreground/80">{resource.branch || "—"}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {resource.semester || ""}
+                          </span>
                         </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{resource.subject}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      <span>{resource.branch || "—"}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {resource.semester || ""}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{resource.author}</TableCell>
-                  <TableCell className="text-right">
-                    <Button size="sm" variant="default">
-                      <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                      <a href={resource.url} target="_blank" rel="noreferrer">
-                        Open
-                      </a>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Frame>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {resource.author}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {/* asChild is used here to prevent invalid HTML (button wrapping an anchor) */}
+                        <Button asChild size="sm" variant="secondary" className="transition-all hover:bg-primary hover:text-primary-foreground">
+                          <a href={resource.url} target="_blank" rel="noreferrer">
+                            Open <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                          </a>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Frame>
+          </div>
+        </>
+      )}
     </PageContainer>
   );
 }
