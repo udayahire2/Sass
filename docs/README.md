@@ -19,6 +19,7 @@ This folder is the technical and product documentation source of truth for launc
 | 9 | [09-improvement-plan.md](./09-improvement-plan.md) | Current issues, flow problems, UI/UX gaps, backend limitations, security risks, and improvement plan. |
 | 10 | [10-production-readiness-launch-plan.md](./10-production-readiness-launch-plan.md) | Remaining work to launch NMU Study Hub to real users. |
 | 11 | [11-application-flow-diagrams.md](./11-application-flow-diagrams.md) | Mermaid flow diagrams for product, auth, upload, notes, admin, and deployment flows. |
+| 12 | [12-exam-pattern-intelligence.md](./12-exam-pattern-intelligence.md) | Exam-Pattern Intelligence workflow, formulas, database schema, and Mermaid diagrams. |
 
 ## Current Runtime Source Of Truth
 
