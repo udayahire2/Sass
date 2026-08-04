@@ -12,7 +12,7 @@ export default function HomePage() {
     <main className="relative flex min-h-screen w-full flex-col bg-background selection:bg-primary/20 selection:text-primary">
       {/* Very subtle background accent – Notion uses almost none */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-[40%] left-1/2 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-primary/5 opacity-30 blur-[120px]" />
+        <div className="absolute top-[40%] left-1/2 h-150 w-200 -translate-x-1/2 rounded-full bg-primary/5 opacity-30 blur-[120px]" />
       </div>
 
       {/* Sections – each with consistent vertical spacing */}

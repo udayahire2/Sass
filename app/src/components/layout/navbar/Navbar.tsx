@@ -61,9 +61,10 @@ const ThemeTrigger = ({ progress }: { progress?: any }) => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const playSound = useSound(AUDIO_FILE_PATH);
-  const scrollRotation = useTransform(progress || 0, [0, 1], [0, 45]);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return (
@@ -77,53 +78,49 @@ const ThemeTrigger = ({ progress }: { progress?: any }) => {
   }
 
   const isDark = theme === "dark";
+
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={() => { playSound(); setTheme(isDark ? "light" : "dark"); }}
+      onClick={() => {
+        playSound();
+        setTheme(isDark ? "light" : "dark");
+      }}
       className="icon-btn group"
       aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
     >
       <div className="relative flex h-full w-full items-center justify-center">
-        <svg
+        <motion.svg
           width="20"
           height="20"
-          viewBox="0 0 24 24"
+          viewBox="0 0 18 18"
           fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          xmlns="http://www.w3.org/2000/svg"
           className="text-foreground"
-          aria-hidden="true"
+          
         >
-          <motion.circle
-            cx="12"
-            cy="12"
-            initial={false}
-            animate={{ r: isDark ? 9 : 5 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          <path
+            d="M5 9C5 6.7909 6.79084 5 9 5V13C6.79084 13 5 11.2091 5 9Z"
+            fill="currentColor"
           />
-          <motion.g
-            initial={false}
-            animate={{
-              opacity: isDark ? 0 : 1,
-              rotate: isDark ? 90 : 0,
-              scale: isDark ? 0.5 : 1,
-            }}
-            style={{ originX: "12px", originY: "12px", rotate: scrollRotation }}
-            transition={{ duration: 0.2 }}
-          >
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-          </motion.g>
-        </svg>
-        <motion.div
-          className="absolute top-[30%] right-[30%] h-1.5 w-1.5 rounded-md bg-background"
-          initial={false}
-          animate={{ scale: isDark ? 1 : 0, opacity: isDark ? 0.4 : 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        />
+          <path
+            d="M1 9C1 4.58179 4.58168 1 9 1V5C6.79084 5 5 6.7909 5 9C5 11.2091 6.79084 13 9 13V17C4.58168 17 1 13.4182 1 9Z"
+            fill="currentColor"
+            fillOpacity="0.4"
+            className="text-muted-foreground"
+          />
+          <path
+            d="M13 9C13 6.7909 11.2092 5 9 5V13C11.2092 13 13 11.2091 13 9Z"
+            fill="currentColor"
+            fillOpacity="0.4"
+            className="text-muted-foreground"
+          />
+          <path
+            d="M17 9C17 4.58179 13.4183 1 9 1V5C11.2092 5 13 6.7909 13 9C13 11.2091 11.2092 13 9 13V17C13.4183 17 17 13.4182 17 9Z"
+            fill="currentColor"
+          />
+        </motion.svg>
       </div>
     </Button>
   );
@@ -400,7 +397,7 @@ export function Navbar() {
           backdropFilter: useMotionTemplate`blur(${blurValue}px)`,
          
         }}
-        className="pointer-events-auto flex max-w-5xl items-center bg-background  transition-colors"
+        className="pointer-events-auto flex max-w-5xl items-center   transition-colors"
         role="banner"
       >
         {/* Logo */}
