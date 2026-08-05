@@ -31,6 +31,8 @@ import {
   MessageSquare,
   HelpCircle,
   ArrowRight,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { useTheme } from "@/components/theme-provider";
@@ -56,7 +58,7 @@ const useSound = (url: string) => {
   return play;
 };
 
-// --- Theme Trigger (simplified classes) ---
+// --- Theme Trigger (Lucide dark/light mode icon) ---
 const ThemeTrigger = ({ progress }: { progress?: any }) => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -77,7 +79,10 @@ const ThemeTrigger = ({ progress }: { progress?: any }) => {
     );
   }
 
-  const isDark = theme === "dark";
+  const isDark =
+    theme === "dark" ||
+    (theme === "system" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
     <Button
@@ -91,36 +96,11 @@ const ThemeTrigger = ({ progress }: { progress?: any }) => {
       aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
     >
       <div className="relative flex h-full w-full items-center justify-center">
-        <motion.svg
-          width="20"
-          height="20"
-          viewBox="0 0 18 18"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="text-foreground"
-          
-        >
-          <path
-            d="M5 9C5 6.7909 6.79084 5 9 5V13C6.79084 13 5 11.2091 5 9Z"
-            fill="currentColor"
-          />
-          <path
-            d="M1 9C1 4.58179 4.58168 1 9 1V5C6.79084 5 5 6.7909 5 9C5 11.2091 6.79084 13 9 13V17C4.58168 17 1 13.4182 1 9Z"
-            fill="currentColor"
-            fillOpacity="0.4"
-            className="text-muted-foreground"
-          />
-          <path
-            d="M13 9C13 6.7909 11.2092 5 9 5V13C11.2092 13 13 11.2091 13 9Z"
-            fill="currentColor"
-            fillOpacity="0.4"
-            className="text-muted-foreground"
-          />
-          <path
-            d="M17 9C17 4.58179 13.4183 1 9 1V5C11.2092 5 13 6.7909 13 9C13 11.2091 11.2092 13 9 13V17C13.4183 17 17 13.4182 17 9Z"
-            fill="currentColor"
-          />
-        </motion.svg>
+        {isDark ? (
+          <Sun className="h-4 w-4 " strokeWidth={2} />
+        ) : (
+          <Moon className="h-4 w-4 " strokeWidth={2} />
+        )}
       </div>
     </Button>
   );
@@ -188,7 +168,7 @@ export function CinematicDropdown({
           "group flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
           isActive || isOpen
             ? "bg-muted text-foreground"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground",
         )}
       >
         {label}
@@ -199,18 +179,18 @@ export function CinematicDropdown({
             /* SVG color explicitly set here rather than inheriting */
             isActive || isOpen
               ? "text-foreground"
-              : "text-muted-foreground group-hover:text-foreground"
+              : "text-muted-foreground group-hover:text-foreground",
           )}
         />
       </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 15, scale: 0.96 }}
+            initial={{ opacity: 0, y: 15, scale: 0.99 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.96 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute left-1/2 top-full z-[60] -translate-x-1/2 pt-3"
+            className="absolute left-1/2 top-full z-60 -translate-x-1/2 pt-3"
           >
             <div className="min-w-[320px] overflow-hidden rounded-2xl border border-border/50 bg-background shadow-2xl backdrop-blur-xl">
               <div className="flex flex-col gap-1 p-2">
@@ -266,25 +246,40 @@ export function CinematicDropdown({
 }
 
 // --- User Avatar Dropdown (simplified) ---
-function UserAvatarDropdown({ user, logout }: { user: any; logout: () => void }) {
+function UserAvatarDropdown({
+  user,
+  logout,
+}: {
+  user: any;
+  logout: () => void;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   let timeout: ReturnType<typeof setTimeout>;
 
-  const handleEnter = () => { clearTimeout(timeout); setIsOpen(true); };
-  const handleLeave = () => { timeout = setTimeout(() => setIsOpen(false), 150); };
+  const handleEnter = () => {
+    clearTimeout(timeout);
+    setIsOpen(true);
+  };
+  const handleLeave = () => {
+    timeout = setTimeout(() => setIsOpen(false), 150);
+  };
 
   return (
-    <div className="relative ml-2" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-      <button className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-muted/50 outline-none transition-transform hover:scale-105 active:scale-95">
+    <div
+      className="relative"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
+      <Button variant={"ghost"} className="rounded-md">
         {user?.avatar ? (
-          <Avatar className="h-full w-full">
+          <Avatar>
             <AvatarImage src={user.avatar} alt={user.name} />
             <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
           </Avatar>
         ) : (
-          <User className="h-4 w-4 text-foreground/70" />
+          <User />
         )}
-      </button>
+      </Button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -292,12 +287,16 @@ function UserAvatarDropdown({ user, logout }: { user: any; logout: () => void })
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.96 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 top-full pt-3 z-[60]"
+            className="absolute right-0 top-full pt-3 z-60"
           >
-            <div className="min-w-[220px] flex-col gap-1 rounded-2xl border border-border/50 bg-background/95 p-2 shadow-2xl backdrop-blur-xl">
+            <div className="min-w-55 flex-col gap-1 rounded-2xl border border-border/50 bg-background/95 p-2 shadow-2xl backdrop-blur-xl">
               <div className="mb-1 border-b border-border/50 px-3 py-2.5">
-                <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {user.name}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {user.email}
+                </p>
               </div>
               <Link
                 to={getDashboardPath(user)}
@@ -315,7 +314,10 @@ function UserAvatarDropdown({ user, logout }: { user: any; logout: () => void })
               </Link>
               <div className="my-1 h-px bg-border/50" />
               <button
-                onClick={() => { setIsOpen(false); logout(); }}
+                onClick={() => {
+                  setIsOpen(false);
+                  logout();
+                }}
                 className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
               >
                 <LogOut className="h-4 w-4" /> Log out
@@ -334,18 +336,52 @@ const navGroups = [
   {
     name: "Study",
     dropdown: [
-      { name: "Digital Library", href: "/study-stock", icon: Library, description: "Access textbooks & notes" },
-      { name: "Course Syllabus", href: "/syllabus", icon: Compass, description: "Explore course structures" },
-      { name: "Question Bank", href: "/study-material/imp-questions", icon: Sparkles, description: "High-yield exam questions" },
-      { name: "Past Papers", href: "/study-material/sample-papers", icon: FileText, description: "Previous years' papers" },
+      {
+        name: "Digital Library",
+        href: "/study-stock",
+        icon: Library,
+        description: "Access textbooks & notes",
+      },
+      {
+        name: "Course Syllabus",
+        href: "/syllabus",
+        icon: Compass,
+        description: "Explore course structures",
+      },
+      {
+        name: "Question Bank",
+        href: "/study-material/imp-questions",
+        icon: Sparkles,
+        description: "High-yield exam questions",
+      },
+      {
+        name: "Past Papers",
+        href: "/study-material/sample-papers",
+        icon: FileText,
+        description: "Previous years' papers",
+      },
     ],
-    footerLink: { name: "Browse All Resources", href: "/resources", icon: FolderOpen },
+    footerLink: {
+      name: "Browse All Resources",
+      href: "/resources",
+      icon: FolderOpen,
+    },
   },
   {
     name: "Support",
     dropdown: [
-      { name: "Give Feedback", href: "/feedback", icon: MessageSquare, description: "Suggest ideas or report issues" },
-      { name: "How to Use", href: "/how-to-use", icon: HelpCircle, description: "Platform walkthrough & FAQ" },
+      {
+        name: "Give Feedback",
+        href: "/feedback",
+        icon: MessageSquare,
+        description: "Suggest ideas or report issues",
+      },
+      {
+        name: "How to Use",
+        href: "/how-to-use",
+        icon: HelpCircle,
+        description: "Platform walkthrough & FAQ",
+      },
     ],
   },
 ];
@@ -368,10 +404,17 @@ export function Navbar() {
   const { user, logout } = useLocalAuth();
   const isDark = theme === "dark";
 
-  useEffect(() => { setIsMobileOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [location.pathname]);
 
   const scrollRaw = useTransform(scrollY, [0, 200], [0, 1]);
-  const scrollSpring = useSpring(scrollRaw, { stiffness: 280, damping: 32, mass: 1.2, restDelta: 0.001 });
+  const scrollSpring = useSpring(scrollRaw, {
+    stiffness: 280,
+    damping: 32,
+    mass: 1.2,
+    restDelta: 0.001,
+  });
   const progress = shouldReduceMotion ? scrollRaw : scrollSpring;
 
   const y = useTransform(progress, [0, 1], [-10, 0]);
@@ -379,7 +422,11 @@ export function Navbar() {
   const padding = useTransform(progress, [0.4, 1], ["0px", "6px"]);
   const bgOpacity = useTransform(progress, [0.4, 1], [0, 0.98]);
   const blurValue = useTransform(progress, [0.4, 1], [0, 12]);
-  const borderOpacity = useTransform(progress, [0, 1], [0.1, isDark ? 0.4 : 0.2]);
+  const borderOpacity = useTransform(
+    progress,
+    [0, 1],
+    [0.1, isDark ? 0.4 : 0.2],
+  );
 
   const containerBg = useMotionTemplate`oklch(from var(--background) l c h / ${bgOpacity})`;
   const containerBorder = useMotionTemplate`oklch(from var(--foreground) l c h / ${borderOpacity})`;
@@ -395,47 +442,26 @@ export function Navbar() {
           padding,
           background: containerBg,
           backdropFilter: useMotionTemplate`blur(${blurValue}px)`,
-         
         }}
-        className="pointer-events-auto flex max-w-5xl items-center   transition-colors"
+        className="pointer-events-auto flex max-w-5xl items-center transition-colors"
         role="banner"
       >
         {/* Logo */}
-        <motion.div
-          className=" relative flex h-10 cursor-pointer items-center overflow-hidden rounded-md  bg-transparent px-3 py-2 shrink-0"
-          onHoverStart={() => setIsLogoHovered(true)}
-          onHoverEnd={() => setIsLogoHovered(false)}
+        <div
+          className=" relative flex h-auto cursor-pointer items-center overflow-hidden rounded-md  bg-transparent px-3 py-2 shrink-0"
+          title="NMU STUDY HUB"
         >
           <Link to={dashboardPath} className="flex items-center gap-1 px-2">
-            <motion.div
-              animate={{ scale: isLogoHovered ? 1.05 : 1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="flex shrink-0 items-center justify-center"
-            >
-              <Logo showText={false} className="h-7 w-7 text-foreground [&_img]:h-full [&_img]:w-full" />
-            </motion.div>
-            <AnimatePresence initial={false}>
-              {isLogoHovered && (
-                <motion.div
-                  initial={{ width: 0, opacity: 0, x: -5 }}
-                  animate={{ width: "auto", opacity: 1, x: 0 }}
-                  exit={{ width: 0, opacity: 0, x: -5 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="overflow-hidden whitespace-nowrap"
-                >
-                  <div className="flex flex-col justify-center leading-none">
-                    <span className="ml-1.5 text-xs font-semibold text-foreground">NMU</span>
-                    <span className="ml-1.5 mt-0.5 text-[8px] font-bold uppercase tracking-wider text-muted-foreground">StudyHub</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <Logo
+              showText={false}
+              className="h-7 w-7 text-foreground [&_img]:h-full [&_img]:w-full"
+            />
           </Link>
-        </motion.div>
+        </div>
 
         {/* Desktop Navigation */}
         <motion.div
-          className="hidden h-10 items-center rounded-md border border-border bg-background px-1.5 lg:flex shrink-0"
+          className="hidden h-10 items-center rounded-lg  justify-between border-2 border-border bg-accent-soft py-2 px-0.5  lg:flex shrink-0"
           role="navigation"
         >
           <nav className="flex items-center gap-1">
@@ -449,25 +475,21 @@ export function Navbar() {
                   isActive={location.pathname.includes(item.name.toLowerCase())}
                 />
               ) : (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    "rounded-md px-3 py-1.5 text-sm font-medium transition",
-                    location.pathname === item.href
-                      ? "bg-muted/50 text-foreground"
-                      : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
-                  )}
+                <Button
+                  variant={"ghost"}
+                  className="bg-accent-hover/50 rounded-md"
                 >
-                  {item.name}
-                </Link>
-              )
+                  <Link key={item.name} to={item.href}>
+                    {item.name}
+                  </Link>
+                </Button>
+              ),
             )}
           </nav>
         </motion.div>
 
         {/* Actions */}
-        <motion.div className="flex h-10 items-center gap-1 rounded-md border border-border bg-background px-1.5 shrink-0">
+        <motion.div className="flex h-10  items-center  gap-1 rounded-lg border-2 border-border bg-background px-0.5 py-1 shrink-0">
           <NavbarSearch />
           <ThemeTrigger progress={progress} />
 
@@ -477,17 +499,14 @@ export function Navbar() {
             </div>
           ) : (
             <>
-            
-            <Link to="/signup" className="ml-1 hidden md:flex">
-              <Button size={"sm"}>
-                Get Started
-              </Button>
-            </Link>
+              <Link to="/signup" className="hidden md:flex">
+                <Button size={"sm"}>Get Started</Button>
+              </Link>
             </>
           )}
 
           <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-            <SheetTrigger >
+            <SheetTrigger>
               <Button
                 variant="ghost"
                 size="icon"
@@ -512,14 +531,22 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent
               side="top"
-              className="h-[100dvh] w-full overflow-y-auto border-none bg-background/95 pt-16 backdrop-blur-md"
+              className="h-dvh w-full overflow-y-auto border-none bg-background/95 pt-16 backdrop-blur-md"
               aria-describedby="menu-description"
             >
-              <div className="sr-only"><SheetTitle>Menu</SheetTitle></div>
-              <div className="flex flex-col items-center gap-6 px-6 pb-20" id="menu-description">
+              <div className="sr-only">
+                <SheetTitle>Menu</SheetTitle>
+              </div>
+              <div
+                className="flex flex-col items-center gap-6 px-6 pb-20"
+                id="menu-description"
+              >
                 <div className="flex w-full max-w-sm flex-col items-center gap-2">
                   {navGroups.map((group) => (
-                    <div key={group.name} className="flex w-full flex-col items-center gap-2">
+                    <div
+                      key={group.name}
+                      className="flex w-full flex-col items-center gap-2"
+                    >
                       {group.dropdown ? (
                         <>
                           <div className="mb-2 mt-4 text-sm font-bold uppercase tracking-wider text-muted-foreground">
@@ -565,23 +592,15 @@ export function Navbar() {
                 {user ? (
                   <div className="mt-4 flex w-full max-w-sm flex-col gap-3">
                     <Link to={dashboardPath} className="w-full">
-                      <Button className="w-full">
-                        Dashboard
-                      </Button>
+                      <Button className="w-full">Dashboard</Button>
                     </Link>
-                    <Button
-                      variant="destructive"
-                     
-                      onClick={() => logout()}
-                    >
+                    <Button variant="destructive" onClick={() => logout()}>
                       Logout
                     </Button>
                   </div>
                 ) : (
                   <Link to="/login" className="mt-4 w-full max-w-sm">
-                    <Button >
-                      Sign in
-                    </Button>
+                    <Button>Sign in</Button>
                   </Link>
                 )}
               </div>
