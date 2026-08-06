@@ -4,6 +4,7 @@ import {
   ChevronUp,
   Edit2,
   Files,
+  Home,
   LayoutDashboard,
   LogOut,
   UploadCloud,
@@ -38,6 +39,7 @@ export const STUDENT_NAV_SECTIONS = [
   {
     label: "Workspace",
     items: [
+      { icon: Home, label: "Main Homepage", path: "/" },
       { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard/student" },
       {
         icon: UploadCloud,

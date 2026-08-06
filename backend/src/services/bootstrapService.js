@@ -7,6 +7,64 @@ const { getDatabase } = require('../config/database');
 const { hashPassword } = require('../utils/authTokens');
 const { createTimestamps, get, run, splitName } = require('./dbService');
 
+function ensureSyllabusTable(db) {
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS syllabus (
+            id TEXT PRIMARY KEY,
+            subject_id TEXT,
+            title TEXT NOT NULL,
+            code TEXT NOT NULL DEFAULT '',
+            branch TEXT NOT NULL,
+            semester TEXT NOT NULL DEFAULT '',
+            academic_year TEXT,
+            type TEXT NOT NULL DEFAULT 'pdf',
+            credits INTEGER NOT NULL DEFAULT 0,
+            content_url TEXT NOT NULL DEFAULT '',
+            syllabus_type TEXT DEFAULT 'subject',
+            program TEXT,
+            subject_name TEXT,
+            subject_code TEXT,
+            semesters TEXT,
+            description TEXT,
+            topics TEXT,
+            learning_outcomes TEXT,
+            textbooks TEXT,
+            assessment_scheme TEXT,
+            references_list TEXT,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            deleted_at TEXT
+        );
+    `);
+
+    const tableInfo = db.prepare("PRAGMA table_info(syllabus)").all();
+    const existingColumns = new Set(tableInfo.map((col) => col.name));
+
+    const columnsToAdd = [
+        ['syllabus_type', "TEXT DEFAULT 'subject'"],
+        ['program', 'TEXT'],
+        ['subject_name', 'TEXT'],
+        ['subject_code', 'TEXT'],
+        ['semesters', 'TEXT'],
+        ['description', 'TEXT'],
+        ['topics', 'TEXT'],
+        ['learning_outcomes', 'TEXT'],
+        ['textbooks', 'TEXT'],
+        ['assessment_scheme', 'TEXT'],
+        ['references_list', 'TEXT'],
+    ];
+
+    for (const [colName, colDef] of columnsToAdd) {
+        if (!existingColumns.has(colName)) {
+            try {
+                db.exec(`ALTER TABLE syllabus ADD COLUMN ${colName} ${colDef};`);
+            } catch (e) {
+                // column may already exist
+            }
+        }
+    }
+}
+
 async function runMigrations() {
     const db = getDatabase();
     db.exec(`
@@ -16,6 +74,8 @@ async function runMigrations() {
             created_at TEXT NOT NULL
         );
     `);
+
+    ensureSyllabusTable(db);
 
     const migrationsDir = path.join(__dirname, '../../migrations');
     const files = fs

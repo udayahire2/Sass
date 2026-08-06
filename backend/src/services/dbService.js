@@ -200,17 +200,73 @@ function formatSyllabus(row) {
         return null;
     }
 
+    let semesters = [];
+    if (row.semesters) {
+        try {
+            semesters = typeof row.semesters === 'string' ? JSON.parse(row.semesters) : row.semesters;
+        } catch (e) {
+            semesters = row.semesters.split(',').map((s) => s.trim());
+        }
+    }
+
+    let topics = [];
+    if (row.topics) {
+        try {
+            topics = typeof row.topics === 'string' ? JSON.parse(row.topics) : row.topics;
+        } catch (e) {
+            topics = row.topics;
+        }
+    }
+
+    let learningOutcomes = [];
+    if (row.learning_outcomes) {
+        try {
+            learningOutcomes = typeof row.learning_outcomes === 'string' ? JSON.parse(row.learning_outcomes) : row.learning_outcomes;
+        } catch (e) {
+            learningOutcomes = row.learning_outcomes;
+        }
+    }
+
+    let textbooks = [];
+    if (row.textbooks) {
+        try {
+            textbooks = typeof row.textbooks === 'string' ? JSON.parse(row.textbooks) : row.textbooks;
+        } catch (e) {
+            textbooks = row.textbooks;
+        }
+    }
+
+    let assessmentScheme = null;
+    if (row.assessment_scheme) {
+        try {
+            assessmentScheme = typeof row.assessment_scheme === 'string' ? JSON.parse(row.assessment_scheme) : row.assessment_scheme;
+        } catch (e) {
+            assessmentScheme = row.assessment_scheme;
+        }
+    }
+
     return {
         _id: row.id,
         id: row.id,
+        syllabusType: row.syllabus_type || 'subject',
+        type: row.type || 'pdf',
         title: row.title,
-        code: row.code,
-        branch: row.branch,
-        semester: row.semester,
-        year: row.academic_year,
-        type: row.type,
-        credits: row.credits,
+        code: row.subject_code || row.code || '',
+        subjectCode: row.subject_code || row.code || '',
+        subjectName: row.subject_name || row.title,
+        program: row.program || row.branch,
+        branch: row.branch || row.program,
+        semester: row.semester || '',
+        semesters: semesters,
+        year: row.academic_year || '',
+        academicYear: row.academic_year || '',
+        credits: row.credits || 0,
         contentUrl: row.content_url,
+        description: row.description || '',
+        topics: topics,
+        learningOutcomes: learningOutcomes,
+        textbooks: textbooks,
+        assessmentScheme: assessmentScheme,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
     };

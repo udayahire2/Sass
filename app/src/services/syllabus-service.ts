@@ -5,14 +5,25 @@ const API_URL = buildApiUrl('/syllabus');
 export interface SyllabusItem {
     id?: string;
     _id?: string;
+    syllabusType?: 'program' | 'subject';
     title: string;
-    code: string;
+    code?: string;
+    subjectCode?: string;
+    subjectName?: string;
+    program?: string;
     branch: string;
-    semester: string;
+    semester?: string;
+    semesters?: (string | number)[];
     year?: string | null;
+    academicYear?: string | null;
     type: 'pdf' | 'markdown';
-    credits: number;
+    credits?: number;
     contentUrl: string;
+    description?: string;
+    topics?: any[];
+    learningOutcomes?: any[];
+    textbooks?: any[];
+    assessmentScheme?: any;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -33,7 +44,7 @@ export const fetchSyllabus = async (): Promise<SyllabusItem[]> => {
 };
 
 export const createSyllabus = async (
-    data: FormData | Omit<SyllabusItem, 'id' | '_id' | 'createdAt' | 'updatedAt'>
+    data: FormData | (Partial<SyllabusItem> & { sourceMode?: 'upload' | 'link'; courseCode?: string })
 ): Promise<SyllabusItem | null> => {
     try {
         const isFormData = data instanceof FormData;
@@ -49,13 +60,14 @@ export const createSyllabus = async (
         });
         const payload = await response.json();
         if (!response.ok || payload.success === false) {
-            throw new Error(getErrorMessage(payload, 'Failed to create syllabus'));
+            const errorMsg = getErrorMessage(payload, 'Failed to create syllabus');
+            throw new Error(errorMsg);
         }
 
         return parseApiData<SyllabusItem | null>(payload, null);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating syllabus:', error);
-        return null;
+        throw error;
     }
 };
 

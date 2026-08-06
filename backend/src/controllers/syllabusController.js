@@ -38,31 +38,99 @@ exports.createSyllabus = async (req, res, next) => {
     try {
         const timestamps = createTimestamps();
         const syllabusId = crypto.randomUUID();
-        const subjectId = req.body.semester
+
+        const syllabusType = req.body.syllabusType || req.body.typeMode || (req.body.semesters ? 'program' : 'subject');
+        const programName = req.body.program || req.body.branch || 'General';
+        const title = req.body.title || req.body.subjectName || `${programName} Syllabus`;
+        const code = req.body.code || req.body.subjectCode || req.body.courseCode || '';
+        const semester = req.body.semester ? String(req.body.semester) : '';
+        const year = req.body.year || req.body.academicYear || '';
+        const contentType = req.body.type || 'pdf';
+        const contentUrl = req.body.contentUrl || '';
+        const description = req.body.description || '';
+
+        let semestersJson = null;
+        if (req.body.semesters) {
+            semestersJson = typeof req.body.semesters === 'string'
+                ? req.body.semesters
+                : JSON.stringify(req.body.semesters);
+        }
+
+        let topicsJson = null;
+        if (req.body.topics) {
+            topicsJson = typeof req.body.topics === 'string'
+                ? req.body.topics
+                : JSON.stringify(req.body.topics);
+        }
+
+        let learningOutcomesJson = null;
+        if (req.body.learningOutcomes) {
+            learningOutcomesJson = typeof req.body.learningOutcomes === 'string'
+                ? req.body.learningOutcomes
+                : JSON.stringify(req.body.learningOutcomes);
+        }
+
+        let textbooksJson = null;
+        if (req.body.textbooks) {
+            textbooksJson = typeof req.body.textbooks === 'string'
+                ? req.body.textbooks
+                : JSON.stringify(req.body.textbooks);
+        }
+
+        let assessmentSchemeJson = null;
+        if (req.body.assessmentScheme) {
+            assessmentSchemeJson = typeof req.body.assessmentScheme === 'string'
+                ? req.body.assessmentScheme
+                : JSON.stringify(req.body.assessmentScheme);
+        }
+
+        let referencesJson = null;
+        if (req.body.references) {
+            referencesJson = typeof req.body.references === 'string'
+                ? req.body.references
+                : JSON.stringify(req.body.references);
+        }
+
+        const subjectId = (syllabusType === 'subject' && semester && code)
             ? ensureSubject({
-                branch: req.body.branch,
-                code: req.body.code,
-                credits: 0,
-                semester: req.body.semester,
-                title: req.body.title,
+                branch: programName,
+                code,
+                credits: Number(req.body.credits || 0),
+                semester,
+                title,
+                description,
             })
             : null;
 
         run(
             `INSERT INTO syllabus (
-                id, subject_id, title, code, branch, semester, academic_year, type, credits, content_url, created_at, updated_at, deleted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+                id, subject_id, title, code, branch, semester, academic_year, type, credits, content_url,
+                syllabus_type, program, subject_name, subject_code, semesters, description,
+                topics, learning_outcomes, textbooks, assessment_scheme, references_list,
+                created_at, updated_at, deleted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
             [
                 syllabusId,
                 subjectId,
-                req.body.title,
-                req.body.code,
-                req.body.branch,
-                req.body.semester ?? '',
-                req.body.year ?? null,
-                req.body.type,
-                0,
-                req.body.contentUrl,
+                title,
+                code,
+                programName,
+                semester,
+                year,
+                contentType,
+                Number(req.body.credits || 0),
+                contentUrl,
+                syllabusType,
+                programName,
+                req.body.subjectName || title,
+                code,
+                semestersJson,
+                description,
+                topicsJson,
+                learningOutcomesJson,
+                textbooksJson,
+                assessmentSchemeJson,
+                referencesJson,
                 timestamps.createdAt,
                 timestamps.updatedAt,
             ]
@@ -71,10 +139,11 @@ exports.createSyllabus = async (req, res, next) => {
         const syllabus = formatSyllabus(getSyllabusRow(syllabusId));
         return sendSuccess(res, {
             statusCode: 201,
-            message: 'Syllabus created successfully',
+            message: `${syllabusType === 'program' ? 'Program-level' : 'Subject-level'} syllabus created successfully`,
             data: syllabus,
         });
     } catch (error) {
+        console.error('Error creating syllabus in controller:', error);
         return next(error);
     }
 };

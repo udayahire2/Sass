@@ -68,29 +68,83 @@ const updatePreferencesSchema = z.object({
 });
 
 const createSyllabusSchema = z.object({
-    title: trimmedString(2, 'Title'),
-    code: trimmedString(2, 'Code'),
-    branch: branchEnum,
-    semester: z.string().trim().regex(/^[1-8]$/, 'Semester must be between 1 and 8').optional(),
-    year: z.string().trim().regex(/^[1-4]$/, 'Year must be between 1 and 4').optional(),
-    type: syllabusTypeEnum,
+    syllabusType: z.enum(['program', 'subject']).optional().default('subject'),
+    title: z.string().trim().optional(),
+    subjectName: z.string().trim().optional(),
+    code: z.string().trim().optional(),
+    subjectCode: z.string().trim().optional(),
+    courseCode: z.string().trim().optional(),
+    branch: z.string().trim().optional(),
+    program: z.string().trim().optional(),
+    semester: z.string().trim().optional(),
+    semesters: z.any().optional(),
+    year: z.string().trim().optional(),
+    academicYear: z.string().trim().optional(),
+    type: syllabusTypeEnum.optional().default('pdf'),
     contentUrl: z.string().trim().optional(),
     sourceMode: z.enum(['upload', 'link']).optional(),
+    description: z.string().trim().optional(),
+    topics: z.any().optional(),
+    learningOutcomes: z.any().optional(),
+    textbooks: z.any().optional(),
+    assessmentScheme: z.any().optional(),
+    references: z.any().optional(),
 }).superRefine((data, ctx) => {
-    if (!data.semester && !data.year) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Select either a semester or a year',
-            path: ['semester'],
-        });
-    }
+    const isProgramMode = data.syllabusType === 'program';
 
-    if (data.semester && data.year) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Select semester or year, not both',
-            path: ['year'],
-        });
+    if (isProgramMode) {
+        const programName = data.program || data.branch;
+        if (!programName) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Missing program for program-level syllabus',
+                path: ['program'],
+            });
+        }
+
+        const yearValue = data.year || data.academicYear;
+        if (!yearValue) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Missing year for program-level syllabus',
+                path: ['year'],
+            });
+        }
+    } else {
+        const subjName = data.subjectName || data.title;
+        if (!subjName) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Missing subjectName for subject-level syllabus',
+                path: ['subjectName'],
+            });
+        }
+
+        const subjCode = data.subjectCode || data.code || data.courseCode;
+        if (!subjCode) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Missing subjectCode for subject-level syllabus',
+                path: ['subjectCode'],
+            });
+        }
+
+        if (!data.semester) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Missing semester for subject-level syllabus',
+                path: ['semester'],
+            });
+        }
+
+        const programName = data.program || data.branch;
+        if (!programName) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Missing program for subject-level syllabus',
+                path: ['program'],
+            });
+        }
     }
 });
 

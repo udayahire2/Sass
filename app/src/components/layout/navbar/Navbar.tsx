@@ -270,16 +270,17 @@ function UserAvatarDropdown({
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
-      <Button variant={"ghost"} className="rounded-md">
+      {/* Added explicit size constraints to ensure proper layout on mobile */}
+      <button className="flex h-8 w-8 items-center justify-center rounded-md">
         {user?.avatar ? (
-          <Avatar>
+          <Avatar className="h-7 w-7">
             <AvatarImage src={user.avatar} alt={user.name} />
             <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
           </Avatar>
         ) : (
-          <User />
+          <User className="h-4 w-4" />
         )}
-      </Button>
+      </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -475,10 +476,7 @@ export function Navbar() {
                   isActive={location.pathname.includes(item.name.toLowerCase())}
                 />
               ) : (
-                <Button
-                  variant={"ghost"}
-                  className="bg-accent-hover/50 rounded-md"
-                >
+                <Button variant={"ghost"} className="bg-border rounded-md">
                   <Link key={item.name} to={item.href}>
                     {item.name}
                   </Link>
@@ -492,18 +490,6 @@ export function Navbar() {
         <motion.div className="flex h-10  items-center  gap-1 rounded-lg border-2 border-border bg-background px-0.5 py-1 shrink-0">
           <NavbarSearch />
           <ThemeTrigger progress={progress} />
-
-          {user ? (
-            <div className="hidden md:flex items-center">
-              <UserAvatarDropdown user={user} logout={logout} />
-            </div>
-          ) : (
-            <>
-              <Link to="/signup" className="hidden md:flex">
-                <Button size={"sm"}>Get Started</Button>
-              </Link>
-            </>
-          )}
 
           <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
             <SheetTrigger>
@@ -607,6 +593,21 @@ export function Navbar() {
             </SheetContent>
           </Sheet>
         </motion.div>
+
+        <div className="flex h-10  items-center  gap-1 rounded-full hover border-2 border-border bg-background px-0.5 py-1 shrink-0">
+          {user ? (
+            // Removed hidden md:flex to allow the avatar to be displayed on mobile screens
+            <div className="flex items-center">
+              <UserAvatarDropdown user={user} logout={logout} />
+            </div>
+          ) : (
+            <>
+              <Link to="/signup" className="hidden md:flex">
+                <Button size={"sm"}>Get Started</Button>
+              </Link>
+            </>
+          )}
+        </div>
       </motion.div>
     </div>
   );
