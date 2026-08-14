@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Plus, Trash2, Save, Loader2, Video, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateTopic, type Topic } from '@/services/api';
@@ -143,8 +144,8 @@ export const TopicContentForm: React.FC<TopicContentFormProps> = ({ topic, onSav
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+          <Button onClick={handleSave} loading={isSaving}>
+            <Save className="mr-2 h-4 w-4" />
             Save Content
           </Button>
         </div>
@@ -157,42 +158,43 @@ export const TopicContentForm: React.FC<TopicContentFormProps> = ({ topic, onSav
         <section className="space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b pb-2">Basic Information</h3>
           
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Topic Title</label>
+          <Field>
+            <FieldLabel>Topic Title</FieldLabel>
             <Input value={title} onChange={e => setTitle(e.target.value)} />
-          </div>
+          </Field>
           
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Short Description</label>
+          <Field>
+            <FieldLabel>Short Description</FieldLabel>
             <Textarea 
               value={description} 
               onChange={e => setDescription(e.target.value)} 
               placeholder="Brief summary of what this topic covers..."
               rows={2}
             />
-          </div>
+          </Field>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Estimated Time
-              </label>
+            <Field>
+              <FieldLabel className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground" /> Estimated Time
+              </FieldLabel>
               <Input 
                 value={estimatedTime} 
                 onChange={e => setEstimatedTime(e.target.value)} 
                 placeholder="e.g. 15 mins"
               />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Video className="w-4 h-4" /> Video URL (Optional)
-              </label>
+            </Field>
+            
+            <Field>
+              <FieldLabel className="flex items-center gap-2">
+                <Video className="w-4 h-4 text-muted-foreground" /> Video URL (Optional)
+              </FieldLabel>
               <Input 
                 value={videoUrl} 
                 onChange={e => setVideoUrl(e.target.value)} 
                 placeholder="YouTube URL..."
               />
-            </div>
+            </Field>
           </div>
         </section>
 
@@ -200,35 +202,35 @@ export const TopicContentForm: React.FC<TopicContentFormProps> = ({ topic, onSav
         <section className="space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground border-b pb-2">Introduction</h3>
           
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Overview</label>
+          <Field>
+            <FieldLabel>Overview</FieldLabel>
             <Textarea 
               value={intro.overview} 
               onChange={e => setIntro({...intro, overview: e.target.value})} 
               placeholder="Topic overview..."
               rows={3}
             />
-          </div>
+          </Field>
           
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Learning Objectives</label>
+          <Field>
+            <FieldLabel>Learning Objectives</FieldLabel>
             <Textarea 
               value={intro.objectives} 
               onChange={e => setIntro({...intro, objectives: e.target.value})} 
               placeholder="What will the student learn? (Markdown supported)"
               rows={3}
             />
-          </div>
+          </Field>
           
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Prerequisites</label>
+          <Field>
+            <FieldLabel>Prerequisites</FieldLabel>
             <Textarea 
               value={intro.prerequisites} 
               onChange={e => setIntro({...intro, prerequisites: e.target.value})} 
               placeholder="What should they know before this?"
               rows={2}
             />
-          </div>
+          </Field>
         </section>
 
         {/* Sections */}
@@ -242,65 +244,67 @@ export const TopicContentForm: React.FC<TopicContentFormProps> = ({ topic, onSav
 
           <div className="space-y-6">
             {sections.map((section, index) => (
-              <div key={index} className="p-4 border rounded-lg bg-muted/20 space-y-4 relative group">
+              <div key={index} className="p-4 border rounded-xl bg-muted/20 space-y-6 relative group">
                 <Button 
                   variant="destructive" 
                   size="icon" 
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => handleRemoveSection(index)}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
                 
-                <div className="grid gap-2 pr-10">
-                  <label className="text-sm font-medium">Section Title</label>
+                <Field className="pr-12">
+                  <FieldLabel>Section Title</FieldLabel>
                   <Input 
                     value={section.title} 
                     onChange={e => handleUpdateSection(index, 'title', e.target.value)} 
                     placeholder="e.g. Setting up the environment"
                   />
-                </div>
+                </Field>
                 
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Content</label>
+                <Field>
+                  <FieldLabel>Content</FieldLabel>
                   <RichTextEditor 
                     content={section.content}
                     onChange={(val) => handleUpdateSection(index, 'content', val)}
                   />
-                </div>
+                </Field>
 
                 {/* Optional Callouts */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border/50">
-                  <div className="grid gap-2">
-                    <label className="text-xs font-medium text-blue-500">Info Note</label>
+                  <Field>
+                    <FieldLabel className="text-blue-500">Info Note</FieldLabel>
                     <Textarea 
                       className="text-xs min-h-[60px]"
                       value={section.notes || ''} 
                       onChange={e => handleUpdateSection(index, 'notes', e.target.value)} 
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-xs font-medium text-amber-500">Warning Note</label>
+                  </Field>
+                  
+                  <Field>
+                    <FieldLabel className="text-amber-500">Warning Note</FieldLabel>
                     <Textarea 
                       className="text-xs min-h-[60px]"
                       value={section.warning || ''} 
                       onChange={e => handleUpdateSection(index, 'warning', e.target.value)} 
                     />
-                  </div>
-                  <div className="grid gap-2">
-                    <label className="text-xs font-medium text-emerald-500">Pro Tip</label>
+                  </Field>
+                  
+                  <Field>
+                    <FieldLabel className="text-emerald-500">Pro Tip</FieldLabel>
                     <Textarea 
                       className="text-xs min-h-[60px]"
                       value={section.tips || ''} 
                       onChange={e => handleUpdateSection(index, 'tips', e.target.value)} 
                     />
-                  </div>
+                  </Field>
                 </div>
               </div>
             ))}
             
             {sections.length === 0 && (
-              <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground">
+              <div className="text-center p-8 border border-dashed rounded-xl text-muted-foreground bg-muted/30">
                 No sections added yet. Add sections to build your content.
               </div>
             )}
@@ -316,7 +320,7 @@ export const TopicContentForm: React.FC<TopicContentFormProps> = ({ topic, onSav
             </Button>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {summaryPoints.map((point, index) => (
               <div key={index} className="flex gap-2 items-start">
                 <div className="pt-2.5 px-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /></div>
@@ -324,6 +328,7 @@ export const TopicContentForm: React.FC<TopicContentFormProps> = ({ topic, onSav
                   value={point} 
                   onChange={e => handleUpdateSummaryPoint(index, e.target.value)} 
                   placeholder="Key takeaway..."
+                  className="flex-1"
                 />
                 <Button variant="ghost" size="icon" onClick={() => handleRemoveSummaryPoint(index)}>
                   <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
@@ -332,7 +337,7 @@ export const TopicContentForm: React.FC<TopicContentFormProps> = ({ topic, onSav
             ))}
             
             {summaryPoints.length === 0 && (
-              <div className="text-center p-8 border border-dashed rounded-lg text-muted-foreground text-sm">
+              <div className="text-center p-8 border border-dashed rounded-xl text-muted-foreground text-sm bg-muted/30">
                 Add key takeaways for students to revise quickly.
               </div>
             )}

@@ -1,17 +1,11 @@
 import { useRef, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { FileUp, FileText, FileCode, Link, Upload, X, Layers, BookOpen } from 'lucide-react';
+import { FileUp, FileText, FileCode, Link as LinkIcon, Upload, X, Layers, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
+import { Field, FieldLabel, FieldError, FieldDescription } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -227,56 +221,47 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
         }
     }
 
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Syllabus Type Scenario Toggle */}
-                <div className="space-y-2">
-                    <FormLabel className="text-sm font-semibold">Syllabus Mode / Level</FormLabel>
-                    <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/70 p-1 border border-border/60">
-                        <button
-                            type="button"
-                            onClick={() => handleSyllabusTypeChange('subject')}
-                            className={[
-                                'flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200',
-                                syllabusTypeMode === 'subject'
-                                    ? 'bg-background text-foreground shadow-xs ring-1 ring-border/60 font-semibold'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40',
-                            ].join(' ')}
-                        >
-                            <BookOpen className="h-4 w-4 text-primary" />
-                            <span>Subject-Level</span>
-                        </button>
+    const errors = Object.entries(form.formState.errors).reduce((acc, [key, err]) => {
+        if (err?.message) acc[key] = err.message;
+        return acc;
+    }, {} as Record<string, string>);
 
-                        <button
+    return (
+        <Form errors={errors} onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="flex flex-col gap-6">
+                {/* Syllabus Type Scenario Toggle */}
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold">Syllabus Mode / Level</label>
+                    <div className="flex gap-2 rounded-xl bg-muted/70 p-1 border border-border/60">
+                        <Button
                             type="button"
-                            onClick={() => handleSyllabusTypeChange('program')}
-                            className={[
-                                'flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-xs sm:text-sm font-medium transition-all duration-200',
-                                syllabusTypeMode === 'program'
-                                    ? 'bg-background text-foreground shadow-xs ring-1 ring-border/60 font-semibold'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40',
-                            ].join(' ')}
+                            variant={syllabusTypeMode === 'subject' ? 'default' : 'ghost'}
+                            onClick={() => handleSyllabusTypeChange('subject')}
+                            className="flex-1 shadow-none"
                         >
-                            <Layers className="h-4 w-4 text-primary" />
-                            <span>Program-Level</span>
-                        </button>
+                            <BookOpen className="h-4 w-4 mr-2" /> Subject-Level
+                        </Button>
+                        <Button
+                            type="button"
+                            variant={syllabusTypeMode === 'program' ? 'default' : 'ghost'}
+                            onClick={() => handleSyllabusTypeChange('program')}
+                            className="flex-1 shadow-none"
+                        >
+                            <Layers className="h-4 w-4 mr-2" /> Program-Level
+                        </Button>
                     </div>
                 </div>
 
-                {/* Program / Branch Selection */}
-                <FormField
+                <Controller
                     control={form.control}
                     name="program"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Program / Branch</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select program / branch" />
-                                    </SelectTrigger>
-                                </FormControl>
+                        <Field name="program">
+                            <FieldLabel>Program / Branch</FieldLabel>
+                            <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select program / branch" />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {branchOptions.map((branch) => (
                                         <SelectItem key={branch} value={branch}>
@@ -285,56 +270,37 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <FormMessage />
-                        </FormItem>
+                            <FieldError />
+                        </Field>
                     )}
                 />
 
-                {/* Scenario 1: Subject-Level Syllabus Fields */}
                 {syllabusTypeMode === 'subject' && (
                     <>
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <FormField
-                                control={form.control}
-                                name="subjectName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Subject Name *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. Data Structures" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="subjectCode"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Subject Code *</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. CS301" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <Field name="subjectName">
+                                <FieldLabel>Subject Name *</FieldLabel>
+                                <Input placeholder="e.g. Data Structures" {...form.register('subjectName')} />
+                                <FieldError />
+                            </Field>
+                            <Field name="subjectCode">
+                                <FieldLabel>Subject Code *</FieldLabel>
+                                <Input placeholder="e.g. CS301" {...form.register('subjectCode')} />
+                                <FieldError />
+                            </Field>
                         </div>
 
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <FormField
+                            <Controller
                                 control={form.control}
                                 name="semester"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Semester *</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select semester" />
-                                                </SelectTrigger>
-                                            </FormControl>
+                                    <Field name="semester">
+                                        <FieldLabel>Semester *</FieldLabel>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select semester" />
+                                            </SelectTrigger>
                                             <SelectContent>
                                                 {semesterOptions.map((sem) => (
                                                     <SelectItem key={sem} value={sem}>
@@ -343,22 +309,20 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormMessage />
-                                    </FormItem>
+                                        <FieldError />
+                                    </Field>
                                 )}
                             />
-                            <FormField
+                            <Controller
                                 control={form.control}
                                 name="year"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Year (Optional)</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select year" />
-                                                </SelectTrigger>
-                                            </FormControl>
+                                    <Field name="year">
+                                        <FieldLabel>Year (Optional)</FieldLabel>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select year" />
+                                            </SelectTrigger>
                                             <SelectContent>
                                                 {yearOptions.map((yr) => (
                                                     <SelectItem key={yr} value={yr}>
@@ -367,58 +331,39 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormMessage />
-                                    </FormItem>
+                                        <FieldError />
+                                    </Field>
                                 )}
                             />
                         </div>
                     </>
                 )}
 
-                {/* Scenario 2: Program-Level Syllabus Fields */}
                 {syllabusTypeMode === 'program' && (
                     <>
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <FormField
-                                control={form.control}
-                                name="title"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Bundle Title (Optional)</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. 1st Year Complete Syllabus" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="courseCode"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Course / Bundle Code (Optional)</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="e.g. COMP-Y1" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            <Field name="title">
+                                <FieldLabel>Bundle Title (Optional)</FieldLabel>
+                                <Input placeholder="e.g. 1st Year Complete Syllabus" {...form.register('title')} />
+                                <FieldError />
+                            </Field>
+                            <Field name="courseCode">
+                                <FieldLabel>Course / Bundle Code (Optional)</FieldLabel>
+                                <Input placeholder="e.g. COMP-Y1" {...form.register('courseCode')} />
+                                <FieldError />
+                            </Field>
                         </div>
 
-                        <FormField
+                        <Controller
                             control={form.control}
                             name="year"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Program Academic Year *</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select academic year" />
-                                            </SelectTrigger>
-                                        </FormControl>
+                                <Field name="year">
+                                    <FieldLabel>Program Academic Year *</FieldLabel>
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select academic year" />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             {yearOptions.map((yr) => (
                                                 <SelectItem key={yr} value={yr}>
@@ -427,195 +372,150 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
-                                </FormItem>
+                                    <FieldError />
+                                </Field>
                             )}
                         />
                     </>
                 )}
 
-                {/* Description */}
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Syllabus Summary / Description</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                    placeholder="Enter course description, learning outcomes, or syllabus details..."
-                                    className="min-h-20"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <Field name="description">
+                    <FieldLabel>Syllabus Summary / Description</FieldLabel>
+                    <Textarea
+                        placeholder="Enter course description, learning outcomes, or syllabus details..."
+                        className="min-h-20"
+                        {...form.register('description')}
+                    />
+                    <FieldError />
+                </Field>
 
-                {/* Content Type */}
-                <FormField
+                <Controller
                     control={form.control}
                     name="type"
                     render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Document Content Format</FormLabel>
+                        <Field name="type">
+                            <FieldLabel>Document Content Format</FieldLabel>
                             <Select
-                                onValueChange={(value) => {
-                                    field.onChange(value);
+                                value={field.value}
+                                onValueChange={(val) => {
+                                    field.onChange(val);
                                     handleFileChange(null);
                                 }}
-                                defaultValue={field.value}
                             >
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select format" />
-                                    </SelectTrigger>
-                                </FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select format" />
+                                </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="pdf">PDF Document (.pdf)</SelectItem>
                                     <SelectItem value="markdown">Markdown File (.md)</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <FormMessage />
-                        </FormItem>
+                            <FieldError />
+                        </Field>
                     )}
                 />
 
-                {/* Source Mode Tabs */}
-                <div className="space-y-4">
-                    <FormLabel className="text-sm font-medium">Content Source</FormLabel>
-                    <div className="flex gap-1 rounded-xl bg-muted/60 p-1 border border-border/50">
-                        <button
+                <div className="flex flex-col gap-3">
+                    <label className="text-sm font-medium">Content Source</label>
+                    <div className="flex gap-2 rounded-xl bg-secondary/50 p-1 border border-border">
+                        <Button
                             type="button"
+                            variant={sourceMode === 'upload' ? 'default' : 'ghost'}
                             onClick={() => handleSourceModeChange('upload')}
-                            className={[
-                                'flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
-                                sourceMode === 'upload'
-                                    ? 'bg-background text-foreground shadow-xs ring-1 ring-border/50'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50',
-                            ].join(' ')}
+                            className="flex-1 shadow-none"
                         >
-                            <Upload className="h-4 w-4" />
-                            Upload File
-                        </button>
-                        <button
+                            <Upload className="h-4 w-4 mr-2" /> Upload File
+                        </Button>
+                        <Button
                             type="button"
+                            variant={sourceMode === 'link' ? 'default' : 'ghost'}
                             onClick={() => handleSourceModeChange('link')}
-                            className={[
-                                'flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200',
-                                sourceMode === 'link'
-                                    ? 'bg-background text-foreground shadow-xs ring-1 ring-border/50'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50',
-                            ].join(' ')}
+                            className="flex-1 shadow-none"
                         >
-                            <Link className="h-4 w-4" />
-                            External Link
-                        </button>
+                            <LinkIcon className="h-4 w-4 mr-2" /> External Link
+                        </Button>
                     </div>
 
-                    {/* Upload File Panel */}
                     {sourceMode === 'upload' && (
-                        <FormField
-                            control={form.control}
-                            name="contentUrl"
-                            render={({ fieldState }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <div
-                                            className={[
-                                                'relative flex min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200',
-                                                isDragging
-                                                    ? 'border-primary bg-primary/5 scale-[1.01]'
-                                                    : uploadedFile
-                                                    ? 'border-green-500/60 bg-green-500/5'
-                                                    : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-accent/30',
-                                            ].join(' ')}
-                                            onClick={() => fileInputRef.current?.click()}
-                                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                                            onDragLeave={() => setIsDragging(false)}
-                                            onDrop={handleDrop}
-                                        >
-                                            <Input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept={acceptedExtensions}
-                                                className="hidden"
-                                                onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
-                                            />
-                                            {uploadedFile ? (
-                                                <>
-                                                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-500/10">
-                                                        {selectedType === 'pdf'
-                                                            ? <FileText className="h-6 w-6 text-green-600" />
-                                                            : <FileCode className="h-6 w-6 text-green-600" />}
-                                                    </div>
-                                                    <div className="min-w-0 text-center">
-                                                        <p className="text-sm font-medium text-foreground truncate max-w-[280px]">{uploadedFile.name}</p>
-                                                        <p className="text-xs text-muted-foreground mt-0.5">
-                                                            {(uploadedFile.size / 1024).toFixed(1)} KB
-                                                        </p>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}
-                                                        className="absolute top-2 right-2 p-1 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                                                        aria-label="Remove uploaded file"
-                                                    >
-                                                        <X className="h-4 w-4" />
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-                                                        <FileUp className="h-6 w-6 text-muted-foreground" />
-                                                    </div>
-                                                    <div className="text-center">
-                                                        <p className="text-sm font-medium text-foreground">
-                                                            {isDragging ? 'Drop file here' : 'Click to upload or drag & drop'}
-                                                        </p>
-                                                        <p className="text-xs text-muted-foreground mt-1">
-                                                            {selectedType === 'pdf' ? 'PDF files only' : 'Markdown / .md / .txt files'}
-                                                        </p>
-                                                    </div>
-                                                </>
-                                            )}
+                        <Field name="contentUrl">
+                            <div
+                                className={[
+                                    'relative flex min-h-[160px] cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all duration-200',
+                                    isDragging
+                                        ? 'border-primary bg-primary/5'
+                                        : uploadedFile
+                                        ? 'border-green-500/60 bg-green-500/5'
+                                        : 'border-input hover:bg-accent/50',
+                                ].join(' ')}
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                onDragLeave={() => setIsDragging(false)}
+                                onDrop={handleDrop}
+                            >
+                                <Input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept={acceptedExtensions}
+                                    className="hidden"
+                                    onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+                                />
+                                {uploadedFile ? (
+                                    <>
+                                        <div className="flex items-center justify-center h-12 w-12 rounded-full bg-green-500/10">
+                                            {selectedType === 'pdf'
+                                                ? <FileText className="h-6 w-6 text-green-600" />
+                                                : <FileCode className="h-6 w-6 text-green-600" />}
                                         </div>
-                                    </FormControl>
-                                    {fieldState.error && (
-                                        <p className="text-sm text-destructive">{fieldState.error.message}</p>
-                                    )}
-                                </FormItem>
-                            )}
-                        />
+                                        <div>
+                                            <p className="text-sm font-medium max-w-[280px] truncate">{uploadedFile.name}</p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {(uploadedFile.size / 1024).toFixed(1)} KB
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => { e.stopPropagation(); handleFileChange(null); }}
+                                            className="absolute top-2 right-2 p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                            aria-label="Remove uploaded file"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center justify-center h-12 w-12 rounded-full bg-muted">
+                                            <FileUp className="h-6 w-6 text-muted-foreground" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium">
+                                                {isDragging ? 'Drop file here' : 'Click to upload or drag & drop'}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                {selectedType === 'pdf' ? 'PDF files only' : 'Markdown / .md / .txt files'}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            <FieldError />
+                        </Field>
                     )}
 
-                    {/* External Link Panel */}
                     {sourceMode === 'link' && (
-                        <FormField
-                            control={form.control}
-                            name="contentUrl"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <div className="relative">
-                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                                            <Link className="h-4 w-4" />
-                                        </div>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="https://example.com/syllabus.pdf"
-                                                className="pl-9"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-1.5">
-                                        Paste a direct URL to the syllabus file.
-                                    </p>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <Field name="contentUrl">
+                            <div className="relative">
+                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="https://example.com/syllabus.pdf"
+                                    className="pl-9"
+                                    {...form.register('contentUrl')}
+                                />
+                            </div>
+                            <FieldDescription>
+                                Paste a direct URL to the syllabus file.
+                            </FieldDescription>
+                            <FieldError />
+                        </Field>
                     )}
                 </div>
 
@@ -625,10 +525,10 @@ export default function SyllabusForm({ onSuccess }: { onSuccess: () => void }) {
                     </p>
                 )}
 
-                <Button type="submit" className="w-full" size="lg" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? 'Saving...' : `Save ${syllabusTypeMode === 'program' ? 'Program' : 'Subject'} Syllabus`}
+                <Button type="submit" className="w-full" size="lg" loading={form.formState.isSubmitting}>
+                    {`Save ${syllabusTypeMode === 'program' ? 'Program' : 'Subject'} Syllabus`}
                 </Button>
-            </form>
+            </div>
         </Form>
     );
 }
