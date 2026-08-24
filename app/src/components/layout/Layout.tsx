@@ -39,7 +39,7 @@ export default function Layout({ children }: { children?: React.ReactNode }) {
   }
 
   return (
-    <ScrollArea className="h-screen w-screen pt-12" scrollbarGutter={false}>
+    <ScrollArea className="h-screen w-screen " scrollbarGutter={false}>
       {layoutContent}
     </ScrollArea>
   );
