@@ -14,9 +14,8 @@ body {
 }
 
 @theme inline {
-  --border: hsl(40 8% 90%);
-  --font-heading: "Averia Sans Libre", sans-serif;
-  --font-sans: "Inter", sans-serif;
+  --font-heading: "Geist", "Inter", sans-serif;
+  --font-sans: "Geist", "Inter", sans-serif;
   --font-mono: "Geist Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -155,104 +154,102 @@ body {
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --background: var(--color-white);
-  --foreground: var(--color-neutral-800);
+  --foreground: var(--color-zinc-950);
+  
   --card: var(--color-white);
-  --card-foreground: var(--color-neutral-800);
+  --card-foreground: var(--color-zinc-950);
+  
   --popover: var(--color-white);
-  --popover-foreground: var(--color-neutral-800);
-  --primary: var(--color-sky-600);
-  --primary-foreground: var(--color-neutral-50);
-  --secondary: --alpha(var(--color-black) / 4%);
-  --secondary-foreground: var(--color-neutral-800);
-  --muted: --alpha(var(--color-black) / 4%);
-  --muted-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-500) 90%,
-    var(--color-black)
-  );
-  --accent: --alpha(var(--color-black) / 4%);
-  --accent-foreground: var(--color-neutral-800);
+  --popover-foreground: var(--color-zinc-950);
+  
+  /* High contrast primary */
+  --primary: var(--color-zinc-900);
+  --primary-foreground: var(--color-zinc-50);
+  
+  --secondary: var(--color-zinc-100);
+  --secondary-foreground: var(--color-zinc-900);
+  
+  --muted: var(--color-zinc-100);
+  --muted-foreground: var(--color-zinc-500);
+  
+  --accent: var(--color-zinc-100);
+  --accent-foreground: var(--color-zinc-900);
+  
   --destructive: var(--color-red-500);
-  --destructive-foreground: var(--color-red-700);
+  --destructive-foreground: var(--color-zinc-50);
+  
   --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-700);
+  --info-foreground: var(--color-zinc-50);
+  
   --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-700);
+  --success-foreground: var(--color-zinc-50);
+  
   --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-700);
-  --border: --alpha(var(--color-black) / 8%);
-  --input: --alpha(var(--color-black) / 10%);
-  --ring: var(--color-neutral-400);
-  --sidebar: var(--color-neutral-50);
-  --sidebar-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-800) 64%,
-    var(--sidebar)
-  );
-  --sidebar-primary: var(--color-neutral-800);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: --alpha(var(--color-black) / 4%);
-  --sidebar-accent-foreground: var(--color-neutral-800);
-  --sidebar-border: --alpha(var(--color-black) / 6%);
-  --sidebar-ring: var(--color-neutral-400);
+  --warning-foreground: var(--color-zinc-950);
+  
+  --border: var(--color-zinc-200);
+  --input: var(--color-zinc-200);
+  --ring: var(--color-zinc-950);
+  
+  --sidebar: var(--color-zinc-50);
+  --sidebar-foreground: var(--color-zinc-900);
+  --sidebar-primary: var(--color-zinc-900);
+  --sidebar-primary-foreground: var(--color-zinc-50);
+  --sidebar-accent: var(--color-zinc-200);
+  --sidebar-accent-foreground: var(--color-zinc-900);
+  --sidebar-border: var(--color-zinc-200);
+  --sidebar-ring: var(--color-zinc-950);
 }
  
 .dark {
-  --background: color-mix(
-    in srgb,
-    var(--color-neutral-950) 95%,
-    var(--color-white)
-  );
-  --foreground: var(--color-neutral-100);
-  --card: color-mix(in srgb, var(--background) 98%, var(--color-white));
-  --card-foreground: var(--color-neutral-100);
-  --popover: color-mix(in srgb, var(--background) 98%, var(--color-white));
-  --popover-foreground: var(--color-neutral-100);
-  --primary: var(--color-sky-600);
-  --primary-foreground: var(--color-neutral-50);
-  --secondary: --alpha(var(--color-white) / 4%);
-  --secondary-foreground: var(--color-neutral-100);
-  --muted: --alpha(var(--color-white) / 4%);
-  --muted-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-500) 90%,
-    var(--color-white)
-  );
-  --accent: --alpha(var(--color-white) / 4%);
-  --accent-foreground: var(--color-neutral-100);
-  --destructive: color-mix(
-    in srgb,
-    var(--color-red-500) 90%,
-    var(--color-white)
-  );
-  --destructive-foreground: var(--color-red-400);
-  --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-400);
-  --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-400);
-  --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-400);
-  --border: --alpha(var(--color-white) / 6%);
-  --input: --alpha(var(--color-white) / 8%);
-  --ring: var(--color-neutral-500);
-  --sidebar: color-mix(
-    in srgb,
-    var(--color-neutral-950) 97%,
-    var(--color-white)
-  );
-  --sidebar-foreground: color-mix(
-    in srgb,
-    var(--color-neutral-100) 64%,
-    var(--sidebar)
-  );
-  --sidebar-primary: var(--color-neutral-100);
-  --sidebar-primary-foreground: var(--color-neutral-800);
-  --sidebar-accent: --alpha(var(--color-white) / 4%);
-  --sidebar-accent-foreground: var(--color-neutral-100);
-  --sidebar-border: --alpha(var(--color-white) / 5%);
-  --sidebar-ring: var(--color-neutral-400);
+  --background: var(--color-zinc-950);
+  --foreground: var(--color-zinc-50);
+  
+  --card: var(--color-zinc-900);
+  --card-foreground: var(--color-zinc-50);
+  
+  --popover: var(--color-zinc-900);
+  --popover-foreground: var(--color-zinc-50);
+  
+  /* High contrast primary */
+  --primary: var(--color-zinc-50);
+  --primary-foreground: var(--color-zinc-900);
+  
+  --secondary: var(--color-zinc-800);
+  --secondary-foreground: var(--color-zinc-50);
+  
+  --muted: var(--color-zinc-900);
+  --muted-foreground: var(--color-zinc-400);
+  
+  --accent: var(--color-zinc-800);
+  --accent-foreground: var(--color-zinc-50);
+  
+  --destructive: var(--color-red-900);
+  --destructive-foreground: var(--color-zinc-50);
+  
+  --info: var(--color-blue-900);
+  --info-foreground: var(--color-zinc-50);
+  
+  --success: var(--color-emerald-900);
+  --success-foreground: var(--color-zinc-50);
+  
+  --warning: var(--color-amber-900);
+  --warning-foreground: var(--color-zinc-50);
+  
+  --border: var(--color-zinc-800);
+  --input: var(--color-zinc-800);
+  --ring: var(--color-zinc-300);
+  
+  --sidebar: var(--color-zinc-950);
+  --sidebar-foreground: var(--color-zinc-200);
+  --sidebar-primary: var(--color-zinc-50);
+  --sidebar-primary-foreground: var(--color-zinc-900);
+  --sidebar-accent: var(--color-zinc-800);
+  --sidebar-accent-foreground: var(--color-zinc-50);
+  --sidebar-border: var(--color-zinc-800);
+  --sidebar-ring: var(--color-zinc-300);
 }
 
 /* The rest of the styles remain unchanged */
