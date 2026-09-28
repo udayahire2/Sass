@@ -1,0 +1,5 @@
+{
+  "registries": {
+    "@udayui": "https://udayui.vercel.app/r/{name}.json"
+  }
+}

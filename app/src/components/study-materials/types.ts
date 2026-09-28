@@ -15,6 +15,5 @@ export interface StudyMaterial {
     url?: string;
     content?: string;
     topic?: string;
-    examPriority?: 'high' | 'medium' | 'regular';
     updatedAt?: string;
 }

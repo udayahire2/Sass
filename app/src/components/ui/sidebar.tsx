@@ -67,20 +67,13 @@ export type SidebarContextProps = {
 export const SidebarContext: React.Context<SidebarContextProps | null> =
   React.createContext<SidebarContextProps | null>(null);
 
-const DEFAULT_SIDEBAR_CONTEXT: SidebarContextProps = {
-  state: "expanded",
-  open: true,
-  setOpen: () => undefined,
-  openMobile: false,
-  setOpenMobile: () => undefined,
-  isMobile: false,
-  toggleSidebar: () => undefined,
-};
-
 export function useSidebar(): SidebarContextProps {
   const context = React.useContext(SidebarContext);
+  if (!context) {
+    throw new Error("useSidebar must be used within a SidebarProvider.");
+  }
 
-  return context ?? DEFAULT_SIDEBAR_CONTEXT;
+  return context;
 }
 
 export function SidebarProvider({
@@ -419,13 +412,10 @@ export function SidebarContent({
   ...props
 }: React.ComponentProps<"div">): React.ReactElement {
   return (
-    <ScrollArea
-      className="**:data-[slot=scroll-area-scrollbar]:hidden"
-      scrollFade
-    >
+    <ScrollArea className="min-h-0 flex-1" fill overscrollContain scrollFade>
       <div
         className={cn(
-          "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+          "flex h-full flex-col gap-2 group-data-[collapsible=icon]:overflow-hidden",
           className,
         )}
         data-sidebar="content"

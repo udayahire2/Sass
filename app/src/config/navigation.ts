@@ -5,7 +5,6 @@ import {
   BookOpen,
   FileQuestion,
   Files,
-  Sparkles,
 } from "lucide-react";
 
 export const ROUTES = {
@@ -15,7 +14,6 @@ export const ROUTES = {
   ADMIN_SUBJECTS: "/admin/subjects",
   ADMIN_SYLLABUS: "/admin/syllabus",
   ADMIN_RESOURCES: "/admin/resources",
-  ADMIN_EXAM_INTELLIGENCE: "/admin/exam-intelligence",
   ADMIN_IMP_QUESTIONS: "/admin/imp-questions",
   ADMIN_SAMPLE_PAPERS: "/admin/sample-papers",
   ADMIN_FACULTY: "/admin/faculty",
@@ -37,7 +35,6 @@ export const ADMIN_NAV_SECTIONS = [
       { icon: BookOpen, label: "Curriculum", path: ROUTES.ADMIN_SUBJECTS },
       { icon: BookOpen, label: "Syllabus", path: ROUTES.ADMIN_SYLLABUS },
       { icon: BookOpen, label: "Resources", path: ROUTES.ADMIN_RESOURCES },
-      { icon: Sparkles, label: "Exam Intelligence", path: ROUTES.ADMIN_EXAM_INTELLIGENCE },
       { icon: FileQuestion, label: "IMP Questions", path: ROUTES.ADMIN_IMP_QUESTIONS },
       { icon: Files, label: "Sample Papers", path: ROUTES.ADMIN_SAMPLE_PAPERS },
       { icon: Users, label: "Faculty", path: ROUTES.ADMIN_FACULTY },

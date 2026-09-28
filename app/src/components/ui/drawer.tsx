@@ -119,7 +119,7 @@ export function DrawerViewport({
   return (
     <DrawerPrimitive.Viewport
       className={cn(
-        "fixed inset-0 z-50 [--bleed:--spacing(12)] [--inset:--spacing(0)]",
+        "fixed inset-0 z-50 [--bleed:--spacing(12)] [--inset:0px]",
         "touch-none",
         position === "bottom" && "grid grid-rows-[1fr_auto] pt-12",
         position === "top" && "grid grid-rows-[auto_1fr] pb-12",
@@ -339,7 +339,11 @@ export function DrawerPanel({
 
   if (scrollable) {
     return (
-      <ScrollArea className="touch-auto" scrollFade={scrollFade}>
+      <ScrollArea
+        className="touch-auto"
+        overscrollContain
+        scrollFade={scrollFade}
+      >
         {content}
       </ScrollArea>
     );
@@ -491,7 +495,7 @@ export function DrawerMenuTrigger({
   return (
     <DrawerTrigger
       className={cn(
-        "flex min-h-9 w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1 text-base text-foreground outline-none hover:bg-accent hover:text-accent-foreground sm:min-h-8 sm:text-sm [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "flex min-h-9 w-full cursor-default select-none items-center gap-2 rounded-sm px-2 py-1 text-base text-foreground outline-none hover:bg-accent hover:text-accent-foreground sm:min-h-8 sm:text-sm [&_svg:not(:last-child)]:-mx-0.5 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className,
       )}
       data-slot="drawer-menu-trigger"

@@ -16,42 +16,58 @@ export function Logo({ className, showText = true, ...props }: LogoProps) {
   useEffect(() => {
     if (!showText || !textRef.current || !containerRef.current) return;
 
-    gsap.set(textRef.current, {
-      opacity: 0,
-      x: -8,
-      visibility: "visible",
-    });
-
     const container = containerRef.current;
     const textEl = textRef.current;
     const iconEl = iconRef.current;
 
+    // Initial state: fully collapsed, no ghost gap or layout displacement
+    gsap.set(textEl, {
+      maxWidth: 0,
+      opacity: 0,
+      x: -6,
+      marginLeft: 0,
+      overflow: "hidden",
+    });
+
     const handleMouseEnter = () => {
+      const targetWidth = textEl.scrollWidth || 100;
       gsap.to(textEl, {
+        maxWidth: targetWidth,
         opacity: 1,
         x: 0,
-        duration: 0.4,
+        marginLeft: 10, // clean 10px (gap-2.5) spacing
+        duration: 0.35,
         ease: "power2.out",
+        overwrite: "auto",
       });
-      gsap.to(iconEl, {
-        scale: 1.05,
-        duration: 0.4,
-        ease: "power2.out",
-      });
+      if (iconEl) {
+        gsap.to(iconEl, {
+          scale: 1.05,
+          duration: 0.35,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+      }
     };
 
     const handleMouseLeave = () => {
       gsap.to(textEl, {
+        maxWidth: 0,
         opacity: 0,
-        x: -8,
-        duration: 0.3,
-        ease: "power2.in",
+        x: -6,
+        marginLeft: 0,
+        duration: 0.28,
+        ease: "power2.inOut",
+        overwrite: "auto",
       });
-      gsap.to(iconEl, {
-        scale: 1,
-        duration: 0.3,
-        ease: "power2.in",
-      });
+      if (iconEl) {
+        gsap.to(iconEl, {
+          scale: 1,
+          duration: 0.28,
+          ease: "power2.inOut",
+          overwrite: "auto",
+        });
+      }
     };
 
     container.addEventListener("mouseenter", handleMouseEnter);
@@ -67,7 +83,7 @@ export function Logo({ className, showText = true, ...props }: LogoProps) {
   return (
     <div
       ref={containerRef}
-      className={cn("flex items-center gap-6", className)} // increased gap from gap-4 to gap-6
+      className={cn("inline-flex items-center cursor-pointer select-none", className)}
       {...props}
     >
       {/* Logo Icon */}
@@ -93,12 +109,13 @@ export function Logo({ className, showText = true, ...props }: LogoProps) {
       {showText && (
         <div
           ref={textRef}
-          className="flex flex-col justify-center -space-y-1 will-change-transform"
+          className="flex flex-col justify-center -space-y-1 will-change-[max-width,opacity,margin] overflow-hidden whitespace-nowrap"
+          style={{ maxWidth: 0, opacity: 0, marginLeft: 0 }}
         >
-          <span className="text-[18px] font-extrabold leading-none tracking-tight text-foreground sm:text-xl">
+          <span className="text-[18px] font-extrabold leading-none tracking-tight text-foreground sm:text-xl whitespace-nowrap">
             NMU
           </span>
-          <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px]">
+          <span className="text-[10px] font-medium uppercase tracking-[0.08em] text-muted-foreground sm:text-[11px] whitespace-nowrap">
             StudyHub
           </span>
         </div>

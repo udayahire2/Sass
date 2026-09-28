@@ -3,8 +3,6 @@
 @import "@heroui/styles"; 
 @import "@fontsource-variable/inter";
 
-
-
 @plugin "tailwindcss-animate";
 @plugin "@tailwindcss/typography";
 
@@ -57,10 +55,9 @@ body {
   --color-logo-back: hsl(var(--logo-back));
   --color-logo-front: hsl(var(--logo-front));
   --animate-skeleton: skeleton 2s -1s infinite linear;
-
   @keyframes skeleton {
-    to {
-      background-position: -200% 0;
+  to {
+    background-position: -200% 0;
     }
   }
 
@@ -73,16 +70,12 @@ body {
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
-
   @keyframes caret-blink {
-    0%,
-    70%,
-    to {
-      opacity: 1;
+  0%, 70%, to {
+    opacity: 1;
     }
-    20%,
-    50% {
-      opacity: 0;
+  20%, 50% {
+    opacity: 0;
     }
   }
 
@@ -93,150 +86,173 @@ body {
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-toast-success-odd: toast-success-odd 0.32s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-success-even: toast-success-even 0.32s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-error-odd: toast-error-odd 0.28s cubic-bezier(0.5, 1, 0.89, 1);
+  --animate-toast-error-even: toast-error-even 0.28s cubic-bezier(0.5, 1, 0.89, 1);
+  @keyframes toast-success-odd {
+  0% {
+    scale: 1;
+    }
+  30% {
+    scale: 1.025;
+    }
+  60% {
+    scale: 0.99;
+    }
+  100% {
+    scale: 1;
+    }
+  }
+  @keyframes toast-error-odd {
+  0% {
+    translate: 0 0;
+    }
+  25% {
+    translate: -3px 0;
+    }
+  50% {
+    translate: 3px 0;
+    }
+  75% {
+    translate: -3px 0;
+    }
+  100% {
+    translate: 0 0;
+    }
+  }
+  @keyframes toast-success-even {
+  0% {
+    scale: 1;
+    }
+  30% {
+    scale: 1.025;
+    }
+  60% {
+    scale: 0.99;
+    }
+  100% {
+    scale: 1;
+    }
+  }
+  @keyframes toast-error-even {
+  0% {
+    translate: 0 0;
+    }
+  25% {
+    translate: -3px 0;
+    }
+  50% {
+    translate: 3px 0;
+    }
+  75% {
+    translate: -3px 0;
+    }
+  100% {
+    translate: 0 0;
+    }
+  }
 }
 
 :root {
-  color-scheme: light;
-  --radius: 0.75rem;
-
-  /* --- REPAIRED: defined missing tokens --- */
-  --color-neutral-50s: hsl(40, 5%, 98%);   /* very light warm off-white */
-  --color-neutral-900: hsl(0, 0%, 8%);    /* very dark (matches dark sidebar) */
-  --color-blue-500: hsl(221, 83%, 53%);   /* vivid blue (consistent with --info) */
-  --code-bg: var(--code);                 /* uses existing --code variable */
-
-  --background: var(--color-neutral-50s);
-  --foreground: hsl(40 8% 20%);
-
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(40 8% 20%);
-
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(40 8% 20%);
-
-  --primary: var(--color-blue-500);
-  --primary-foreground: hsl(0 0% 100%);
-
-  --secondary: hsl(40 10% 96%);
-  --secondary-foreground: hsl(40 8% 20%);
-
-  --muted: hsl(40 10% 95%);
-  --muted-foreground: hsl(40 3% 45%);
-
-  --accent: hsl(40 10% 95%);
-  --accent-foreground: hsl(40 8% 20%);
-
-  --destructive: hsl(0 72% 51%);
-  --destructive-foreground: hsl(0 0% 100%);
-
-  --success: hsl(142 71% 35%);
-  --success-foreground: hsl(0 0% 100%);
-
-  --warning: hsl(38 92% 40%);
-  --warning-foreground: hsl(0 0% 100%);
-
-  --info: hsl(221 83% 53%);
-  --info-foreground: hsl(0 0% 100%);
-
-  --border: hsl(40 8% 88%);
-  --input: hsl(40 8% 88%);
-  --ring: var(--color-blue-500);
-
-  /* Sidebar */
-  --sidebar: hsl(40 10% 97%);
-  --sidebar-foreground: hsl(40 8% 22%);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(40 10% 94%);
-  --sidebar-accent-foreground: hsl(40 8% 20%);
-  --sidebar-border: hsl(40 8% 88%);
-  --sidebar-ring: var(--color-blue-500);
-
-  /* Logo (light) – matched to primary blue */
-  --logo-back: 221 83% 53%;
-  --logo-front: 221 70% 45%;
-
-  /* Charts */
-  --chart-1: var(--color-blue-500);
-  --chart-2: hsl(142 71% 35%);
-  --chart-3: hsl(221 83% 53%);
-  --chart-4: hsl(38 92% 40%);
-  --chart-5: hsl(0 72% 51%);
-
-  /* Code */
-  --code: hsl(40 10% 95%);
-  --code-foreground: hsl(40 8% 20%);
-  --code-highlight: hsl(40 10% 92%);
+  --radius: 0.625rem;
+  --background: var(--color-white);
+  --foreground: var(--color-neutral-800);
+  --card: var(--color-white);
+  --card-foreground: var(--color-neutral-800);
+  --popover: var(--color-white);
+  --popover-foreground: var(--color-neutral-800);
+  --primary: var(--color-sky-600);
+  --primary-foreground: var(--color-neutral-50);
+  --secondary: --alpha(var(--color-black) / 4%);
+  --secondary-foreground: var(--color-neutral-800);
+  --muted: --alpha(var(--color-black) / 4%);
+  --muted-foreground: color-mix(
+    in srgb,
+    var(--color-neutral-500) 90%,
+    var(--color-black)
+  );
+  --accent: --alpha(var(--color-black) / 4%);
+  --accent-foreground: var(--color-neutral-800);
+  --destructive: var(--color-red-500);
+  --destructive-foreground: var(--color-red-700);
+  --info: var(--color-blue-500);
+  --info-foreground: var(--color-blue-700);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-700);
+  --warning: var(--color-amber-500);
+  --warning-foreground: var(--color-amber-700);
+  --border: --alpha(var(--color-black) / 8%);
+  --input: --alpha(var(--color-black) / 10%);
+  --ring: var(--color-neutral-400);
+  --sidebar: var(--color-neutral-50);
+  --sidebar-foreground: color-mix(
+    in srgb,
+    var(--color-neutral-800) 64%,
+    var(--sidebar)
+  );
+  --sidebar-primary: var(--color-neutral-800);
+  --sidebar-primary-foreground: var(--color-neutral-50);
+  --sidebar-accent: --alpha(var(--color-black) / 4%);
+  --sidebar-accent-foreground: var(--color-neutral-800);
+  --sidebar-border: --alpha(var(--color-black) / 6%);
+  --sidebar-ring: var(--color-neutral-400);
 }
-
+ 
 .dark {
-  color-scheme: dark;
-  /* ==========================================
-     NOTION INSPIRED DARK THEME (unchanged)
-     ========================================== */
-
-  --background: var(--color-neutral-900);
-  --foreground: hsl(0 0% 90%);
-
-  --card: hsl(0 0% 12%);
-  --card-foreground: hsl(0 0% 90%);
-
-  --popover: hsl(0 0% 12%);
-  --popover-foreground: hsl(0 0% 90%);
-
-  --primary: var(--color-blue-500);
-  --primary-foreground: hsl(0 0% 100%);
-
-  --secondary: hsl(0 0% 15%);
-  --secondary-foreground: hsl(0 0% 90%);
-
-  --muted: hsl(0 0% 15%);
-  --muted-foreground: hsl(0 0% 62%);
-
-  --accent: hsl(0 0% 15%);
-  --accent-foreground: hsl(0 0% 90%);
-
-  --destructive: hsl(0 62% 40%);
-  --destructive-foreground: hsl(0 0% 100%);
-
-  --success: hsl(142 71% 35%);
-  --success-foreground: hsl(0 0% 100%);
-
-  --warning: hsl(38 92% 40%);
-  --warning-foreground: hsl(0 0% 100%);
-
-  --info: hsl(221 83% 53%);
-  --info-foreground: hsl(0 0% 100%);
-
-  --border: hsl(0 0% 18%);
-  --input: hsl(0 0% 18%);
-  --ring: var(--color-blue-500);
-
-  /* Sidebar */
-  --sidebar: hsl(0 0% 8%);
-  --sidebar-foreground: hsl(0 0% 75%);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(0 0% 14%);
-  --sidebar-accent-foreground: hsl(0 0% 90%);
-  --sidebar-border: hsl(0 0% 16%);
-  --sidebar-ring: var(--color-blue-500);
-
-  /* Logo (dark) – already defined */
-  --logo-back: 262.1 83.3% 57.8%;
-  --logo-front: 263.4 70% 50.4%;
-
-  /* Charts */
-  --chart-1: var(--color-blue-500);
-  --chart-2: hsl(142 71% 35%);
-  --chart-3: hsl(221 83% 53%);
-  --chart-4: hsl(38 92% 40%);
-  --chart-5: hsl(0 62% 40%);
-
-  /* Code */
-  --code: hsl(0 0% 13%);
-  --code-foreground: hsl(0 0% 90%);
-  --code-highlight: hsl(0 0% 16%);
+  --background: color-mix(
+    in srgb,
+    var(--color-neutral-950) 95%,
+    var(--color-white)
+  );
+  --foreground: var(--color-neutral-100);
+  --card: color-mix(in srgb, var(--background) 98%, var(--color-white));
+  --card-foreground: var(--color-neutral-100);
+  --popover: color-mix(in srgb, var(--background) 98%, var(--color-white));
+  --popover-foreground: var(--color-neutral-100);
+  --primary: var(--color-sky-600);
+  --primary-foreground: var(--color-neutral-50);
+  --secondary: --alpha(var(--color-white) / 4%);
+  --secondary-foreground: var(--color-neutral-100);
+  --muted: --alpha(var(--color-white) / 4%);
+  --muted-foreground: color-mix(
+    in srgb,
+    var(--color-neutral-500) 90%,
+    var(--color-white)
+  );
+  --accent: --alpha(var(--color-white) / 4%);
+  --accent-foreground: var(--color-neutral-100);
+  --destructive: color-mix(
+    in srgb,
+    var(--color-red-500) 90%,
+    var(--color-white)
+  );
+  --destructive-foreground: var(--color-red-400);
+  --info: var(--color-blue-500);
+  --info-foreground: var(--color-blue-400);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-400);
+  --warning: var(--color-amber-500);
+  --warning-foreground: var(--color-amber-400);
+  --border: --alpha(var(--color-white) / 6%);
+  --input: --alpha(var(--color-white) / 8%);
+  --ring: var(--color-neutral-500);
+  --sidebar: color-mix(
+    in srgb,
+    var(--color-neutral-950) 97%,
+    var(--color-white)
+  );
+  --sidebar-foreground: color-mix(
+    in srgb,
+    var(--color-neutral-100) 64%,
+    var(--sidebar)
+  );
+  --sidebar-primary: var(--color-neutral-100);
+  --sidebar-primary-foreground: var(--color-neutral-800);
+  --sidebar-accent: --alpha(var(--color-white) / 4%);
+  --sidebar-accent-foreground: var(--color-neutral-100);
+  --sidebar-border: --alpha(var(--color-white) / 5%);
+  --sidebar-ring: var(--color-neutral-400);
 }
 
 /* The rest of the styles remain unchanged */
@@ -261,6 +277,7 @@ body {
   * {
     border-color: var(--border);
     outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+    corner-shape: squircle;
   }
 
   body {
@@ -271,6 +288,7 @@ body {
   }
 
   html {
+    
     overflow: hidden !important;
     height: 100% !important;
   }

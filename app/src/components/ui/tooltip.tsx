@@ -7,24 +7,8 @@ import { cn } from "@/lib/utils";
 export const TooltipCreateHandle: typeof TooltipPrimitive.createHandle =
   TooltipPrimitive.createHandle;
 
-type TooltipProviderProps = React.ComponentProps<typeof TooltipPrimitive.Provider> & {
-  delayDuration?: number;
-  closeDelayDuration?: number;
-};
-
-export function TooltipProvider({
-  delayDuration,
-  closeDelayDuration,
-  ...props
-}: TooltipProviderProps): React.ReactElement {
-  return (
-    <TooltipPrimitive.Provider
-      {...props}
-      delay={delayDuration ?? props.delay}
-      closeDelay={closeDelayDuration ?? props.closeDelay}
-    />
-  );
-}
+export const TooltipProvider: typeof TooltipPrimitive.Provider =
+  TooltipPrimitive.Provider;
 
 export const Tooltip: typeof TooltipPrimitive.Root = TooltipPrimitive.Root;
 

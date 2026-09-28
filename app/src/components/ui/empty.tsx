@@ -52,7 +52,6 @@ export function EmptyHeader({
 export function EmptyMedia({
   className,
   variant = "default",
-  children,
   ...props
 }: React.ComponentProps<"div"> &
   VariantProps<typeof emptyMediaVariants>): React.ReactElement {
@@ -61,28 +60,30 @@ export function EmptyMedia({
       className={cn("relative mb-6", className)}
       data-slot="empty-media"
       data-variant={variant}
-      {...props} // Spread standard HTML props ONLY on the outer wrapper
+      {...props}
     >
       {variant === "icon" && (
         <>
           <div
             aria-hidden="true"
             className={cn(
-              emptyMediaVariants({ variant }), // Do not spread outer className here
+              emptyMediaVariants({ className, variant }),
               "pointer-events-none absolute bottom-px origin-bottom-left -translate-x-0.5 -rotate-10 scale-84 shadow-none",
             )}
           />
           <div
             aria-hidden="true"
             className={cn(
-              emptyMediaVariants({ variant }), // Do not spread outer className here
+              emptyMediaVariants({ className, variant }),
               "pointer-events-none absolute bottom-px origin-bottom-right translate-x-0.5 rotate-10 scale-84 shadow-none",
             )}
           />
         </>
       )}
-      {/* Inner media container ONLY renders the children */}
-      <div className={cn(emptyMediaVariants({ variant }))}>{children}</div>
+      <div
+        className={cn(emptyMediaVariants({ className, variant }))}
+        {...props}
+      />
     </div>
   );
 }
@@ -93,7 +94,7 @@ export function EmptyTitle({
 }: React.ComponentProps<"div">): React.ReactElement {
   return (
     <div
-      className={cn(" font-semibold text-xl", className)}
+      className={cn("font-heading font-semibold text-xl", className)}
       data-slot="empty-title"
       {...props}
     />
@@ -105,7 +106,7 @@ export function EmptyDescription({
   ...props
 }: React.ComponentProps<"p">): React.ReactElement {
   return (
-    <p // FIX: Changed from div to p to match ComponentProps<"p">
+    <div
       className={cn(
         "text-muted-foreground text-sm [&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4 [[data-slot=empty-title]+&]:mt-1",
         className,
