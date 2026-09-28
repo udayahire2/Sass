@@ -174,3 +174,5 @@ Move uploads to object storage:
 - [ ] Add lifecycle policy for deleted/orphaned files.
 - [ ] Add backup and restore process.
 - [ ] Add CDN caching for public files.
+- [ ] Fix upload orphaned files — if DB update fails after Multer saves file, cleanup the orphaned file.
+- [ ] Validate file content via magic bytes, not just extension.

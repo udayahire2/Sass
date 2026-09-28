@@ -50,6 +50,10 @@ The current implementation supports these major modules:
 | Profile | Implemented profile editing, avatar crop/upload, uploads, bookmarks, and upload form. | Students, faculty |
 | Notes | Implemented Notion-style notes workspace with metadata, sidebar, trash, favorites, covers, and editor themes. | Students |
 | Platform feedback | Implemented feedback submission and admin management. | All users, admin |
+| Branch management | Implemented dynamic branch creation/editing with status and ordering. | Admin |
+| Topic progress | Implemented per-topic progress tracking with time spent. | Students |
+| Search | Implemented basic search page with SQL LIKE queries. | All users |
+| Study content | Implemented community content upload (study stock, imp questions, lecture notes, quizzes). | Students, faculty |
 
 ## Current Product Architecture Summary
 
@@ -58,7 +62,7 @@ NMU Study Hub is a client-server application:
 - Frontend: React 19, TypeScript, Vite, React Router, Tailwind CSS 4.
 - Backend: Node.js, Express 5, Zod, JWT, Multer, Helmet, CORS.
 - Database: SQLite through Node `node:sqlite` `DatabaseSync`.
-- Cache: Redis when configured, in-memory fallback otherwise.
+- Cache: Redis when configured (ioredis installed), in-memory fallback otherwise.
 - Storage: local filesystem uploads under `backend/uploads`.
 - Email: table-backed jobs plus Nodemailer delivery when SMTP is configured.
 
@@ -101,6 +105,11 @@ NMU Study Hub is a client-server application:
 - Upload and file metadata are captured.
 - Notes module gives users a retention tool, not only a browsing tool.
 - Refresh-token backend is more advanced than many early-stage student apps.
+- Full admin CRUD for subjects, units, topics, and branches.
+- Student topic progress tracking with time measurement.
+- Dynamic avatar system with deterministic SVG defaults.
+- Tiptap rich text editor for notes with slash commands and bubble toolbar.
+- Comprehensive migration system with 16 incremental migrations.
 
 ## Product Weaknesses Before Launch
 
@@ -111,5 +120,10 @@ NMU Study Hub is a client-server application:
 - Search and pagination are not ready for large datasets.
 - Some UI surfaces are incomplete or inconsistent.
 - Legacy code remains in the repository and should be cleaned before launch.
+- Dead Mongoose code in src/models/ and seeder.js creates confusion.
+- Rate limiter in-memory Map has no garbage collection (memory leak).
+- React Query installed but unused — manual useEffect fetching everywhere.
+- No route-level code splitting increases initial bundle size.
+- Cross-tab auth sync only works in same window.
 
 See [09-improvement-plan.md](./09-improvement-plan.md) and [10-production-readiness-launch-plan.md](./10-production-readiness-launch-plan.md) for the complete audit and launch checklist.

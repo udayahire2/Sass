@@ -61,6 +61,8 @@ flowchart LR
 | Profile | `ProfilePage`, `FacultyProfile` | User profile, avatar, uploads, bookmarks. |
 | Admin | `layouts/AdminLayout.tsx`, `pages/admin` | Admin dashboard and management screens. |
 | Faculty | `layouts/FacultyLayout.tsx`, `pages/faculty` | Faculty dashboard, profile, upload workflow. |
+| Student dashboard | `layouts/StudentLayout.tsx`, `pages/student` | Student dashboard, profile, uploads, bookmarks, notes. |
+| Progress | `hooks/use-study-materials.ts` | Topic progress tracking and time spent. |
 
 ### Frontend API Layer
 
@@ -73,6 +75,7 @@ flowchart LR
 | `faculty-service.ts` | Faculty stats and feedback. |
 | `feedback-service.ts` | Platform feedback. |
 | `admin-service.ts` | Admin stats/profile. |
+| `content-service.ts` | Study content upload/list/delete. |
 
 ## Backend Architecture
 
@@ -125,6 +128,9 @@ Launch note: static resource/syllabus serving is convenient, but private or pend
 | `/api/v1/subjects` | `subjectRoutes.js` | Subjects by branch/semester. |
 | `/api/v1/subjects/:id/units` | `subjectRoutes.js` | Units and nested topics. |
 | `/api/v1/topics/:id` | `subjectRoutes.js` | Topic view/update. |
+| `/api/v1/notes` | `notesRoutes.js` | Personal student notes CRUD. |
+| `/api/v1/progress` | `progressRoutes.js` | Student topic progress tracking. |
+| `/api/v1/branches` | `branchRoutes.js` | Dynamic branch management. |
 | `/api/v1/health` | `routes/index.js` | Health check. |
 
 ## Runtime Startup Flow
@@ -193,3 +199,6 @@ Production target:
 | Legacy backend files remain | Confuses maintainers and deployment. | Remove or archive legacy code. |
 | In-memory limiter/cache fallback | Not distributed. | Use Redis for production. |
 | Build chunk size warnings | Slower first load. | Code split editor/admin/shiki-heavy routes. |
+| Rate limiter memory leak | In-memory Map never purges expired entries → OOM crash in production. | Add TTL cleanup or use Redis-backed limiter. |
+| Dead Mongoose code in src/models | Confuses developers about active ORM. Mongoose dependency is 4MB+ unused. | Delete models folder and remove mongoose from package.json. |
+| React Query installed but unused | @tanstack/react-query is in package.json but all data fetching uses manual useEffect. No caching/dedup/background refetch. | Migrate to useQuery/useMutation for data fetching. |

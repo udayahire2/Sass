@@ -38,7 +38,7 @@ This document separates what is already implemented from what is partial or miss
 | Subject listing | Implemented | API-driven from SQLite. |
 | Unit and topic listing | Implemented | API-driven from SQLite. |
 | Topic Markdown viewing | Implemented | Topic viewer renders content. |
-| Topic edit for admin | Partial | Route exists for topic edit, but full subject/unit/topic CRUD is missing. |
+| Topic and content management | Implemented | Full admin CRUD for subjects, units, topics, and topic content (Markdown + Tiptap JSON). |
 | Academic seed import | Implemented | `backend/src/seeds/seedSubjects.js`. |
 | Bulk import tools | Partial | Seed script exists, no admin import UI. |
 
@@ -87,11 +87,14 @@ This document separates what is already implemented from what is partial or miss
 | Requirement | Status | Notes |
 | --- | --- | --- |
 | Admin dashboard | Implemented | Basic stats. |
+| Branch management | Implemented | Dynamic branch creation, ordering, status (Available/Coming Soon). |
 | Student management | Implemented | Search/list/delete. |
+| Student dashboard | Implemented | Dashboard with uploads, bookmarks, add content, notes. |
 | Faculty approval | Implemented | Approve/revoke. |
 | Faculty dashboard | Implemented | Stats, uploads, feedback. |
 | Material feedback | Implemented | One feedback per reviewer/material. |
 | Platform feedback | Implemented | Submit and admin manage. |
+| Topic progress tracking | Implemented | Students track per-topic progress with time spent. |
 | Admin notification center | Missing | Bell icon is visual only. |
 | Admin global search | Missing | Search input is visual only. |
 
@@ -131,7 +134,7 @@ This document separates what is already implemented from what is partial or miss
 | Admin stats cache | Implemented | 60 second cache. |
 | Redis support | Partial | Optional for cache, not rate limiter or queue. |
 | Pagination | Partial | Some admin endpoints paginate; many public/content endpoints do not. |
-| Code splitting | Partial | Vite build warns about large chunks. |
+| Code splitting | Missing | No React.lazy() route-level splitting. All pages statically imported in router.tsx. |
 | Search indexing | Missing | No full-text search index. |
 
 ### Maintainability
@@ -144,6 +147,7 @@ This document separates what is already implemented from what is partial or miss
 | Documentation | Improved | `/docs` rewritten in this audit. |
 | Automated tests | Missing | Backend test runner exists, but test count is 0. |
 | Legacy cleanup | Missing | `app/backend` and Mongoose model files remain. |
+| React Query adoption | Missing | @tanstack/react-query installed but unused. Manual useEffect fetching throughout. |
 
 ## Production Requirement Summary
 
@@ -158,3 +162,5 @@ The minimum production release should not launch until these are complete:
 7. Backups and restore runbook.
 8. Monitoring and error tracking.
 9. Pagination and server-side search for large lists.
+10. Delete dead Mongoose code from src/models/ and remove mongoose dependency.
+11. Fix rate limiter memory leak.

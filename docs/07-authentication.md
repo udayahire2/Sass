@@ -185,6 +185,8 @@ The latest implementation update added:
 | No MFA/admin step-up | Admin accounts are high risk. | Add optional MFA or step-up verification for admin actions. |
 | No audit log | Admin actions are not traceable. | Add audit table for admin moderation/user actions. |
 | Arbitrary preferences object | Potential bad data and future abuse. | Validate allowed preference keys. |
+| Rate limiter memory leak | In-memory Map in rateLimit.js never cleans expired entries, leading to OOM crash. | Add TTL-based cleanup interval or use Redis rate limiting. |
+| Cross-tab auth desync | useLocalAuth custom 'auth-change' event only works in current window. Native 'storage' event needed for cross-tab. | Add 'storage' event listener alongside custom event. |
 
 ## Production Auth Checklist
 
@@ -196,3 +198,6 @@ The latest implementation update added:
 - [ ] Add admin action audit logging.
 - [ ] Add tests for register, OTP, login, refresh reuse, logout, and role authorization.
 - [ ] Verify production cookie domain, CORS origins, and HTTPS.
+- [ ] Fix rate limiter memory leak by adding expired entry cleanup.
+- [ ] Add cross-tab auth synchronization using native 'storage' event.
+- [ ] Delete dead Mongoose code from backend/src/models.

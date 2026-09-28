@@ -41,6 +41,10 @@ Configured in `backend/src/config/database.js`:
 | `010_student_notes` | Adds personal student notes. |
 | `011_user_preferences` | Adds JSON preferences to users. |
 | `012_student_notes_metadata` | Adds note icons, covers, favorites, trash, page layout, and parent relationships. |
+| `013_topic_metadata` | Adds description, estimated_time, and summary_points to topics. |
+| `014_schema_improvements` | Adds order_index to units/topics, subject_id to student_notes, creates user_topic_progress table. |
+| `015_branch_subject_management` | Creates branches table with default data, adds status/is_active/order_index to subjects and topics. |
+| `016_syllabus_types_support` | Extends syllabus with syllabus_type, program, subject_name, learning_outcomes, textbooks, assessment_scheme, references_list. |
 
 ## Entity Relationship Diagram
 
@@ -54,17 +58,23 @@ erDiagram
     USERS ||--o{ REFRESH_TOKENS : owns
     USERS ||--o{ EMAIL_OTPS : receives
     USERS ||--o{ STUDENT_NOTES : owns
+    USERS ||--o{ STUDY_CONTENT : uploads
+    USERS ||--o{ USER_TOPIC_PROGRESS : tracks
 
     SUBJECTS ||--o{ UNITS : contains
     UNITS ||--o{ TOPICS : contains
     SUBJECTS ||--o{ SYLLABI : maps_to
     SUBJECTS ||--o{ RESOURCES : classifies
     SUBJECTS ||--o{ STUDY_MATERIALS : classifies
+    SUBJECTS ||--o{ STUDENT_NOTES : related_to
 
     STUDY_MATERIALS ||--o{ BOOKMARKS : bookmarked_by
     STUDY_MATERIALS ||--o{ MATERIAL_FEEDBACK : reviewed_by
     TOPICS ||--o{ STUDENT_NOTES : linked_to
+    TOPICS ||--o{ USER_TOPIC_PROGRESS : tracked_in
     STUDENT_NOTES ||--o{ STUDENT_NOTES : parent_child
+    
+    BRANCHES ||--o{ SUBJECTS : conceptually_links
 ```
 
 ## Core Tables
@@ -262,6 +272,50 @@ Current behavior:
 - Long-running server starts the worker loop.
 - Serverless entry point does not run a long-lived worker.
 
+### `branches`
+
+Manages dynamic academic branches.
+
+Important columns:
+
+- `id` — TEXT PRIMARY KEY
+- `name` — TEXT NOT NULL UNIQUE  
+- `status` — TEXT DEFAULT 'Available' CHECK('Available', 'Coming Soon')
+- `is_active` — INTEGER DEFAULT 1
+- `order_index` — INTEGER DEFAULT 0
+- `created_at`, `updated_at`, `deleted_at`
+
+### `user_topic_progress`
+
+Tracks student learning progress per topic.
+
+Important columns:
+
+- `id` — TEXT PRIMARY KEY
+- `user_id` — FK → users, NOT NULL
+- `topic_id` — FK → topics, NOT NULL
+- `status` — TEXT CHECK('Not_Started', 'In_Progress', 'Completed') DEFAULT 'Not_Started'
+- `time_spent_seconds` — INTEGER DEFAULT 0
+- `last_accessed_at` — TEXT
+- `created_at`, `updated_at`
+- UNIQUE(user_id, topic_id)
+
+### `study_content`
+
+Stores community-uploaded content (study stock, imp questions, lecture notes, practice quizzes).
+
+Important columns:
+
+- `id` — TEXT PRIMARY KEY
+- `title` — TEXT NOT NULL
+- `type` — TEXT CHECK('study_stock', 'imp_questions', 'lecture_notes', 'practice_quizzes')
+- `uploader_role` — TEXT CHECK('student', 'faculty', 'admin')
+- `uploader_user_id` — FK → users
+- `uploader_name` — TEXT NOT NULL
+- `file_url` — TEXT NOT NULL
+- `description`, `resource_format`, `original_filename`, `mime_type`, `file_size`
+- `created_at`, `updated_at`, `deleted_at`
+
 ## Index Coverage
 
 The schema includes indexes for:
@@ -289,3 +343,6 @@ The schema includes indexes for:
 | Synchronous DB API | Blocks Node event loop during heavy queries. | Add pagination and consider async DB/Postgres for scale. |
 | JSON preferences | No server-side schema. | Validate allowed preference keys. |
 | Note tree cycles | Potential UI recursion issues. | Add cycle prevention before updating `parent_id`. |
+| Rate limiter memory leak | In-memory rate limiter Map never cleans up expired entries → OOM crash risk. | Add TTL-based cleanup interval or use Redis. |
+| Job queue race condition | SELECT then UPDATE without transaction allows duplicate job processing. | Use atomic UPDATE...RETURNING query. |
+| Dead Mongoose models | `src/models/` contains unused MongoDB models causing confusion. | Delete entire models folder and mongoose dependency. |

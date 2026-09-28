@@ -40,6 +40,9 @@ Students can:
 - View personal upload history.
 - Submit platform feedback.
 - Create and manage notes.
+- Track topic learning progress (time spent, completion status).
+- Access student dashboard with unified view of uploads, bookmarks, and notes.
+- Add study content (study stock, imp questions, lecture notes).
 
 Students cannot:
 
@@ -104,6 +107,9 @@ Admins can:
 - Approve or revoke faculty access.
 - Review and manage platform feedback.
 - Edit topics through the topic editor route.
+- Create, update, and delete subjects, units, and topics (full CRUD).
+- Create, update, and delete branches with status and ordering.
+- Manage study content types (IMP Questions, Sample Papers).
 
 Admins cannot:
 
@@ -138,6 +144,9 @@ Admins cannot:
 | Approve study material | No | No | Yes |
 | Manage syllabus/resources | No | No | Yes |
 | Manage students/faculty | No | No | Yes |
+| Track topic progress | Yes | No | No |
+| Manage branches | No | No | Yes |
+| CRUD subjects/units/topics | No | No | Yes |
 
 ## Route Access Notes
 
@@ -148,6 +157,8 @@ Admins cannot:
 | `/dashboard/faculty/*` | `FacultyLayout` checks local user state; backend APIs enforce role and approval. |
 | `/notes` | Requires authenticated API calls; frontend route itself is not wrapped by a dedicated guard. |
 | `/add-study-content` | UI is reachable; backend enforces auth and faculty approval. |
+| `/dashboard/student/*` | `StudentLayout` checks local user state; backend APIs enforce auth. |
+| `/search` | Public route, accessible to all users. |
 
 ## Launch Recommendation
 

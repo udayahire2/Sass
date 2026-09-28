@@ -23,6 +23,13 @@ These are useful hardening steps, not a complete production security program.
 | Local file storage is central to flows | Uploads are not durable in serverless/multi-instance deployment. | Move files to object storage. |
 | SQLite sync database access | Simple locally but blocks Node event loop for heavy queries. | Add pagination now; evaluate Postgres for scale. |
 | Frontend route guards rely on localStorage | UI route access can be stale until API rejects. | Add server-verified route guard with refresh support. |
+| Dead Mongoose code in src/models/ | Entire models folder contains unused MongoDB schemas. seeder.js connects to MONGO_URI. | Delete src/models/, seeder.js, and remove mongoose from package.json. |
+| Rate limiter memory leak | In-memory Map in rateLimit.js never cleans expired entries → OOM crash. | Add setInterval cleanup or switch to Redis rate limiting. |
+| Job queue race condition | SELECT then UPDATE without transaction allows duplicate job processing in multi-instance. | Use atomic UPDATE...RETURNING query. |
+| React Query unused | @tanstack/react-query installed but all fetching uses manual useEffect. | Migrate data fetching to useQuery/useMutation. |
+| No route code splitting | All pages statically imported in router.tsx, bloating initial bundle. | Add React.lazy() for admin, faculty, notes, editor routes. |
+| Cross-tab auth sync bug | useLocalAuth uses custom 'auth-change' event that only works in same window. | Also listen to native 'storage' event for cross-tab sync. |
+| Upload orphaned files | If DB update fails after Multer saves file, new file becomes orphaned. | Add try-catch cleanup in avatar/upload controllers. |
 
 ## Existing Issues
 
@@ -153,6 +160,9 @@ These are useful hardening steps, not a complete production security program.
 5. Database backup/restore plan.
 6. Real email delivery and worker deployment.
 7. Security review for token storage and file access.
+8. Delete dead Mongoose code and unused dependencies.
+9. Fix rate limiter memory leak.
+10. Fix job queue race condition.
 
 ### P1 - Launch Quality
 

@@ -245,12 +245,49 @@ Known gaps:
 
 ## Academic Content: `/subjects` And `/topics`
 
+Full admin CRUD for subjects, units, and topics is now implemented, alongside public viewing routes.
+
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/subjects?branch=Computer&semester=4` | Public | Fetch subjects. |
 | `GET` | `/subjects/:id/units` | Public | Fetch units and nested topics. |
 | `GET` | `/topics/:id` | Public | Fetch one topic. |
 | `PUT` | `/topics/:id` | Admin | Update topic. |
+
+## Subject/Unit/Topic Admin CRUD: `/subjects`, `/units`, `/topics`
+
+| Method | Endpoint | Auth | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/subjects` | Admin | Create a new subject. |
+| `PUT` | `/subjects/:id` | Admin | Update subject details. |
+| `DELETE` | `/subjects/:id` | Admin | Soft-delete subject. |
+| `POST` | `/subjects/:id/units` | Admin | Create a unit under a subject. |
+| `PUT` | `/units/:id` | Admin | Update unit details. |
+| `DELETE` | `/units/:id` | Admin | Soft-delete unit. |
+| `POST` | `/units/:id/topics` | Admin | Create a topic under a unit. |
+| `DELETE` | `/topics/:id` | Admin | Soft-delete topic. |
+
+## Progress Tracking: `/progress`
+
+All endpoints require authentication.
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/progress` | Get all topic progress for current user. |
+| `GET` | `/progress/topic/:topicId` | Get progress for a specific topic. |
+| `PUT` | `/progress/topic/:topicId` | Update progress (status, time_spent_seconds). |
+
+Progress status values: `Not_Started`, `In_Progress`, `Completed`.
+
+## Branch Management: `/branches`
+
+| Method | Endpoint | Auth | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/branches` | Public | List all active branches. |
+| `GET` | `/branches/:id` | Public | Get one branch. |
+| `POST` | `/branches` | Admin | Create a new branch. |
+| `PUT` | `/branches/:id` | Admin | Update branch details (name, status, order). |
+| `DELETE` | `/branches/:id` | Admin | Delete a branch. |
 
 ## Content: `/content`
 

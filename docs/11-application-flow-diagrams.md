@@ -23,7 +23,7 @@ flowchart TD
     Start[User opens app] --> HasSession{Stored session?}
     HasSession -->|No| Public[Public routes: Home, Resources, Study Stock, Search, Login, Signup]
     HasSession -->|Yes| Role{Role Guard}
-    Role -->|Student| StudentHome[/dashboard/student: Dashboard, Profile, Uploads, Add Content, Bookmarks, Notes]
+    Role -->|Student| StudentHome[/dashboard/student: Overview, Profile, Uploads, Add Content, Bookmarks, Notes]
     Role -->|Faculty| FacultyDash[/dashboard/faculty: Dashboard, Upload, Profile]
     Role -->|Admin| AdminDash[/admin: Dashboard, Syllabus, Resources, IMP Questions, Sample Papers, Users, Approvals, Feedback]
 ```
@@ -131,6 +131,23 @@ flowchart LR
     Delete --> Profile
 ```
 
+## Student Topic Progress Flow
+
+```mermaid
+flowchart TD
+    Student[Student opens topic] --> Fetch[GET /progress/topic/:topicId]
+    Fetch --> Status{Current status?}
+    Status -->|Not_Started| Start[Set status = In_Progress]
+    Status -->|In_Progress| Continue[Continue tracking time]
+    Status -->|Completed| Review[Review mode]
+    Start --> Timer[Track time_spent_seconds]
+    Continue --> Timer
+    Timer --> Save[PUT /progress/topic/:topicId]
+    Save --> DB[(user_topic_progress)]
+    Student --> Complete[Mark as Completed]
+    Complete --> Save
+```
+
 ## Notes Workspace Flow
 
 ```mermaid
@@ -154,6 +171,23 @@ Current notes risks:
 - No parent-cycle prevention.
 - Note payload validation needs tightening.
 
+## Student Dashboard Flow
+
+```mermaid
+flowchart TD
+    StudentDash[/dashboard/student] --> Overview[Student Dashboard Overview]
+    Overview --> Profile[/dashboard/student/profile]
+    Overview --> Uploads[/dashboard/student/uploads]
+    Overview --> AddContent[/dashboard/student/add-content]
+    Overview --> Bookmarks[/dashboard/student/bookmarks]
+    Overview --> Notes[/dashboard/student/notes]
+    Profile --> AvatarUpload[Upload/Crop Avatar]
+    Profile --> EditDetails[Edit Name, Branch, Year]
+    Uploads --> MyMaterials[GET /study-materials/my]
+    AddContent --> UploadForm[POST /study-materials or /content]
+    Bookmarks --> BookmarkList[GET /study-materials/bookmarks]
+```
+
 ## Admin Management Flow
 
 ```mermaid
@@ -168,6 +202,22 @@ flowchart TD
     Admin --> SamplePapers[Manage /resources category=Sample Papers]
     Admin --> Feedback[Manage /feedback]
     Admin --> Topics[Manage /topics/:id/edit]
+```
+
+## Branch Management Flow
+
+```mermaid
+flowchart TD
+    Admin[Admin opens branch manager] --> List[GET /branches]
+    List --> View[View all branches with status]
+    Admin --> Create[POST /branches]
+    Create --> Name[Set name, status, order_index]
+    Name --> DB[(branches table)]
+    Admin --> Update[PUT /branches/:id]
+    Update --> Toggle[Toggle Available/Coming Soon]
+    Toggle --> DB
+    Admin --> Delete[DELETE /branches/:id]
+    Delete --> DB
 ```
 
 ## File Access Flow

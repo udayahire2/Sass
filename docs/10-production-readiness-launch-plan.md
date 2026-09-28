@@ -60,6 +60,8 @@ This document is the production-readiness checklist and execution plan.
   - Dialog labels.
   - Color contrast.
   - Screen reader names.
+- Migrate data fetching from manual useEffect to @tanstack/react-query (already installed).
+- Fix cross-tab auth synchronization (add native 'storage' event listener).
 
 ### Backend
 
@@ -74,6 +76,12 @@ This document is the production-readiness checklist and execution plan.
 - Replace in-memory limiter with Redis-backed limiter.
 - Add file scanning and MIME sniffing.
 - Add OpenAPI spec.
+- Delete dead Mongoose code from `backend/src/models/` and `backend/src/seeder.js`.
+- Remove `mongoose` from `package.json` dependencies.
+- Fix rate limiter memory leak in `rateLimit.js`.
+- Fix job queue race condition for multi-instance safety.
+- Fix upload orphaned file cleanup.
+- Migrate manual useEffect data fetching to React Query.
 
 ### Database
 
@@ -151,6 +159,10 @@ This document is the production-readiness checklist and execution plan.
 - [ ] Upload MIME sniffing added.
 - [ ] Dependency audit run.
 - [ ] Secrets not committed.
+- [ ] Rate limiter memory leak fixed.
+- [ ] Job queue race condition fixed.
+- [ ] Dead Mongoose code removed.
+- [ ] Upload orphaned file cleanup added.
 
 ### Testing
 
@@ -182,6 +194,7 @@ This document is the production-readiness checklist and execution plan.
   - Faculty pages.
   - Markdown/code highlighting.
 - Cache public academic content with safe TTLs.
+- Adopt React Query for data fetching with automatic caching and deduplication.
 
 ### Medium Term
 

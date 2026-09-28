@@ -1,6 +1,6 @@
 # NMU Study Hub Documentation
 
-Updated: 2026-05-27
+Updated: 2026-08-18
 
 This folder is the technical and product documentation source of truth for launching NMU Study Hub with real users. It reflects the current React frontend, Express backend, SQLite database, upload flows, and the production gaps found during the latest codebase audit.
 
@@ -19,7 +19,6 @@ This folder is the technical and product documentation source of truth for launc
 | 9 | [09-improvement-plan.md](./09-improvement-plan.md) | Current issues, flow problems, UI/UX gaps, backend limitations, security risks, and improvement plan. |
 | 10 | [10-production-readiness-launch-plan.md](./10-production-readiness-launch-plan.md) | Remaining work to launch NMU Study Hub to real users. |
 | 11 | [11-application-flow-diagrams.md](./11-application-flow-diagrams.md) | Mermaid flow diagrams for product, auth, upload, notes, admin, and deployment flows. |
-| 12 | [12-exam-pattern-intelligence.md](./12-exam-pattern-intelligence.md) | Exam-Pattern Intelligence workflow, formulas, database schema, and Mermaid diagrams. |
 
 ## Current Runtime Source Of Truth
 
@@ -31,6 +30,9 @@ This folder is the technical and product documentation source of truth for launc
 | Backend API | `backend/src` |
 | Backend entry point | `backend/src/server.js` |
 | Serverless entry point | `backend/api/index.js` |
+| Notes CRUD routes | `backend/src/routes/notesRoutes.js` |
+| Topic progress routes | `backend/src/routes/progressRoutes.js` |
+| Branch management routes | `backend/src/routes/branchRoutes.js` |
 | Database migrations | `backend/migrations` |
 | Academic seed source | `app/src/data/study-data.ts` |
 | Academic seed script | `backend/src/seeds/seedSubjects.js` |
@@ -47,6 +49,11 @@ NMU Study Hub already has the core shape of a real academic platform:
 - API-driven subject, unit, and topic browsing.
 - User profile, avatar upload, bookmarks, feedback, and notes.
 - SQLite migrations, JWT auth, refresh-token rotation, upload validation, and optional Redis cache.
+- Dynamic branch management with admin CRUD.
+- Full subject/unit/topic admin CRUD.
+- Student topic progress tracking with time spent.
+- Notion-style rich text notes with Tiptap editor.
+- Student dashboard with uploads, bookmarks, and notes.
 
 The platform is not yet production-ready because these areas still need work:
 
@@ -57,6 +64,10 @@ The platform is not yet production-ready because these areas still need work:
 - Search is mostly client-side and will not scale.
 - Deployment needs persistent database, backups, migrations policy, logging, monitoring, and email worker strategy.
 - UI still has unfinished and inconsistent areas such as placeholder search boxes, profile notes placeholder, and route guard edge cases.
+- Rate limiter has a memory leak (no garbage collection for expired IP entries).
+- Dead Mongoose code in `src/models/` creates confusion.
+- React Query installed but unused — manual useEffect fetching.
+- No route-level code splitting (React.lazy).
 
 ## Recent Implementation Hardening
 
@@ -67,6 +78,11 @@ The latest audit also applied small low-risk improvements:
 - Auth write and refresh endpoints now have in-memory IP rate limiting.
 - OTP values are no longer logged in production.
 - Code-block fallback rendering now escapes HTML before injecting fallback markup.
+- Full admin CRUD for subjects, units, and topics.
+- Dynamic branch management with status and ordering.
+- Student topic progress tracking (Not_Started → In_Progress → Completed).
+- Student notes metadata (icons, covers, favorites, trash, nesting).
+- Platform feedback system with admin review workflow.
 
 These fixes improve the current implementation, but production still needs distributed rate limiting, real SMTP or email provider delivery, and hardened token storage.
 
