@@ -142,12 +142,7 @@ export default function StudyStockPage() {
             </div>
           </div>
           {user && (
-            <Button asChild className="w-full sm:w-auto shadow-sm" variant="default">
-              <Link to="/dashboard/student/add-content">
-                <UploadCloud className="h-4 w-4 mr-2" />
-                Add Content
-              </Link>
-            </Button>
+            <Button render={<Link to="/dashboard/student/add-content" />} className="w-full sm:w-auto shadow-sm" variant="default"><UploadCloud className="h-4 w-4 mr-2" />Add Content</Button>
           )}
         </div>
 
@@ -316,17 +311,7 @@ export default function StudyStockPage() {
                     {/* Bottom Section: Primary Action */}
                     {href && (
                       <div className="mt-5 pt-4 border-t border-border/40 mt-auto">
-                        <Button 
-                          asChild 
-                          size="sm" 
-                          variant="secondary" 
-                          className="w-full group/btn sm:bg-transparent sm:hover:bg-muted"
-                        >
-                          <a href={href} target="_blank" rel="noreferrer">
-                            Open Resource
-                            <ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5 text-muted-foreground" />
-                          </a>
-                        </Button>
+                        <Button render={<a href={href} target="_blank" rel="noreferrer" />} size="sm" variant="secondary" className="w-full group/btn sm:bg-transparent sm:hover:bg-muted">Open Resource<ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5 text-muted-foreground" /></Button>
                       </div>
                     )}
                   </Card>
@@ -410,3 +395,4 @@ export default function StudyStockPage() {
     </PageContainer>
   );
 }
+

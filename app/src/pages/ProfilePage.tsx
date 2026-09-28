@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
@@ -909,16 +909,7 @@ export default function ProfilePage() {
                                   <Bookmark className="h-3.5 w-3.5 fill-current" />
                                 </Button>
                                 {href && (
-                                  <Button
-                                    asChild
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 border-border bg-background px-2 text-xs shadow-none hover:bg-muted/50"
-                                  >
-                                    <a href={href} target="_blank" rel="noreferrer">
-                                      Open <ExternalLink className="ml-1 h-3 w-3" />
-                                    </a>
-                                  </Button>
+                                  <Button render={<a href={href} target="_blank" rel="noreferrer" />} variant="outline" size="sm" className="h-7 border-border bg-background px-2 text-xs shadow-none hover:bg-muted/50">Open <ExternalLink className="ml-1 h-3 w-3" /></Button>
                                 )}
                               </div>
                             </div>
@@ -949,3 +940,4 @@ export default function ProfilePage() {
     </SidebarProvider>
   );
 }
+

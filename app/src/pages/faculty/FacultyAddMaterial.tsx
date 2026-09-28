@@ -131,9 +131,7 @@ export default function FacultyAddMaterial() {
               <AlertTitle>Sign in required</AlertTitle>
               <AlertDescription>
                 <span>Only signed-in users can submit study content.</span>
-                <Button asChild variant="outline" className="mt-3 w-fit rounded-md">
-                  <Link to="/login">Sign in</Link>
-                </Button>
+                <Button render={<Link to="/login" />} variant="outline" className="mt-3 w-fit rounded-md">Sign in</Button>
               </AlertDescription>
             </Alert>
           )}
@@ -285,3 +283,4 @@ export default function FacultyAddMaterial() {
     </div>
   );
 }
+

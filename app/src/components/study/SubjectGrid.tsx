@@ -27,9 +27,7 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button asChild variant="outline" className="rounded-full">
-            <Link to="/resources">Back to selection</Link>
-          </Button>
+          <Button render={<Link to="/resources" />} variant="outline" className="rounded-full">Back to selection</Button>
         </EmptyContent>
       </Empty>
     );
@@ -45,9 +43,7 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
             {branch} — Semester {semester} • {subjects.length} subject{subjects.length !== 1 ? "s" : ""} available
           </p>
         </div>
-        <Button asChild variant="outline" className="w-fit rounded-full text-xs">
-          <Link to="/resources">Change selection</Link>
-        </Button>
+        <Button render={<Link to="/resources" />} variant="outline" className="w-fit rounded-full text-xs">Change selection</Button>
       </div>
 
       {/* Card Grid */}
@@ -98,3 +94,4 @@ export function SubjectGrid({ subjects, branch, semester }: SubjectGridProps) {
     </section>
   );
 }
+

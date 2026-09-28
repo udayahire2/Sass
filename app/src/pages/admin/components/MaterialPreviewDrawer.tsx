@@ -110,16 +110,7 @@ export function MaterialPreviewDrawer({
             <FileText className="mx-auto h-8 w-8 text-muted-foreground/60" />
             <p className="text-xs font-medium truncate">{material.originalFilename || material.title}</p>
             {material.url ? (
-              <Button
-                variant="outline"
-                size="xs"
-                asChild
-                className="mt-1"
-              >
-                <a href={material.url} target="_blank" rel="noreferrer">
-                  Open File Document
-                </a>
-              </Button>
+              <Button render={<a href={material.url} target="_blank" rel="noreferrer" />} variant="outline" size="xs" className="mt-1">Open File Document</Button>
             ) : (
               <p className="text-[11px] text-muted-foreground italic">No direct file URL available</p>
             )}
@@ -156,3 +147,4 @@ export function MaterialPreviewDrawer({
     </Drawer>
   );
 }
+

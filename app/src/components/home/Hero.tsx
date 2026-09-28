@@ -67,7 +67,7 @@ export function Hero() {
           .filter(
             (item) =>
               item.title.toLowerCase().includes(lower) ||
-              item.code.toLowerCase().includes(lower) ||
+              (item.code && item.code.toLowerCase().includes(lower)) ||
               item.branch.toLowerCase().includes(lower)
           )
           .slice(0, 3)
@@ -77,7 +77,7 @@ export function Hero() {
             subtitle: `${item.code} • ${item.branch} (Sem ${item.semester})`,
             type: "syllabus",
             badge: "Syllabus",
-            navigateUrl: `/syllabus?search=${encodeURIComponent(item.code)}`,
+            navigateUrl: `/syllabus?search=${encodeURIComponent(item.code || "")}`,
           }));
 
         const matchedMaterials: SearchResultItem[] = (materialsData || [])
@@ -335,3 +335,4 @@ export function Hero() {
     </section>
   );
 }
+

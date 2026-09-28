@@ -110,7 +110,7 @@ export default function SyllabusManagerPage() {
   const filtered = syllabusList.filter(
     (item) =>
       item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.code.toLowerCase().includes(search.toLowerCase()) ||
+      (item.code && item.code.toLowerCase().includes(search.toLowerCase())) ||
       item.branch.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -336,3 +336,4 @@ export default function SyllabusManagerPage() {
     </div>
   );
 }
+

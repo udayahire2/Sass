@@ -112,12 +112,7 @@ export default function ResourceManagerPage({
                     </p>
                 </div>
                 <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
-                    <DialogTrigger asChild>
-                        <Button className="w-full md:w-auto">
-                            <Plus className="mr-2 h-4 w-4" />
-                            {addButtonLabel}
-                        </Button>
-                    </DialogTrigger>
+                    <DialogTrigger render={<Button className="w-full md:w-auto" />}><Plus className="mr-2 h-4 w-4" />{addButtonLabel}</DialogTrigger>
                     <DialogContent className="sm:max-w-[650px] p-0 flex flex-col overflow-hidden max-h-[90vh]">
                         <ScrollArea className="max-h-[90vh] w-full p-6 sm:p-8">
                             <DialogHeader className="pb-2">
@@ -239,3 +234,4 @@ export default function ResourceManagerPage({
         </div>
     );
 }
+

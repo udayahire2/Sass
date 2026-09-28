@@ -211,11 +211,7 @@ export default function SubjectDetailPage() {
       {/* Page Header */}
       <FrameHeader className="flex flex-row items-center justify-between w-full flex-wrap gap-2">
         <div className="flex items-center gap-4 flex-shrink-0">
-          <Button variant="outline" size="icon" asChild>
-            <Link to="/admin/subjects">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+          <Button render={<Link to="/admin/subjects" />} variant="outline" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
           <div>
             <FrameTitle>Subject Details</FrameTitle>
             <FrameDescription>
@@ -510,3 +506,4 @@ export default function SubjectDetailPage() {
     </Frame>
   );
 }
+

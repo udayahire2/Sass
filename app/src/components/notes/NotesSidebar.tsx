@@ -111,7 +111,7 @@ export function NotesSidebar({
     <Sidebar collapsible="icon">
       <SidebarHeader className="group-data-[collapsible=icon]:p-2">
         <div className="flex flex-col gap-2">
-          <TooltipProvider delayDuration={300}>
+          <TooltipProvider delay={300}>
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -224,7 +224,7 @@ export function NotesSidebar({
           <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">
             Private
           </SidebarGroupLabel>
-          <TooltipProvider delayDuration={300}>
+          <TooltipProvider delay={300}>
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -336,7 +336,7 @@ export function NotesSidebar({
                           <span>{note.title}</span>
                         </SidebarMenuButton>
                         <div className="absolute right-1 top-1 flex items-center gap-0.5 opacity-0 group-hover/trash-item:opacity-100 transition-opacity">
-                          <TooltipProvider delayDuration={300}>
+                          <TooltipProvider delay={300}>
                             <Tooltip>
                               <TooltipTrigger
                                 render={

@@ -87,7 +87,7 @@ export function NotesEditorHeader({
   return (
     <header className="relative z-40 flex h-11 shrink-0 select-none items-center justify-between border-b bg-background/80 px-2 backdrop-blur-sm">
       <div className="flex min-w-0 items-center gap-2">
-        <TooltipProvider delayDuration={300}>
+        <TooltipProvider delay={300}>
           <Tooltip>
             <TooltipTrigger
               render={
@@ -147,7 +147,7 @@ export function NotesEditorHeader({
           {isSaving ? "Saving..." : "Saved"}
         </span>
 
-        <TooltipProvider delayDuration={300}>
+        <TooltipProvider delay={300}>
           <Tooltip>
             <TooltipTrigger
               render={

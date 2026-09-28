@@ -173,17 +173,7 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
       <Card ref={heroRef} className="shadow-sm">
         <CardHeader>
           <div className="flex items-start gap-2">
-            <Button
-              asChild
-              variant="ghost"
-              size="icon"
-              className="rounded-full shrink-0 -ml-2"
-              aria-label="Back to subject"
-            >
-              <Link to={`/resources/${branch}/${semester}/${subjectId}`}>
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-            </Button>
+            <Button render={<Link to={`/resources/${branch}/${semester}/${subjectId}`} />} variant="ghost" size="icon" className="rounded-full shrink-0 -ml-2" aria-label="Back to subject"><ArrowLeft className="h-5 w-5" /></Button>
             <div className="min-w-0 flex-1 space-y-1">
               <CardTitle className="text-2xl sm:text-3xl font-bold tracking-tight">
                 {topic.title}
@@ -519,3 +509,4 @@ export const TopicViewer = ({ topic, subject, onComplete }: TopicViewerProps) =>
     </article>
   );
 };
+

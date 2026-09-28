@@ -99,7 +99,7 @@ export default function SyllabusPage() {
     const matchesSearch =
       !query ||
       item.title.toLowerCase().includes(query) ||
-      item.code.toLowerCase().includes(query);
+      (item.code && item.code.toLowerCase().includes(query));
     const matchesBranch = selectedBranch === "All" || item.branch === selectedBranch;
     const matchesTerm =
       selectedTerm === "All" ||
@@ -288,7 +288,7 @@ export default function SyllabusPage() {
           {viewItem && (
             <div className="space-y-6 py-2">
               <div className="grid gap-4 sm:grid-cols-2">
-                <InfoCard label="Course code" value={viewItem.code} />
+                <InfoCard label="Course code" value={viewItem.code || "N/A"} />
                 <InfoCard label="Credits" value={String(viewItem.credits)} />
                 <InfoCard label="Branch" value={viewItem.branch} />
                 <InfoCard label="Semester / Year" value={formatSyllabusTerm(viewItem)} />
@@ -309,15 +309,7 @@ export default function SyllabusPage() {
                     <CardDescription className="mb-4">
                       This syllabus item is stored as a file.
                     </CardDescription>
-                    <Button asChild>
-                      <a
-                        href={buildAssetUrl(viewItem.contentUrl, { syllabusId: viewItem.id || viewItem._id })}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Button variant="outline">Open Syllabus</Button>
-                      </a>
-                    </Button>
+                    <Button render={<a href={buildAssetUrl(viewItem.contentUrl, { syllabusId: viewItem.id || viewItem._id })} target="_blank" rel="noreferrer" />} variant="outline">Open Syllabus</Button>
                   </CardContent>
                 </Card>
               )}
@@ -345,3 +337,4 @@ function InfoCard({ label, value }: { label: string; value: string }) {
     </Card>
   );
 }
+

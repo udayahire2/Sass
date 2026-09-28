@@ -278,7 +278,7 @@ export function SidebarNoteItem({
               </MenuPopup>
             </Menu>
 
-            <TooltipProvider delayDuration={300}>
+            <TooltipProvider delay={300}>
               <Tooltip>
                 <TooltipTrigger
                   render={

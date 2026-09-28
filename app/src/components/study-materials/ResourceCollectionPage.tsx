@@ -185,11 +185,7 @@ export default function ResourceCollectionPage({
                   <span className="text-xs text-muted-foreground truncate">
                     By {resource.author}
                   </span>
-                  <Button asChild size="sm" className="shrink-0 rounded-lg">
-                    <a href={resource.url} target="_blank" rel="noreferrer">
-                      Open <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
-                    </a>
-                  </Button>
+                  <Button render={<a href={resource.url} target="_blank" rel="noreferrer" />} size="sm" className="shrink-0 rounded-lg">Open <ExternalLink className="ml-1.5 h-3.5 w-3.5" /></Button>
                 </div>
               </div>
             ))}
@@ -242,7 +238,7 @@ export default function ResourceCollectionPage({
                       </TableCell>
                       <TableCell className="text-right">
                         {/* asChild is used here to prevent invalid HTML (button wrapping an anchor) */}
-                        <Button asChild size="sm" variant="secondary" className="transition-all hover:bg-primary hover:text-primary-foreground">
+                        <Button  size="sm" variant="secondary" className="transition-all hover:bg-primary hover:text-primary-foreground">
                           <a href={resource.url} target="_blank" rel="noreferrer">
                             Open <ExternalLink className="ml-2 h-3.5 w-3.5" />
                           </a>
@@ -259,3 +255,4 @@ export default function ResourceCollectionPage({
     </PageContainer>
   );
 }
+

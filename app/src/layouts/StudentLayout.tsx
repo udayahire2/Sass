@@ -88,7 +88,7 @@ export default function StudentLayout() {
 
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Go to Homepage Pop Icon Button */}
-              <TooltipProvider delayDuration={150}>
+              <TooltipProvider delay={150}>
                 <Tooltip>
                   <TooltipTrigger
                     render={
